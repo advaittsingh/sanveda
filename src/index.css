@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "swiper/css";
+@import "swiper/css/pagination";
+@import "swiper/css/navigation";
+
+@theme {
+  --font-display: "Red Hat Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --color-primary: #041B4D;
+  --color-secondary: #0E4FA8;
+  --color-gold: #D4A437;
+  --color-gold-light: #F2C45A;
+  --color-accent: #FFB73A;
+  --color-cream: #FDF8F3;
+  --color-gray-bg: #F5F7FA;
+  --color-text: #1B1B1B;
+  --color-brand: #D4A437;
+  --color-brand-hover: #F2C45A;
+  --color-heading: #041B4D;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--color-text);
+  background: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.btn-primary {
+  background-color: #D4A437;
+  color: #041B4D;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #F2C45A;
+}
+
+.btn-secondary {
+  background-color: #0E4FA8;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #041B4D;
+}
+
+.btn-donate {
+  background-color: #D4A437;
+  color: #041B4D;
+  border-radius: 10px;
+  box-shadow: 0 4px 0 #041B4D;
+  font-weight: 800;
+  transition: all 0.3s ease;
+}
+
+.btn-donate:hover {
+  background-color: #F2C45A;
+}
+
+.btn-donate:active {
+  box-shadow: 0 2px 0 #041B4D;
+  transform: translateY(2px);
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 45s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+  .live-pulse-dot {
+    animation: none;
+  }
+}
+
+@keyframes livePulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.72); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.live-pulse-dot {
+  animation: livePulse 1.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@media (max-width: 900px) {
+  .campaign-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .whatsapp-label {
+    display: none !important;
+  }
+  .whatsapp-float {
+    padding: 10px !important;
+    border-radius: 50% !important;
+  }
+}
+
+.monthly-scroll-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
