@@ -5,6 +5,7 @@ import { ASSETS } from '../constants/assets'
 import { C } from '../constants/brand'
 import { sectionShellStyle } from '../constants/sectionStyles'
 import { useBreakpoints } from '../hooks/useMediaQuery'
+import { DEMO_BLOGS } from '../constants/blogs'
 import type { BlogPost } from '../types'
 import SectionLabel from './ui/SectionLabel'
 import SectionTitle from './ui/SectionTitle'
@@ -113,12 +114,10 @@ export default function OurBlogs() {
       })
       .catch(() => {})
     fetchBlogs()
-      .then((items) => setBlogs(items.slice(0, 3)))
-      .catch(() => {})
+      .then((items) => setBlogs((items.length ? items : DEMO_BLOGS).slice(0, 3)))
+      .catch(() => setBlogs(DEMO_BLOGS.slice(0, 3)))
       .finally(() => setLoading(false))
   }, [])
-
-  if (!loading && blogs.length === 0) return null
 
   return (
     <section

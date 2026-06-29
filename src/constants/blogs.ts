@@ -1,0 +1,49 @@
+import type { BlogPost } from '../types'
+
+export const DEMO_BLOGS: BlogPost[] = [
+  {
+    id: 1,
+    title: 'How Community Support Transformed a Rural Healthcare Camp',
+    banner_image: '/assets/focus-areas/healthcare.jpg',
+    status: 1,
+    description:
+      'Through generous donations, Sanveda brought medical care to over 500 families in underserved villages.',
+    BlogDescs: [
+      {
+        id: 1,
+        description:
+          'Through generous donations, Sanveda brought medical care to over 500 families in underserved villages. Volunteers and doctors worked together to provide check-ups, medicines, and follow-up care.',
+      },
+    ],
+  },
+  {
+    id: 2,
+    title: 'Empowering Young Athletes Through Sports Development',
+    banner_image: '/assets/focus-areas/sports.jpg',
+    status: 1,
+    description:
+      'Our sports initiative equips talented youth with training, gear, and mentorship to compete at state and national levels.',
+    BlogDescs: [
+      {
+        id: 2,
+        description:
+          'Our sports initiative equips talented youth with training, gear, and mentorship to compete at state and national levels. Every contribution helps a child chase their dream.',
+      },
+    ],
+  },
+  {
+    id: 3,
+    title: 'Education Scholarships Opening Doors for Tomorrow',
+    banner_image: '/assets/focus-areas/education.jpg',
+    status: 1,
+    description:
+      'Scholarship programs funded by monthly donors are helping students complete schooling and vocational training.',
+    BlogDescs: [
+      {
+        id: 3,
+        description:
+          'Scholarship programs funded by monthly donors are helping students complete schooling and vocational training. Read how your support creates lasting change.',
+      },
+    ],
+  },
+]

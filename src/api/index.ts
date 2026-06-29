@@ -85,7 +85,15 @@ export async function fetchLifeCampaigns(): Promise<Campaign[]> {
 export async function fetchBlogs(): Promise<BlogPost[]> {
   try {
     const { data } = await api.get<BlogPost[]>('/blog')
-    return Array.isArray(data) ? data.filter((b) => b.status === 1 || b.status === undefined) : []
+    const blogs = Array.isArray(data) ? data.filter((b) => b.status === 1 || b.status === undefined) : []
+    if (blogs.length) return blogs
+  } catch {
+    /* fall through to static fallback */
+  }
+  try {
+    const res = await fetch('/blogs-fallback.json')
+    const data = await res.json()
+    return Array.isArray(data) ? data : data.data ?? []
   } catch {
     return []
   }
