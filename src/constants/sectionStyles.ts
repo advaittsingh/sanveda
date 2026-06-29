@@ -26,3 +26,17 @@ export function creamSectionStyle(mobile: boolean, overrides?: CSSProperties): C
     ...overrides,
   })
 }
+
+export const HERO_BANNER_ASPECT = '1024 / 672'
+
+export function heroSectionStyle(mobile: boolean, overrides?: CSSProperties): CSSProperties {
+  return {
+    width: mobile ? '100%' : '94.44%',
+    maxWidth: 1440,
+    margin: `0 auto ${mobile ? 20 : 40}px`,
+    padding: 0,
+    position: 'relative',
+    boxSizing: 'border-box',
+    ...overrides,
+  }
+}

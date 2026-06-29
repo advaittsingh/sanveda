@@ -18,6 +18,7 @@ export const ASSETS = {
   startCampaign: '/assets/StartNewCampaign-c03817e8.png',
   fallBackCard: '/assets/FallBackImageCard-043af4ab.png',
   fallBackBanner: '/assets/FallBackImageBanner-84c053c2.png',
+  heroBanner: '/assets/hero-banner.jpg',
   donateMonthlyMask1: '/assets/DonateMonthlyMask1-e0aac12d.svg',
   donateMonthlyMask2: '/assets/DonateMonthlyMask2-d832d673.svg',
   donateMonthlyMask3: '/assets/DonateMonthlyMask3-5c9bc9d4.svg',
