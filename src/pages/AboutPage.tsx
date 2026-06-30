@@ -2,9 +2,7 @@ import { ABOUT_BANNER_MASKS, ASSETS, STRENGTH_ICONS } from '../constants/assets'
 import { C } from '../constants/brand'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useAboutCMS } from '../hooks/useAboutCMS'
-import AboutAwardsCarousel, { AboutFeaturedOnHeading } from '../components/about/AboutAwardsCarousel'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
-import AboutNewsLogos from '../components/about/AboutNewsLogos'
 import AboutSectionLabel from '../components/about/AboutSectionLabel'
 import DonateNowButton from '../components/about/DonateNowButton'
 
@@ -450,11 +448,6 @@ export default function AboutPage() {
             ))}
           </div>
         </section>
-
-        {/* Awards + Featured On + News logos */}
-        <AboutAwardsCarousel subtitle={cms.awardsSubtitle} items={cms.awardsLogos} />
-        <AboutFeaturedOnHeading />
-        <AboutNewsLogos items={cms.newsLogos} />
       </div>
     </div>
   )

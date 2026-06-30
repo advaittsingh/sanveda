@@ -25,9 +25,6 @@ export interface AboutCMSData {
   missionImage: string
   strengthTitle: string
   strengthItems: { title: string; description: string }[]
-  awardsSubtitle: string
-  awardsLogos: { id: number; image: string; link: string }[]
-  newsLogos: { id: number; image: string; link: string; title: string }[]
 }
 
 function byId(sections: CMSItem[], id: number) {
@@ -40,8 +37,6 @@ export function parseAboutCMS(sections: CMSItem[]): AboutCMSData {
   const vision = byId(sections, 87)
   const mission = byId(sections, 88)
   const strength = byId(sections, 89)
-  const awards = byId(sections, 117)
-  const news = byId(sections, 67)
 
   const heroRelated = hero?.relatedCMS ?? []
   const story = heroRelated[0] ?? {}
@@ -53,25 +48,6 @@ export function parseAboutCMS(sections: CMSItem[]): AboutCMSData {
   const whoRel = (who?.relatedCMS ?? [])[0] ?? {}
   const visionRel = (vision?.relatedCMS ?? [])[0] ?? {}
   const missionRel = (mission?.relatedCMS ?? [])[0] ?? {}
-
-  const awardsLogos = (awards?.relatedCMS ?? [])
-    .filter((s) => s.status === 1 || s.status === true)
-    .map((s, i) => ({
-      id: s.id ?? i,
-      image: s.image || '',
-      link: (s.link || '#').trim() || '#',
-    }))
-    .filter((s) => s.image)
-
-  const newsLogos = (news?.relatedCMS ?? [])
-    .filter((s) => s.status === 1 || s.status === true)
-    .map((s, i) => ({
-      id: s.id ?? i,
-      image: s.image || '',
-      link: (s.link || '#').trim() || '#',
-      title: s.title || '',
-    }))
-    .filter((s) => s.image)
 
   return {
     heroTitle: hero?.title ?? '',
@@ -99,9 +75,6 @@ export function parseAboutCMS(sections: CMSItem[]): AboutCMSData {
       title: r.title ?? '',
       description: r.description ?? '',
     })),
-    awardsSubtitle: (awards?.title ?? '').trim(),
-    awardsLogos,
-    newsLogos,
   }
 }
 
