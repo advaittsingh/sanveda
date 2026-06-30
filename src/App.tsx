@@ -10,7 +10,6 @@ import ContactPage from './pages/ContactPage'
 import BlogsPage from './pages/BlogsPage'
 import BlogDetailPage from './pages/BlogDetailPage'
 import MonthlyDonationPage from './pages/MonthlyDonationPage'
-import StartCampaignPage from './pages/StartCampaignPage'
 import LifePage from './pages/LifePage'
 import SmallVendorsPage from './pages/SmallVendorsPage'
 import VendorDetailPage from './pages/VendorDetailPage'
@@ -41,7 +40,6 @@ function AppShell() {
           <Route path="/campaign/:slug" element={<CampaignDetailPage />} />
           <Route path="/monthly-donation" element={<MonthlyDonationPage />} />
           <Route path="/donate-monthly" element={<MonthlyDonationPage />} />
-          <Route path="/start-campaign" element={<StartCampaignPage />} />
           <Route path="/life" element={<LifePage />} />
           <Route path="/small-vendors" element={<SmallVendorsPage />} />
           <Route path="/small-vendors/:slug" element={<VendorDetailPage />} />

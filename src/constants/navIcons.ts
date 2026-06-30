@@ -4,7 +4,6 @@ export const NAV_ICONS: Record<string, string> = {
   'Explore Campaigns': '/assets/explore-MIcon-2029399b.svg',
   'Monthly Donation': '/assets/heart-MIcon-15935670.svg',
   'Small Vendors': '/assets/shop-f218d23a.svg',
-  'Start New Campaign': '/assets/rocket-MIcon-ee6a8bd2.svg',
   Blogs: '/assets/subtitle-MIcon-e3d9f166.svg',
   'Contact Us': '/assets/phone-call-2df80ed9.svg',
   'About Us': '/assets/info-circle-MIcon-06361582.svg',

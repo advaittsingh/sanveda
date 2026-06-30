@@ -1,7 +1,6 @@
 import HeroSection from '../components/HeroSection'
 import FeaturedCampaigns from '../components/FeaturedCampaigns'
 import KeyFocusAreas from '../components/KeyFocusAreas'
-import StartCampaign from '../components/StartCampaign'
 import Categories from '../components/Categories'
 import DonateMonthly from '../components/DonateMonthly'
 import OurImpact from '../components/OurImpact'
@@ -16,7 +15,6 @@ export default function HomePage() {
       <HeroSection />
       <FeaturedCampaigns />
       <KeyFocusAreas />
-      <StartCampaign />
       <Categories />
       <DonateMonthly />
       <OurImpact />

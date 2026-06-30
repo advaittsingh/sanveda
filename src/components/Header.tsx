@@ -13,7 +13,6 @@ const navLinks = [
   { label: 'Explore Campaigns', path: '/campaigns' },
   { label: 'Monthly Donation', path: '/monthly-donation' },
   { label: 'Small Vendors', path: '/small-vendors' },
-  { label: 'Start New Campaign', path: '/start-campaign' },
   { label: 'Blogs', path: '/blogs' },
   { label: 'Contact Us', path: '/contact' },
   { label: 'About Us', path: '/about' },

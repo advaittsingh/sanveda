@@ -8,7 +8,6 @@ import { useMediaQuery } from '../hooks/useMediaQuery'
 const quickLinks = [
   { name: 'Explore Campaigns', path: '/campaigns' },
   { name: 'Monthly Donation', path: '/monthly-donation' },
-  { name: 'Start New Campaign', path: '/start-campaign' },
   { name: 'Blogs', path: '/blogs' },
   { name: 'Contact Us', path: '/contact' },
 ]
