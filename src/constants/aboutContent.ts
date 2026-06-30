@@ -1,5 +1,9 @@
-export const ABOUT_INTRO =
-  'Sanveda Global Humanitarian Foundation is a purpose-driven, non-profit organization committed to advancing humanitarian impact through structured initiatives across healthcare, therapeutic support, sports development, education, community upliftment, and social responsibility. Sanveda operates at the intersection of humanitarian service, ethical innovation, and community empowerment, creating sustainable impact rather than short-term relief.'
+export const ABOUT_HERO = {
+  label: 'About',
+  title: 'Empowering Sustainable Humanitarian Change',
+  intro:
+    'Sanveda Global Humanitarian Foundation is a purpose-driven, non-profit organization committed to advancing humanitarian impact through structured initiatives across healthcare, therapeutic support, sports development, education, community upliftment, and social responsibility. Sanveda operates at the intersection of humanitarian service, ethical innovation, and community empowerment, creating sustainable impact rather than short-term relief.',
+}
 
 export const ABOUT_FOUNDER = {
   name: 'Hamdan Pathan',
@@ -40,16 +44,16 @@ export const ABOUT_APPROACH = [
   { emphasis: 'Measurable outcomes', contrast: 'symbolic gestures' },
 ]
 
-export const ABOUT_IMPACT_AREAS = [
-  { label: 'Received Donations From Our Loving People' },
-  { label: 'Received Support From Local Community' },
-  { label: 'Working Projects' },
-  { label: 'Supporting Members' },
+export const ABOUT_STATS = [
+  { value: '0K', label: 'Received Donations From Our Loving People' },
+  { value: '0K', label: 'Received Support From Local Community' },
+  { value: '0+', label: 'Working Projects' },
+  { value: '0+', label: 'Supporting Members' },
 ]
 
 export const ABOUT_ACTIONS = [
   {
-    title: 'Get Inspired & Help',
+    title: 'Get Inspire And Help',
     description: 'Explore our work creating sustainable impact across communities and lives.',
     cta: 'Read More',
     path: '/campaigns',
@@ -57,13 +61,13 @@ export const ABOUT_ACTIONS = [
   {
     title: 'Send Us Donations',
     description: 'Send us donations to support sustainable change and uplift communities in need.',
-    cta: 'Donate Now',
+    cta: 'Donate Us',
     path: '/campaigns',
   },
   {
     title: 'Become A Volunteer',
     description: 'Become a volunteer and help create lasting impact in communities.',
-    cta: 'Contact Us',
+    cta: 'Register',
     path: '/contact',
   },
 ]
@@ -81,8 +85,14 @@ export const ABOUT_PARTNER_VALUES = [
   'Full transparency in operations and reporting',
 ]
 
+export const ABOUT_PARTNERSHIP_NOTE =
+  'All partnerships are aligned with Sanveda’s humanitarian values and governance standards.'
+
 export const ABOUT_GOVERNANCE =
-  'Sanveda Global Humanitarian Foundation operates under a strict governance framework. All partnerships are aligned with Sanveda’s humanitarian values and governance standards.'
+  'Sanveda Global Humanitarian Foundation operates under a strict governance framework.'
+
+export const ABOUT_CLOSING =
+  'Sanveda Global Humanitarian Foundation is a purpose-driven non-profit organization dedicated to creating meaningful and sustainable humanitarian impact.'
 
 export const ABOUT_TESTIMONIALS = [
   {
