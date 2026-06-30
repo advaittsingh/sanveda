@@ -7,8 +7,12 @@ import SectionTitle from './ui/SectionTitle'
 
 export default function KeyFocusAreas() {
   const { mobile, tablet } = useBreakpoints()
+  const isDesktop = !mobile && !tablet
+  const firstRow = FOCUS_AREAS.slice(0, 3)
+  const secondRow = FOCUS_AREAS.slice(3)
 
   const gridColumns = mobile ? '1fr' : tablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)'
+  const gap = mobile ? 16 : tablet ? 20 : 24
 
   return (
     <section
@@ -27,18 +31,48 @@ export default function KeyFocusAreas() {
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: gridColumns,
-          gap: mobile ? 16 : tablet ? 20 : 24,
-          justifyItems: 'center',
-        }}
-      >
-        {FOCUS_AREAS.map((area) => (
-          <FocusAreaCard key={area.slug} area={area} mobile={mobile} />
-        ))}
-      </div>
+      {isDesktop ? (
+        <>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap,
+              justifyItems: 'center',
+            }}
+          >
+            {firstRow.map((area) => (
+              <FocusAreaCard key={area.slug} area={area} mobile={mobile} />
+            ))}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap,
+              marginTop: gap,
+              flexWrap: 'wrap',
+            }}
+          >
+            {secondRow.map((area) => (
+              <FocusAreaCard key={area.slug} area={area} mobile={mobile} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: gridColumns,
+            gap,
+            justifyItems: 'center',
+          }}
+        >
+          {FOCUS_AREAS.map((area) => (
+            <FocusAreaCard key={area.slug} area={area} mobile={mobile} />
+          ))}
+        </div>
+      )}
     </section>
   )
 }

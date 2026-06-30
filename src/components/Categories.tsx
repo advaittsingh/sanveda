@@ -4,7 +4,6 @@ import { fetchCMS, fetchCampaigns, getCMSSection } from '../api'
 import { campaignMatchesFocusArea, FOCUS_AREAS } from '../constants/focusAreas'
 import type { Campaign } from '../types'
 import CampaignCard from './CampaignCard'
-import SectionLabel from './ui/SectionLabel'
 import SectionTitle from './ui/SectionTitle'
 import SectionDecorations from './ui/SectionDecorations'
 import { C } from '../constants/brand'
@@ -58,10 +57,6 @@ export default function Categories() {
       }}
     >
       <SectionDecorations mobile={mobile} wide={wide} variant="categories" />
-
-      <div style={{ marginBottom: mobile ? '8px' : '16px', position: 'relative', zIndex: 2 }}>
-        <SectionLabel mobile={mobile} center>Our Key Focus Area</SectionLabel>
-      </div>
 
       <div style={{ marginBottom: mobile ? '14px' : '38px', position: 'relative', zIndex: 2, width: '100%' }}>
         <SectionTitle mobile={mobile} maxWidth={mobile ? '269px' : '682px'}>
