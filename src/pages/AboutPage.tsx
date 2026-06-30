@@ -1,5 +1,7 @@
 import { ABOUT_BANNER_MASKS, ASSETS, STRENGTH_ICONS } from '../constants/assets'
-import { C } from '../constants/brand'
+import { ABOUT_GOVERNANCE, ABOUT_PARTNERSHIP_NOTE, ABOUT_PARTNER_VALUES } from '../constants/aboutContent'
+import { BRAND, C } from '../constants/brand'
+import { creamSectionStyle } from '../constants/sectionStyles'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useAboutCMS } from '../hooks/useAboutCMS'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
@@ -446,6 +448,91 @@ export default function AboutPage() {
                 </p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Value to Partners */}
+        <section
+          style={{
+            ...creamSectionStyle(mobile, {
+              width: lg ? 'calc(100% - 32px)' : '94.44%',
+              margin: `${mobile ? 32 : 48}px auto`,
+              padding: mobile ? '32px 20px' : '48px 40px',
+            }),
+          }}
+        >
+          <div style={{ fontSize: sectionLabelSize, lineHeight: sectionLabelLine, marginBottom: md ? 16 : 28, textAlign: 'center' }}>
+            <AboutSectionLabel center>Value to Partners</AboutSectionLabel>
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: mobile ? '1fr' : 'repeat(2, 1fr)',
+              gap: mobile ? 12 : 16,
+            }}
+          >
+            {ABOUT_PARTNER_VALUES.map((value) => (
+              <div
+                key={value}
+                style={{
+                  display: 'flex',
+                  gap: 12,
+                  alignItems: 'flex-start',
+                  background: C.white,
+                  borderRadius: 12,
+                  padding: mobile ? '14px 16px' : '16px 18px',
+                  border: `1px solid rgba(212, 164, 55, 0.15)`,
+                  boxShadow: '0px 6px 18px rgba(0, 0, 0, 0.03)',
+                }}
+              >
+                <img src={ASSETS.tick} alt="" width={20} height={20} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span style={{ fontSize: mobile ? 14 : 15, lineHeight: 1.55, color: C.textMuted }}>{value}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Partnership & governance */}
+        <section
+          style={{
+            width: lg ? 'calc(100% - 32px)' : '94.44%',
+            maxWidth: 1440,
+            margin: `0 auto ${mobile ? 32 : 48}px`,
+          }}
+        >
+          <div
+            style={{
+              borderRadius: mobile ? 20 : 34,
+              background: BRAND.gradient,
+              padding: mobile ? '32px 24px' : '48px 40px',
+              textAlign: 'center',
+            }}
+          >
+            <p
+              style={{
+                margin: '0 auto 12px',
+                maxWidth: 780,
+                fontSize: mobile ? 15 : 18,
+                lineHeight: 1.7,
+                color: 'rgba(255,255,255,0.95)',
+                fontWeight: 600,
+              }}
+            >
+              {ABOUT_PARTNERSHIP_NOTE}
+            </p>
+            <p
+              style={{
+                margin: 0,
+                maxWidth: 780,
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                fontSize: mobile ? 14 : 16,
+                lineHeight: 1.65,
+                color: 'rgba(255,255,255,0.88)',
+              }}
+            >
+              {ABOUT_GOVERNANCE}
+            </p>
           </div>
         </section>
       </div>
