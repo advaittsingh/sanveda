@@ -5,11 +5,11 @@ import { C } from '../constants/brand'
 import { useBreakpoints } from '../hooks/useMediaQuery'
 import type { CMSItem } from '../types'
 
-const DEFAULT_STATS = [
-  { value: '100Cr+', title: 'Impact Statistics', label: 'Raised' },
-  { value: '1k+', title: 'Success Metrics', label: 'Successful Campaigns' },
-  { value: '2000+', title: 'Annual Impact Report', label: 'Monthly Donors' },
-  { value: '100k+', title: 'Impact Statistics Test', label: 'Lives Impacted' },
+const IMPACT_STATS = [
+  { value: '50 K', title: 'Received Donations From', label: 'Our Loving People' },
+  { value: '5 K', title: 'Received Support From', label: 'Local Community' },
+  { value: '10 +', title: 'Working Projects', label: '' },
+  { value: '5 +', title: 'Supporting Members', label: '' },
 ]
 
 export default function OurImpact() {
@@ -20,16 +20,7 @@ export default function OurImpact() {
     fetchCMS().then((cms) => setSection(getCMSSection(cms, 'Our Impact') ?? null)).catch(() => {})
   }, [])
 
-  const stats = (section?.relatedCMS ?? [])
-    .filter((s) => s.status === 1 || s.status === true)
-    .slice(0, 4)
-    .map((s) => ({
-      value: s.description || '',
-      title: s.title || '',
-      label: s.sub_title || s.stand_title || '',
-    }))
-
-  const gridStats = stats.length ? stats : DEFAULT_STATS
+  const gridStats = IMPACT_STATS
   const heading = section?.title ?? 'Our Impact'
   const description =
     section?.description ??
@@ -157,18 +148,20 @@ export default function OurImpact() {
                 >
                   {stat.title}
                 </p>
-                <p
-                  style={{
-                    fontWeight: 500,
-                    fontSize: mobile ? 12 : 15,
-                    lineHeight: 1.4,
-                    color: 'rgba(255,255,255,0.9)',
-                    margin: 0,
-                    fontFamily: 'Red Hat Display, sans-serif',
-                  }}
-                >
-                  {stat.label}
-                </p>
+                {stat.label ? (
+                  <p
+                    style={{
+                      fontWeight: 500,
+                      fontSize: mobile ? 12 : 15,
+                      lineHeight: 1.4,
+                      color: 'rgba(255,255,255,0.9)',
+                      margin: 0,
+                      fontFamily: 'Red Hat Display, sans-serif',
+                    }}
+                  >
+                    {stat.label}
+                  </p>
+                ) : null}
               </div>
             ))}
           </div>
