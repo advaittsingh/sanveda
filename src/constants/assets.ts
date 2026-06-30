@@ -60,7 +60,33 @@ export const ASSETS = {
   americanExpress: '/assets/american-express-logo-56a1da88.svg',
   yellowHearts: '/assets/yellow-hearts-ce710a3b.svg',
   whiteHearts: '/assets/white-hearts-13fac52f.svg',
+  aboutPeople: '/assets/about-people.svg',
+  aboutBannerMask1: '/assets/aboutBannerMask1.svg',
+  aboutBannerMask2: '/assets/aboutBannerMask2.svg',
+  aboutBannerMask3: '/assets/aboutBannerMask3.svg',
+  aboutBannerMask4: '/assets/aboutBannerMask4.svg',
+  aboutBannerMask5: '/assets/aboutBannerMask5.svg',
+  strengthGrid1: '/assets/strength-grid-1-61cb6a1b.svg',
+  strengthGrid2: '/assets/strength-grid-2-28450611.svg',
+  strengthGrid3: '/assets/strength-grid-3-712deaff.svg',
+  strengthGrid4: '/assets/strength-grid-4-e2317925.svg',
+  pinkMask: '/assets/pink-mask-8b6e42e2.svg',
 } as const
+
+export const STRENGTH_ICONS = [
+  ASSETS.strengthGrid1,
+  ASSETS.strengthGrid2,
+  ASSETS.strengthGrid3,
+  ASSETS.strengthGrid4,
+] as const
+
+export const ABOUT_BANNER_MASKS = [
+  ASSETS.aboutBannerMask1,
+  ASSETS.aboutBannerMask2,
+  ASSETS.aboutBannerMask3,
+  ASSETS.aboutBannerMask4,
+  ASSETS.aboutBannerMask5,
+] as const
 
 export const WCU_ICONS = [
   ASSETS.wcuClock,

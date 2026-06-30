@@ -137,3 +137,59 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.about-banner {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.about-first,
+.about-second {
+  width: 254px;
+}
+
+.about-third {
+  width: 303px;
+}
+
+@media (min-width: 1441px) {
+  .about-first,
+  .about-second {
+    width: 400px !important;
+  }
+
+  .about-third {
+    width: 450px !important;
+  }
+
+  .about-banner {
+    justify-content: space-evenly !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .about-second.about-banner-hide-sm {
+    display: none;
+  }
+}
+
+@keyframes about-logo-scroll {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.about-logo-scroll {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  width: max-content;
+  animation: about-logo-scroll 40s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-logo-scroll {
+    animation: none;
+  }
+}

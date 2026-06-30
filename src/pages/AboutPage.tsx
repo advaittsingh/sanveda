@@ -1,314 +1,467 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { ASSETS } from '../constants/assets'
-import {
-  ABOUT_ACTIONS,
-  ABOUT_APPROACH,
-  ABOUT_CLOSING,
-  ABOUT_FOCUS_POINTS,
-  ABOUT_FOUNDER,
-  ABOUT_GOVERNANCE,
-  ABOUT_HERO,
-  ABOUT_MANIFESTO,
-  ABOUT_MISSION,
-  ABOUT_PARTNERSHIP_NOTE,
-  ABOUT_PARTNER_VALUES,
-  ABOUT_PHILOSOPHY,
-  ABOUT_STATS,
-  ABOUT_TESTIMONIALS,
-  ABOUT_VISION,
-} from '../constants/aboutContent'
-import { SPONSORS } from '../constants/sponsors'
-import { BRAND, C } from '../constants/brand'
-import { creamSectionStyle, sectionShellStyle } from '../constants/sectionStyles'
-import { useBreakpoints } from '../hooks/useMediaQuery'
-import SectionDecorations from '../components/ui/SectionDecorations'
-import SectionLabel from '../components/ui/SectionLabel'
-import SectionTitle from '../components/ui/SectionTitle'
-import ViewAllButton from '../components/ui/ViewAllButton'
+import { ABOUT_BANNER_MASKS, ASSETS, STRENGTH_ICONS } from '../constants/assets'
+import { useMediaQuery } from '../hooks/useMediaQuery'
+import { useAboutCMS } from '../hooks/useAboutCMS'
+import AboutAwardsCarousel, { AboutFeaturedOnHeading } from '../components/about/AboutAwardsCarousel'
+import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
+import AboutNewsLogos from '../components/about/AboutNewsLogos'
+import AboutSectionLabel from '../components/about/AboutSectionLabel'
+import DonateNowButton from '../components/about/DonateNowButton'
 
-function SectionDivider({ title, mobile }: { title: string; mobile?: boolean }) {
-  const lineStyle: React.CSSProperties = {
-    flex: 1,
-    maxWidth: mobile ? 80 : 250,
-    height: 0,
-    borderTop: '2.5px solid',
-    borderImageSlice: 1,
+const TH = {
+  dark: '#1D1D1B',
+  green: '#A9C74E',
+  text: '#1D1D1B',
+  muted: '#686866',
+  lightMuted: '#979796',
+  bodyMuted: '#4A4A49',
+  lightText: '#E8E8E8',
+} as const
+
+function maskImg(mask: string): React.CSSProperties {
+  return {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    maskImage: `url(${mask})`,
+    WebkitMaskImage: `url(${mask})`,
+    maskSize: '100% 100%',
+    WebkitMaskSize: '100% 100%',
+    maskRepeat: 'no-repeat',
+    WebkitMaskRepeat: 'no-repeat',
+    maskPosition: 'center',
+    WebkitMaskPosition: 'center',
   }
+}
+
+function AboutHeroBanner({ images, mobile, tablet }: { images: string[]; mobile: boolean; tablet: boolean }) {
+  const bannerClasses = ['about-first', 'about-second about-banner-hide-sm', 'about-third', 'about-second about-banner-hide-sm', 'about-first']
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: mobile ? 12 : 16, marginBottom: mobile ? 24 : 32 }}>
-      <div style={{ ...lineStyle, borderImageSource: 'linear-gradient(90deg, rgba(212,164,55,0.08) 0%, rgba(212,164,55,0.5) 100%)' }} />
-      <h2 style={{ fontFamily: 'Red Hat Display, sans-serif', fontWeight: 800, fontSize: mobile ? 20 : 24, color: C.primary, margin: 0, whiteSpace: 'nowrap' }}>
-        {title}
-      </h2>
-      <div style={{ ...lineStyle, borderImageSource: 'linear-gradient(90deg, rgba(212,164,55,0.5) 0%, rgba(212,164,55,0.08) 100%)' }} />
+    <div className="about-banner" style={{ marginTop: tablet ? 20 : -42 }}>
+      {images.slice(0, 5).map((src, i) =>
+        src ? (
+          <div key={i} className={bannerClasses[i]}>
+            <img src={src} alt={`aboutBanner${i + 1}`} style={maskImg(ABOUT_BANNER_MASKS[i])} />
+          </div>
+        ) : null,
+      )}
+      {images.length === 0 &&
+        [0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className={bannerClasses[i]} style={{ background: '#f0f0f0', minHeight: mobile ? 120 : 200, borderRadius: 12 }} />
+        ))}
     </div>
   )
 }
 
-function BulletList({ items, mobile }: { items: string[]; mobile?: boolean }) {
+function WhoWeAreCollage({
+  image1,
+  image2,
+  image3,
+  mobile,
+  tablet,
+}: {
+  image1: string
+  image2: string
+  image3: string
+  mobile: boolean
+  tablet: boolean
+}) {
+  const boxW = mobile ? 274 : tablet ? 350 : 505
+  const boxH = mobile ? 231 : tablet ? 300 : 425
+
   return (
-    <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: mobile ? 12 : 14 }}>
-      {items.map((item) => (
-        <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: mobile ? 14 : 16, lineHeight: 1.65, color: C.textMuted }}>
-          <span style={{ color: C.gold, fontWeight: 800, flexShrink: 0, marginTop: 3 }}>•</span>
-          <span>{item}</span>
-        </li>
-      ))}
-    </ul>
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+      <div style={{ width: boxW, height: boxH, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <img
+          src={ASSETS.pinkSplash}
+          alt=""
+          style={{
+            position: 'absolute',
+            top: mobile ? 2 : 8,
+            left: mobile ? -30 : -45,
+            width: mobile ? 250 : tablet ? 300 : 358,
+            height: mobile ? 220 : tablet ? 280 : 344,
+            zIndex: 0,
+          }}
+        />
+        {image1 && (
+          <div
+            style={{
+              position: 'absolute',
+              width: mobile ? 144 : tablet ? 185 : 265,
+              height: mobile ? 176 : tablet ? 230 : 324,
+              top: mobile ? 20 : tablet ? 25 : 50,
+              left: 0,
+              zIndex: 3,
+            }}
+          >
+            <img src={image1} alt="Who We Are Image 1" style={maskImg(ASSETS.donateMonthlyMask1)} />
+          </div>
+        )}
+        {image2 && (
+          <div
+            style={{
+              position: 'absolute',
+              width: mobile ? 100 : tablet ? 170 : 187,
+              height: mobile ? 74 : tablet ? 95 : 139,
+              top: mobile ? 39 : tablet ? 52 : 84,
+              right: mobile ? 61 : tablet ? 55 : 110,
+              zIndex: 2,
+            }}
+          >
+            <img src={image2} alt="Who We Are Image 2" style={maskImg(ASSETS.donateMonthlyMask2)} />
+          </div>
+        )}
+        {image3 && (
+          <div
+            style={{
+              position: 'absolute',
+              width: mobile ? 130 : tablet ? 125 : 240,
+              height: mobile ? 84 : tablet ? 125 : 155,
+              bottom: mobile ? 1 : tablet ? 5 : -13,
+              left: mobile ? 80 : tablet ? 105 : 146,
+              zIndex: 1,
+            }}
+          >
+            <img src={image3} alt="Who We Are Image 3" style={maskImg(ASSETS.donateMonthlyMask3)} />
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
-function AboutSection({
-  children,
-  mobile,
-  cream,
-  decorations,
-  wide,
-}: {
-  children: React.ReactNode
-  mobile?: boolean
-  cream?: boolean
-  decorations?: boolean
-  wide?: boolean
-}) {
+function VisionStatCard({ value, mobile, tablet }: { value: string; mobile: boolean; tablet: boolean }) {
   return (
-    <section
+    <div
       style={{
-        ...(cream ? creamSectionStyle(mobile ?? false) : sectionShellStyle(mobile ?? false)),
-        position: 'relative',
+        border: '1px solid rgba(0, 0, 0, 0.10)',
+        borderRadius: mobile ? 16 : 30,
+        height: mobile ? 102 : 181,
+        paddingInline: mobile ? 16 : 33,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
-      {decorations && <SectionDecorations mobile={mobile} wide={wide} />}
-      <div style={{ width: '100%', position: 'relative', zIndex: 2 }}>{children}</div>
-    </section>
+      <p style={{ fontWeight: 700, fontSize: mobile ? 16 : tablet ? 18 : 42, lineHeight: mobile ? '20px' : '42px', color: TH.text, margin: '0 0 16px' }}>
+        {value}
+      </p>
+      <p style={{ fontWeight: 600, fontSize: mobile ? 12 : 18, lineHeight: mobile ? '20px' : '29px', color: TH.lightMuted, margin: 0 }}>
+        Communities Reached
+      </p>
+    </div>
   )
 }
 
 export default function AboutPage() {
-  const navigate = useNavigate()
-  const { mobile, tablet, wide } = useBreakpoints()
-  const twoCol = mobile ? '1fr' : 'repeat(2, 1fr)'
-  const threeCol = mobile ? '1fr' : tablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)'
+  const mobile = useMediaQuery('(max-width: 600px)')
+  const tablet = useMediaQuery('(max-width: 900px)')
+  const lg = useMediaQuery('(max-width: 1024px)')
+  const md = useMediaQuery('(max-width: 960px)')
+
+  const cms = useAboutCMS()
+
+  const sectionLabelSize = mobile ? 16 : tablet ? 18 : 20
+  const sectionLabelLine = mobile ? '20px' : '42px'
+  const headingSize = mobile ? 18 : tablet ? 22 : 36
+  const headingLine = mobile ? '28px' : tablet ? '40px' : '50px'
 
   return (
-    <div style={{ background: C.white, paddingTop: mobile ? 16 : 24 }}>
-      {/* Hero */}
-      <section
-        style={{
-          ...creamSectionStyle(mobile, { marginTop: 0, padding: mobile ? '32px 20px' : '56px 48px' }),
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <img src={ASSETS.orangeSparks} alt="" aria-hidden style={{ position: 'absolute', top: 24, left: mobile ? 16 : 48, width: 44, opacity: 0.9, display: mobile ? 'none' : 'block' }} />
-        <img src={ASSETS.heart} alt="" aria-hidden style={{ position: 'absolute', top: 32, right: mobile ? 20 : 80, width: 22, display: mobile ? 'none' : 'block' }} />
+    <div style={{ background: '#fff' }}>
+      <AboutBreadcrumb items={[{ label: 'Home', path: '/' }, { label: 'About us', path: null }]} />
 
-        <div style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
-          <SectionLabel mobile={mobile} center>{ABOUT_HERO.label}</SectionLabel>
-          <div style={{ marginTop: 12, marginBottom: mobile ? 16 : 24 }}>
-            <SectionTitle mobile={mobile} maxWidth={mobile ? '300px' : '760px'}>
-              {ABOUT_HERO.title}
-            </SectionTitle>
-          </div>
-          <p style={{ margin: '0 auto', maxWidth: 820, fontSize: mobile ? 14 : 17, lineHeight: 1.7, color: C.textMuted }}>
-            {ABOUT_HERO.intro}
-          </p>
-          <div style={{ marginTop: mobile ? 24 : 32 }}>
-            <ViewAllButton text="Contact Us" mobile={mobile} onClick={() => navigate('/contact')} />
-          </div>
-        </div>
-      </section>
-
-      {/* Founder */}
-      <AboutSection mobile={mobile} cream>
-        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'auto 1fr', gap: mobile ? 20 : 36, alignItems: 'center' }}>
-          <div
-            style={{
-              width: mobile ? 100 : 140,
-              height: mobile ? 100 : 140,
-              margin: mobile ? '0 auto' : undefined,
-              borderRadius: '50%',
-              background: BRAND.gradient,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 12px 32px rgba(4,27,77,0.18)',
-            }}
-          >
-            <img src={ASSETS.logo} alt="" style={{ width: '68%', height: '68%', objectFit: 'contain' }} />
-          </div>
-          <div style={{ textAlign: mobile ? 'center' : 'left' }}>
-            <SectionLabel mobile={mobile} center={mobile}>{ABOUT_FOUNDER.name}</SectionLabel>
-            <h2 style={{ fontWeight: 800, fontSize: mobile ? 24 : 32, color: C.primary, margin: '10px 0 6px', lineHeight: 1.2 }}>
-              {ABOUT_FOUNDER.role}
-            </h2>
-            <p style={{ margin: 0, fontSize: mobile ? 14 : 16, lineHeight: 1.65, color: C.textMuted, maxWidth: 640 }}>
-              Leading Sanveda’s mission to build ethical, structured, and lasting humanitarian impact across communities.
+      <div style={{ width: '100%', paddingLeft: lg ? 0 : 40, paddingRight: lg ? 0 : 40 }}>
+        {/* Hero */}
+        <section style={{ marginBottom: mobile ? 30 : md ? 40 : 82, paddingLeft: lg ? 16 : 0, paddingRight: lg ? 16 : 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 800, margin: '0 auto' }}>
+            {!mobile && (
+              <h1 style={{ fontWeight: 600, color: TH.text, margin: '0 0 14px', fontSize: 18, lineHeight: 1.2 }}>About Us</h1>
+            )}
+            {cms.heroTitle && (
+              <h2
+                style={{
+                  fontWeight: 700,
+                  color: TH.text,
+                  fontSize: mobile ? 18 : tablet ? 22 : 42,
+                  lineHeight: mobile ? '24px' : tablet ? 'normal' : '56px',
+                  margin: `0 0 ${mobile ? 10 : 14}px`,
+                  maxWidth: mobile ? 272 : 800,
+                }}
+              >
+                {cms.heroTitle}
+              </h2>
+            )}
+            <p style={{ fontWeight: 500, color: TH.bodyMuted, fontSize: mobile ? 12 : 14, lineHeight: '22.652px', maxWidth: mobile ? 328 : 482, margin: 0 }}>
+              {cms.heroDescription}
             </p>
           </div>
-        </div>
-      </AboutSection>
+          <AboutHeroBanner images={cms.heroImages} mobile={mobile} tablet={tablet} />
+        </section>
 
-      {/* Vision & Mission — Our Impact style split */}
-      <section style={{ width: mobile ? 'calc(100% - 32px)' : '94.44%', maxWidth: 1440, margin: '0 auto 40px' }}>
-        <div style={{ borderRadius: mobile ? 20 : 34, backgroundColor: C.primary, overflow: 'hidden', display: 'flex', flexDirection: mobile ? 'column' : 'row' }}>
-          <div style={{ width: mobile ? '100%' : '50%', padding: mobile ? '36px 24px' : '56px 48px' }}>
-            <p style={{ color: C.gold, fontWeight: 700, fontSize: mobile ? 12 : 18, margin: '0 0 10px', fontFamily: 'Nunito, sans-serif' }}>Vision</p>
-            <h2 style={{ color: C.white, fontWeight: 800, fontSize: mobile ? 22 : 32, lineHeight: 1.25, margin: '0 0 20px' }}>Our Guiding Vision</h2>
-            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: mobile ? 14 : 16, lineHeight: 1.7, margin: 0 }}>{ABOUT_VISION}</p>
+        {/* Who we are */}
+        <section
+          style={{
+            backgroundColor: TH.dark,
+            display: 'flex',
+            flexDirection: md ? 'column-reverse' : 'row',
+            gap: lg ? 50 : 17,
+            padding: lg ? '30px 16px' : '90px 0 70px 70px',
+            borderRadius: md ? 0 : 30,
+            justifyContent: 'space-evenly',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ maxWidth: md ? '100%' : tablet ? 467 : 667, width: '100%' }}>
+            <div style={{ fontSize: sectionLabelSize, lineHeight: sectionLabelLine, marginBottom: md ? 10 : 30 }}>
+              <AboutSectionLabel>Who we are</AboutSectionLabel>
+            </div>
+            <h2
+              style={{
+                fontWeight: 700,
+                fontSize: headingSize,
+                lineHeight: headingLine,
+                color: '#FFF',
+                margin: '0 0 20px',
+                maxWidth: mobile ? 300 : 620,
+                textTransform: 'capitalize',
+              }}
+            >
+              {cms.whoWeAreTitle}
+            </h2>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.lightText, paddingBottom: md ? 12 : 20, margin: 0, maxWidth: 667 }}>
+              {cms.whoWeAreBaseDesc}
+            </p>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.lightText, paddingBottom: md ? 20 : 30, margin: 0, maxWidth: 667 }}>
+              {cms.whoWeAreSecondDesc}
+            </p>
+            <div style={{ textAlign: md ? 'center' : 'left', display: 'flex', justifyContent: mobile ? 'center' : 'flex-start' }}>
+              <DonateNowButton />
+            </div>
           </div>
-          <div style={{ width: mobile ? '100%' : '50%', background: C.cream, padding: mobile ? '36px 24px' : '56px 48px', borderLeft: mobile ? 'none' : `4px solid ${C.gold}` }}>
-            <p style={{ color: C.gold, fontWeight: 700, fontSize: mobile ? 12 : 18, margin: '0 0 10px', fontFamily: 'Nunito, sans-serif' }}>Mission</p>
-            <h2 style={{ color: C.primary, fontWeight: 800, fontSize: mobile ? 22 : 32, lineHeight: 1.25, margin: '0 0 20px' }}>What We Stand For</h2>
-            <BulletList items={ABOUT_MISSION} mobile={mobile} />
+          <WhoWeAreCollage image1={cms.whoWeAreImage1} image2={cms.whoWeAreImage2} image3={cms.whoWeAreImage3} mobile={mobile} tablet={tablet} />
+        </section>
+
+        {/* Vision */}
+        <section
+          style={{
+            display: 'flex',
+            flexDirection: md ? 'column' : 'row',
+            gap: mobile ? 0 : 40,
+            alignItems: 'center',
+            marginTop: 80,
+            justifyContent: 'space-evenly',
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: mobile ? 16 : 30,
+              padding: md ? '0 10px' : 0,
+              width: '100%',
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 10 : 20 }}>
+              <div
+                style={{
+                  width: '100%',
+                  height: mobile ? 172 : 304,
+                  borderRadius: 30,
+                  overflow: 'hidden',
+                  position: 'relative',
+                }}
+              >
+                {cms.visionImage1 && <img src={cms.visionImage1} alt="Vision Image 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              </div>
+              <VisionStatCard value={cms.visionPoint1} mobile={mobile} tablet={tablet} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 10 : 20 }}>
+              <VisionStatCard value={cms.visionPoint2} mobile={mobile} tablet={tablet} />
+              <div style={{ width: '100%', height: mobile ? 172 : 304, borderRadius: 30, overflow: 'hidden' }}>
+                {cms.visionImage2 && <img src={cms.visionImage2} alt="Vision Image 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Philosophy */}
-      <AboutSection mobile={mobile} decorations wide={wide}>
-        <div style={{ textAlign: 'center', marginBottom: mobile ? 28 : 40 }}>
-          <SectionLabel mobile={mobile} center>Core Humanitarian Philosophy</SectionLabel>
-          <div style={{ marginTop: 12, marginBottom: mobile ? 24 : 36 }}>
-            <SectionTitle mobile={mobile} maxWidth={mobile ? '300px' : '860px'}>{ABOUT_PHILOSOPHY}</SectionTitle>
+          <div style={{ padding: lg ? '30px 16px' : 0, width: md ? '100%' : 'auto' }}>
+            <div style={{ fontSize: sectionLabelSize, lineHeight: sectionLabelLine, marginBottom: md ? 10 : 30 }}>
+              <AboutSectionLabel>Our Vision</AboutSectionLabel>
+            </div>
+            <h2
+              style={{
+                fontWeight: 800,
+                fontSize: headingSize,
+                lineHeight: headingLine,
+                color: TH.text,
+                margin: '0 0 20px',
+                maxWidth: mobile ? 328 : 577,
+                textTransform: 'capitalize',
+              }}
+            >
+              {cms.visionTitle}
+            </h2>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.muted, paddingBottom: md ? 12 : 20, margin: 0, maxWidth: 667 }}>
+              {cms.visionDesc1}
+            </p>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.muted, paddingBottom: md ? 20 : 30, margin: 0, maxWidth: 667 }}>
+              {cms.visionDesc2}
+            </p>
+            <div style={{ textAlign: md ? 'center' : 'left', display: 'flex', justifyContent: mobile ? 'center' : 'flex-start' }}>
+              <DonateNowButton />
+            </div>
           </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: twoCol, gap: mobile ? 16 : 24 }}>
-          <div style={{ background: C.cream, borderRadius: mobile ? 16 : 24, padding: mobile ? '24px 20px' : '32px 28px', border: '1px solid rgba(212,164,55,0.2)' }}>
-            <h3 style={{ fontWeight: 800, fontSize: mobile ? 18 : 22, color: C.primary, margin: '0 0 16px' }}>Sanveda Focuses On</h3>
-            <BulletList items={ABOUT_FOCUS_POINTS} mobile={mobile} />
+        </section>
+
+        {/* Mission */}
+        <section
+          style={{
+            backgroundColor: TH.dark,
+            display: 'flex',
+            flexDirection: md ? 'column-reverse' : 'row',
+            gap: mobile ? 20 : tablet ? 80 : 119,
+            padding: lg ? '30px 16px' : '90px 0 70px 70px',
+            borderRadius: md ? 0 : 30,
+            justifyContent: 'space-evenly',
+            alignItems: 'center',
+            marginTop: mobile ? 0 : 70,
+          }}
+        >
+          <div style={{ maxWidth: md ? '100%' : tablet ? 467 : 667, width: '100%' }}>
+            <div style={{ fontSize: sectionLabelSize, lineHeight: sectionLabelLine, marginBottom: md ? 10 : 30 }}>
+              <AboutSectionLabel>Our Mission</AboutSectionLabel>
+            </div>
+            <h2
+              style={{
+                fontWeight: 800,
+                fontSize: headingSize,
+                lineHeight: headingLine,
+                color: '#FFF',
+                margin: '0 0 20px',
+                maxWidth: 577,
+                textTransform: 'capitalize',
+              }}
+            >
+              {cms.missionTitle}
+            </h2>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.lightText, paddingBottom: md ? 12 : 20, margin: 0, maxWidth: 667 }}>
+              {cms.missionBaseDesc}
+            </p>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.lightText, paddingBottom: md ? 20 : 30, margin: 0, maxWidth: 667 }}>
+              {cms.missionSecondDesc}
+            </p>
+            <div style={{ textAlign: md ? 'center' : 'left', display: 'flex', justifyContent: mobile ? 'center' : 'flex-start' }}>
+              <DonateNowButton />
+            </div>
           </div>
-          <div style={{ background: C.cream, borderRadius: mobile ? 16 : 24, padding: mobile ? '24px 20px' : '32px 28px', border: '1px solid rgba(212,164,55,0.2)' }}>
-            <h3 style={{ fontWeight: 800, fontSize: mobile ? 18 : 22, color: C.primary, margin: '0 0 16px' }}>Manifesto Statement</h3>
-            <BulletList items={ABOUT_MANIFESTO} mobile={mobile} />
+
+          {!md && (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+              <div style={{ position: 'relative' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    width: tablet ? 235 : 265,
+                    height: tablet ? 290 : 324,
+                    top: -20,
+                    left: -160,
+                    transform: 'rotate(-25deg)',
+                    zIndex: 2,
+                  }}
+                >
+                  <img src={ASSETS.pinkMask} alt="" style={maskImg(ASSETS.pinkMask)} />
+                </div>
+                <div
+                  style={{
+                    width: tablet ? 303 : 393,
+                    height: tablet ? 303 : 480,
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    zIndex: 3,
+                    position: 'relative',
+                  }}
+                >
+                  {cms.missionImage && <img src={cms.missionImage} alt="Our Mission Image" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Strength */}
+        <section style={{ marginTop: 70, marginBottom: mobile ? 20 : 70, padding: lg ? '0 16px' : 0 }}>
+          <div style={{ fontSize: sectionLabelSize, lineHeight: sectionLabelLine, marginBottom: md ? 10 : 30, textAlign: 'center' }}>
+            <AboutSectionLabel center>Our Strength</AboutSectionLabel>
           </div>
-        </div>
-      </AboutSection>
+          <h2
+            style={{
+              fontWeight: 800,
+              fontSize: headingSize,
+              lineHeight: headingLine,
+              color: TH.text,
+              margin: '0 auto 20px',
+              maxWidth: mobile ? 307 : 620,
+              textAlign: 'center',
+              textTransform: 'capitalize',
+            }}
+          >
+            {cms.strengthTitle}
+          </h2>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: mobile ? '1fr' : tablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+              gap: 18,
+              marginTop: mobile ? 24 : 40,
+              justifyContent: 'center',
+            }}
+          >
+            {cms.strengthItems.map((item, i) => (
+              <div
+                key={item.title}
+                style={{
+                  border: '0.836px solid #DEDEDE',
+                  display: 'flex',
+                  alignItems: mobile ? 'center' : 'flex-start',
+                  textAlign: mobile ? 'center' : 'left',
+                  flexDirection: 'column',
+                  borderRadius: 13.37,
+                  padding: 20,
+                  flex: 1,
+                }}
+              >
+                <div
+                  style={{
+                    width: mobile ? 35 : 50,
+                    height: mobile ? 36 : 50,
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    backgroundColor: TH.green,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginBottom: 20,
+                  }}
+                >
+                  <img src={STRENGTH_ICONS[i]} alt="" style={{ width: mobile ? 20 : 'auto' }} />
+                </div>
+                <h3 style={{ fontWeight: 700, fontSize: mobile || tablet ? 14 : 16, lineHeight: mobile ? '14px' : '16px', color: '#131313', margin: '0 0 10px' }}>
+                  {item.title}
+                </h3>
+                <p style={{ fontWeight: 400, fontSize: 12, lineHeight: '22px', color: TH.muted, opacity: 0.8, margin: 0 }}>
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-      {/* Approach */}
-      <AboutSection mobile={mobile} cream>
-        <div style={{ textAlign: 'center', marginBottom: mobile ? 24 : 36 }}>
-          <SectionLabel mobile={mobile} center>Our Approach Is Based On</SectionLabel>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: twoCol, gap: mobile ? 14 : 20 }}>
-          {ABOUT_APPROACH.map((item) => (
-            <div key={item.emphasis} style={{ background: C.white, borderRadius: 16, padding: mobile ? '20px 18px' : '24px 22px', boxShadow: '0px 10px 26px rgba(0, 0, 0, 0.04)' }}>
-              <p style={{ margin: 0, fontSize: mobile ? 15 : 17, lineHeight: 1.55 }}>
-                <strong style={{ color: C.primary, fontWeight: 800 }}>{item.emphasis}</strong>
-                <span style={{ color: C.textMuted }}> over {item.contrast}</span>
-              </p>
-            </div>
-          ))}
-        </div>
-      </AboutSection>
-
-      {/* Impact in Action */}
-      <AboutSection mobile={mobile} decorations wide={wide}>
-        <div style={{ textAlign: 'center', marginBottom: mobile ? 28 : 40 }}>
-          <SectionLabel mobile={mobile} center>Impact In Action</SectionLabel>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: twoCol, gap: mobile ? 12 : 16, marginBottom: mobile ? 28 : 40, position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 1, background: 'rgba(4,27,77,0.08)', display: mobile ? 'none' : 'block' }} />
-          <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'rgba(4,27,77,0.08)', display: mobile ? 'none' : 'block' }} />
-          {ABOUT_STATS.map((stat, i) => (
-            <div key={stat.label} style={{ background: i % 2 === 0 ? C.cream : C.white, borderRadius: 18, padding: mobile ? '24px 18px' : '32px 24px', textAlign: 'center', border: `1px solid ${C.border}`, position: 'relative', zIndex: 1 }}>
-              <p style={{ margin: '0 0 8px', fontWeight: 800, fontSize: mobile ? 36 : 48, color: i % 2 === 0 ? C.gold : C.secondary, lineHeight: 1 }}>{stat.value}</p>
-              <p style={{ margin: 0, fontSize: mobile ? 13 : 15, fontWeight: 600, lineHeight: 1.5, color: C.primary }}>{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: threeCol, gap: mobile ? 16 : 24 }}>
-          {ABOUT_ACTIONS.map((action) => (
-            <div key={action.title} style={{ background: C.white, borderRadius: 16, padding: mobile ? '24px 20px' : '28px 24px', boxShadow: '0px 10px 26px rgba(0, 0, 0, 0.04)', display: 'flex', flexDirection: 'column', height: '100%', border: `1px solid ${C.border}` }}>
-              <h3 style={{ fontWeight: 800, fontSize: mobile ? 17 : 20, color: C.primary, margin: '0 0 12px', lineHeight: 1.3 }}>{action.title}</h3>
-              <p style={{ margin: '0 0 24px', flex: 1, fontSize: 14, lineHeight: 1.65, color: C.textMuted }}>{action.description}</p>
-              <ViewAllButton text={action.cta} mobile={mobile} onClick={() => navigate(action.path)} />
-            </div>
-          ))}
-        </div>
-      </AboutSection>
-
-      {/* Value to Partners */}
-      <AboutSection mobile={mobile} cream>
-        <div style={{ textAlign: 'center', marginBottom: mobile ? 28 : 40 }}>
-          <SectionLabel mobile={mobile} center>Value To Partners</SectionLabel>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(2, 1fr)', gap: mobile ? 14 : 18 }}>
-          {ABOUT_PARTNER_VALUES.map((value) => (
-            <div key={value} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', background: C.white, borderRadius: 12, padding: mobile ? '14px 16px' : '16px 18px' }}>
-              <img src={ASSETS.tick} alt="" width={20} height={20} style={{ flexShrink: 0, marginTop: 2 }} />
-              <span style={{ fontSize: mobile ? 14 : 15, lineHeight: 1.55, color: C.textMuted }}>{value}</span>
-            </div>
-          ))}
-        </div>
-      </AboutSection>
-
-      {/* Governance */}
-      <section style={{ width: mobile ? 'calc(100% - 32px)' : '94.44%', maxWidth: 1440, margin: '0 auto 40px' }}>
-        <div style={{ borderRadius: mobile ? 20 : 34, background: BRAND.gradient, padding: mobile ? '32px 24px' : '48px 40px', textAlign: 'center' }}>
-          <SectionLabel mobile={mobile} center>
-            <span style={{ color: C.goldLight }}>Governance</span>
-          </SectionLabel>
-          <p style={{ margin: '20px auto 12px', maxWidth: 780, fontSize: mobile ? 15 : 18, lineHeight: 1.7, color: 'rgba(255,255,255,0.95)', fontWeight: 600 }}>
-            {ABOUT_PARTNERSHIP_NOTE}
-          </p>
-          <p style={{ margin: 0, maxWidth: 780, fontSize: mobile ? 14 : 16, lineHeight: 1.65, color: 'rgba(255,255,255,0.88)' }}>
-            {ABOUT_GOVERNANCE}
-          </p>
-        </div>
-      </section>
-
-      {/* Testimonials — matches homepage */}
-      <AboutSection mobile={mobile} decorations wide={wide}>
-        <h2 style={{ fontFamily: 'Red Hat Display', fontWeight: 800, fontSize: mobile ? 20 : 36, textAlign: 'center', color: C.primary, marginBottom: mobile ? 24 : 48, maxWidth: 738, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.3, textTransform: 'capitalize' }}>
-          Stories From Our Community
-        </h2>
-        <div className="hide-scrollbar" style={{ display: 'flex', gap: mobile ? 16 : 24, overflowX: 'auto', width: '100%', padding: '4px 4px 8px', scrollSnapType: 'x mandatory' }}>
-          {ABOUT_TESTIMONIALS.map((item) => (
-            <div key={item.name} style={{ flexShrink: 0, width: mobile ? 280 : 360, scrollSnapAlign: 'start', background: C.white, borderRadius: 16, padding: 24, border: '1px solid #f1f1f1', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-              <img src={ASSETS.quote} alt="" width={32} style={{ marginBottom: 12 }} />
-              <p style={{ fontSize: mobile ? 13 : 14, color: C.textMuted, lineHeight: 1.65, marginBottom: 20 }}>{item.quote}</p>
-              <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: C.primary }}>{item.name}</p>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: C.secondary, fontWeight: 600 }}>{item.role}</p>
-            </div>
-          ))}
-        </div>
-      </AboutSection>
-
-      {/* Our Sponsor */}
-      <AboutSection mobile={mobile} cream>
-        <SectionDivider title="Our Sponsor" mobile={mobile} />
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: mobile ? 24 : 40 }}>
-          {SPONSORS.map((sponsor) => (
-            <div key={sponsor.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: mobile ? 120 : 160 }}>
-              {sponsor.logo ? (
-                <img src={sponsor.logo} alt={sponsor.name} style={{ maxHeight: mobile ? 56 : 70, maxWidth: mobile ? 140 : 180, objectFit: 'contain' }} />
-              ) : (
-                <span style={{ fontWeight: 700, fontSize: 14, color: C.primary, textAlign: 'center' }}>{sponsor.name}</span>
-              )}
-            </div>
-          ))}
-        </div>
-      </AboutSection>
-
-      {/* Closing */}
-      <section style={{ width: mobile ? 'calc(100% - 32px)' : '94.44%', maxWidth: 1440, margin: '0 auto 48px', textAlign: 'center' }}>
-        <p style={{ margin: '0 0 28px', fontSize: mobile ? 15 : 18, lineHeight: 1.7, color: C.textMuted, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
-          {ABOUT_CLOSING}
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center' }}>
-          <ViewAllButton text="Explore Campaigns" mobile={mobile} onClick={() => navigate('/campaigns')} />
-          <Link to="/contact" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', padding: '13px 24px', borderRadius: 10, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
-            Contact Us
-          </Link>
-        </div>
-      </section>
+        {/* Awards + Featured On + News logos */}
+        <AboutAwardsCarousel subtitle={cms.awardsSubtitle} items={cms.awardsLogos} />
+        <AboutFeaturedOnHeading />
+        <AboutNewsLogos items={cms.newsLogos} />
+      </div>
     </div>
   )
 }
