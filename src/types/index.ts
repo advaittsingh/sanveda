@@ -52,28 +52,6 @@ export interface BlogPost {
   BlogDescs?: { id: number; description?: string; title?: string; link?: string; image?: string | null }[]
 }
 
-export interface Vendor {
-  id: number
-  title: string
-  vendor_name?: string
-  slug?: string
-  banner_image?: string
-  thumbnail_image?: string
-  vendor_profile_photo?: string
-  main_description?: string
-  goal_amount?: number
-  raised_amount?: number
-  vendor_location?: string
-  tag_field?: string
-  trust_verified?: number
-  trust_name?: string
-  trust_description?: string
-  where_products_go_title?: string
-  where_products_go_description?: string
-  redirects?: { primary_url: string }[]
-  category_tags?: string[]
-}
-
 export interface MonthlyDonation {
   id: number
   title: string

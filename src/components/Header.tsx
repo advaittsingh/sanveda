@@ -9,10 +9,8 @@ import { useBreakpoints } from '../hooks/useMediaQuery'
 
 const navLinks = [
   { label: 'Home', path: '/' },
-  { label: 'Life', path: '/life' },
   { label: 'Explore Campaigns', path: '/campaigns' },
   { label: 'Monthly Donation', path: '/monthly-donation' },
-  { label: 'Small Vendors', path: '/small-vendors' },
   { label: 'Blogs', path: '/blogs' },
   { label: 'Contact Us', path: '/contact' },
   { label: 'About Us', path: '/about' },

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { BlogPost, Campaign, CMSItem, MonthlyDonation, Vendor } from '../types'
+import type { BlogPost, Campaign, CMSItem, MonthlyDonation } from '../types'
 
 const api = axios.create({
   baseURL: '/api',
@@ -78,10 +78,6 @@ export async function fetchRecentCampaigns(): Promise<Campaign[]> {
   return fetchCampaigns({ featureRecentCampaign: 1, limit: 8 })
 }
 
-export async function fetchLifeCampaigns(): Promise<Campaign[]> {
-  return fetchCampaigns({ featureLifeCampaign: 1, limit: 12 })
-}
-
 export async function fetchBlogs(): Promise<BlogPost[]> {
   try {
     const { data } = await api.get<BlogPost[]>('/blog')
@@ -97,28 +93,6 @@ export async function fetchBlogs(): Promise<BlogPost[]> {
   } catch {
     return []
   }
-}
-
-export async function fetchVendors(): Promise<Vendor[]> {
-  try {
-    const { data } = await api.get<{ data: Vendor[] }>('/vendors', { params: { limit: 50 } })
-    return data.data ?? []
-  } catch {
-    return []
-  }
-}
-
-export async function fetchVendorById(id: number): Promise<Vendor | null> {
-  try {
-    const { data } = await api.get<{ data: Vendor }>(`/vendors/${id}`)
-    return data.data ?? null
-  } catch {
-    return null
-  }
-}
-
-export function getVendorSlug(vendor: Vendor): string {
-  return vendor.redirects?.[0]?.primary_url ?? vendor.slug ?? `vendor-${vendor.id}`
 }
 
 export function formatCurrency(amount: number): string {
