@@ -1,46 +1,46 @@
 import { useEffect, useRef, useState } from 'react'
+import { C } from '../../constants/brand'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 
 function SectionDivider({ title, subtitle }: { title: string; subtitle?: string }) {
   const mobile = useMediaQuery('(max-width: 600px)')
   const lineStyle: React.CSSProperties = {
     flex: 1,
-    maxWidth: mobile ? 120 : 250,
+    maxWidth: mobile ? 80 : 250,
     height: 0,
     borderTop: '2.5px solid',
     borderImageSlice: 1,
-    borderImageSource: 'linear-gradient(90deg, rgba(201, 224, 137, 0.08) 0%, rgba(98, 131, 9, 0.4) 100%)',
+    borderImageSource: 'linear-gradient(90deg, rgba(212,164,55,0.08) 0%, rgba(212,164,55,0.5) 100%)',
   }
 
   return (
     <div style={{ width: '94.44%', maxWidth: 1440, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: mobile ? 10 : 18, width: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: mobile ? 12 : 16, width: '100%' }}>
         <div style={lineStyle} />
         <h2
           style={{
-            fontFamily: 'Nunito, sans-serif',
-            fontWeight: 700,
-            fontSize: mobile ? 16 : 22,
-            lineHeight: mobile ? '16px' : '18px',
-            color: '#8EA946',
+            fontFamily: 'Red Hat Display, sans-serif',
+            fontWeight: 800,
+            fontSize: mobile ? 20 : 24,
+            lineHeight: 1,
+            color: C.primary,
             margin: 0,
             whiteSpace: 'nowrap',
           }}
         >
           {title}
         </h2>
-        <div style={{ ...lineStyle, borderImageSource: 'linear-gradient(90deg, rgba(98, 131, 9, 0.4) 0%, rgba(201, 224, 137, 0.08) 100%)' }} />
+        <div style={{ ...lineStyle, borderImageSource: 'linear-gradient(90deg, rgba(212,164,55,0.5) 0%, rgba(212,164,55,0.08) 100%)' }} />
       </div>
       {subtitle ? (
         <p
           style={{
             margin: '18px 0 0',
-            fontWeight: 800,
-            fontSize: mobile ? 16 : 24,
-            lineHeight: 1,
+            fontWeight: 600,
+            fontSize: mobile ? 15 : 18,
+            lineHeight: 1.4,
             textAlign: 'center',
-            textTransform: 'capitalize',
-            color: '#1D1D1B',
+            color: C.textMuted,
           }}
         >
           {subtitle}
@@ -103,9 +103,19 @@ export default function AboutAwardsCarousel({ subtitle, items }: { subtitle: str
   const doubled = [...items, ...items]
 
   return (
-    <div style={{ width: '94.44%', maxWidth: 1440, margin: '0 auto', marginBottom: mobile ? 0 : 30 }}>
+    <div
+      style={{
+        width: '94.44%',
+        maxWidth: 1440,
+        margin: '0 auto',
+        marginBottom: mobile ? 0 : 30,
+        background: C.cream,
+        borderRadius: mobile ? 20 : 30,
+        padding: mobile ? '24px 16px' : '32px 24px',
+      }}
+    >
       <SectionDivider title="Awards" subtitle={subtitle || undefined} />
-      <div ref={containerRef} className="hide-scrollbar" style={{ width: '100%', overflow: 'hidden', padding: '30px 0', position: 'relative' }}>
+      <div ref={containerRef} className="hide-scrollbar" style={{ width: '100%', overflow: 'hidden', padding: '30px 0 8px', position: 'relative' }}>
         {scrollable ? (
           <div className="about-logo-scroll" ref={trackRef}>
             {doubled.map((item, i) => renderItem({ ...item, id: item.id * 1000 + i }))}
@@ -121,5 +131,9 @@ export default function AboutAwardsCarousel({ subtitle, items }: { subtitle: str
 }
 
 export function AboutFeaturedOnHeading() {
-  return <SectionDivider title="Featured On" />
+  return (
+    <div style={{ marginTop: 24 }}>
+      <SectionDivider title="Featured On" />
+    </div>
+  )
 }

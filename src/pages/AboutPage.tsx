@@ -1,4 +1,5 @@
 import { ABOUT_BANNER_MASKS, ASSETS, STRENGTH_ICONS } from '../constants/assets'
+import { C } from '../constants/brand'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useAboutCMS } from '../hooks/useAboutCMS'
 import AboutAwardsCarousel, { AboutFeaturedOnHeading } from '../components/about/AboutAwardsCarousel'
@@ -6,16 +7,6 @@ import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
 import AboutNewsLogos from '../components/about/AboutNewsLogos'
 import AboutSectionLabel from '../components/about/AboutSectionLabel'
 import DonateNowButton from '../components/about/DonateNowButton'
-
-const TH = {
-  dark: '#1D1D1B',
-  green: '#A9C74E',
-  text: '#1D1D1B',
-  muted: '#686866',
-  lightMuted: '#979796',
-  bodyMuted: '#4A4A49',
-  lightText: '#E8E8E8',
-} as const
 
 function maskImg(mask: string): React.CSSProperties {
   return {
@@ -47,7 +38,7 @@ function AboutHeroBanner({ images, mobile, tablet }: { images: string[]; mobile:
       )}
       {images.length === 0 &&
         [0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className={bannerClasses[i]} style={{ background: '#f0f0f0', minHeight: mobile ? 120 : 200, borderRadius: 12 }} />
+          <div key={i} className={bannerClasses[i]} style={{ background: C.cream, minHeight: mobile ? 120 : 200, borderRadius: 12 }} />
         ))}
     </div>
   )
@@ -73,7 +64,7 @@ function WhoWeAreCollage({
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
       <div style={{ width: boxW, height: boxH, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <img
-          src={ASSETS.pinkSplash}
+          src={ASSETS.orangeSparks}
           alt=""
           style={{
             position: 'absolute',
@@ -135,7 +126,8 @@ function VisionStatCard({ value, mobile, tablet }: { value: string; mobile: bool
   return (
     <div
       style={{
-        border: '1px solid rgba(0, 0, 0, 0.10)',
+        border: `1px solid rgba(212, 164, 55, 0.25)`,
+        background: C.cream,
         borderRadius: mobile ? 16 : 30,
         height: mobile ? 102 : 181,
         paddingInline: mobile ? 16 : 33,
@@ -144,10 +136,10 @@ function VisionStatCard({ value, mobile, tablet }: { value: string; mobile: bool
         justifyContent: 'center',
       }}
     >
-      <p style={{ fontWeight: 700, fontSize: mobile ? 16 : tablet ? 18 : 42, lineHeight: mobile ? '20px' : '42px', color: TH.text, margin: '0 0 16px' }}>
+      <p style={{ fontWeight: 700, fontSize: mobile ? 16 : tablet ? 18 : 42, lineHeight: mobile ? '20px' : '42px', color: C.gold, margin: '0 0 16px' }}>
         {value}
       </p>
-      <p style={{ fontWeight: 600, fontSize: mobile ? 12 : 18, lineHeight: mobile ? '20px' : '29px', color: TH.lightMuted, margin: 0 }}>
+      <p style={{ fontWeight: 600, fontSize: mobile ? 12 : 18, lineHeight: mobile ? '20px' : '29px', color: C.textMuted, margin: 0 }}>
         Communities Reached
       </p>
     </div>
@@ -168,7 +160,7 @@ export default function AboutPage() {
   const headingLine = mobile ? '28px' : tablet ? '40px' : '50px'
 
   return (
-    <div style={{ background: '#fff' }}>
+    <div style={{ background: C.white }}>
       <AboutBreadcrumb items={[{ label: 'Home', path: '/' }, { label: 'About us', path: null }]} />
 
       <div style={{ width: '100%', paddingLeft: lg ? 0 : 40, paddingRight: lg ? 0 : 40 }}>
@@ -176,13 +168,13 @@ export default function AboutPage() {
         <section style={{ marginBottom: mobile ? 30 : md ? 40 : 82, paddingLeft: lg ? 16 : 0, paddingRight: lg ? 16 : 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 800, margin: '0 auto' }}>
             {!mobile && (
-              <h1 style={{ fontWeight: 600, color: TH.text, margin: '0 0 14px', fontSize: 18, lineHeight: 1.2 }}>About Us</h1>
+              <h1 style={{ fontWeight: 600, color: C.gold, margin: '0 0 14px', fontSize: 18, lineHeight: 1.2, fontFamily: 'Nunito, sans-serif' }}>About Us</h1>
             )}
             {cms.heroTitle && (
               <h2
                 style={{
                   fontWeight: 700,
-                  color: TH.text,
+                  color: C.primary,
                   fontSize: mobile ? 18 : tablet ? 22 : 42,
                   lineHeight: mobile ? '24px' : tablet ? 'normal' : '56px',
                   margin: `0 0 ${mobile ? 10 : 14}px`,
@@ -192,7 +184,7 @@ export default function AboutPage() {
                 {cms.heroTitle}
               </h2>
             )}
-            <p style={{ fontWeight: 500, color: TH.bodyMuted, fontSize: mobile ? 12 : 14, lineHeight: '22.652px', maxWidth: mobile ? 328 : 482, margin: 0 }}>
+            <p style={{ fontWeight: 500, color: C.textMuted, fontSize: mobile ? 12 : 14, lineHeight: '22.652px', maxWidth: mobile ? 328 : 482, margin: 0 }}>
               {cms.heroDescription}
             </p>
           </div>
@@ -202,7 +194,7 @@ export default function AboutPage() {
         {/* Who we are */}
         <section
           style={{
-            backgroundColor: TH.dark,
+            backgroundColor: C.primary,
             display: 'flex',
             flexDirection: md ? 'column-reverse' : 'row',
             gap: lg ? 50 : 17,
@@ -221,7 +213,7 @@ export default function AboutPage() {
                 fontWeight: 700,
                 fontSize: headingSize,
                 lineHeight: headingLine,
-                color: '#FFF',
+                color: C.white,
                 margin: '0 0 20px',
                 maxWidth: mobile ? 300 : 620,
                 textTransform: 'capitalize',
@@ -229,10 +221,10 @@ export default function AboutPage() {
             >
               {cms.whoWeAreTitle}
             </h2>
-            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.lightText, paddingBottom: md ? 12 : 20, margin: 0, maxWidth: 667 }}>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: 'rgba(255,255,255,0.88)', paddingBottom: md ? 12 : 20, margin: 0, maxWidth: 667 }}>
               {cms.whoWeAreBaseDesc}
             </p>
-            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.lightText, paddingBottom: md ? 20 : 30, margin: 0, maxWidth: 667 }}>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: 'rgba(255,255,255,0.88)', paddingBottom: md ? 20 : 30, margin: 0, maxWidth: 667 }}>
               {cms.whoWeAreSecondDesc}
             </p>
             <div style={{ textAlign: md ? 'center' : 'left', display: 'flex', justifyContent: mobile ? 'center' : 'flex-start' }}>
@@ -294,7 +286,7 @@ export default function AboutPage() {
                 fontWeight: 800,
                 fontSize: headingSize,
                 lineHeight: headingLine,
-                color: TH.text,
+                color: C.primary,
                 margin: '0 0 20px',
                 maxWidth: mobile ? 328 : 577,
                 textTransform: 'capitalize',
@@ -302,10 +294,10 @@ export default function AboutPage() {
             >
               {cms.visionTitle}
             </h2>
-            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.muted, paddingBottom: md ? 12 : 20, margin: 0, maxWidth: 667 }}>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: C.textMuted, paddingBottom: md ? 12 : 20, margin: 0, maxWidth: 667 }}>
               {cms.visionDesc1}
             </p>
-            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.muted, paddingBottom: md ? 20 : 30, margin: 0, maxWidth: 667 }}>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: C.textMuted, paddingBottom: md ? 20 : 30, margin: 0, maxWidth: 667 }}>
               {cms.visionDesc2}
             </p>
             <div style={{ textAlign: md ? 'center' : 'left', display: 'flex', justifyContent: mobile ? 'center' : 'flex-start' }}>
@@ -317,7 +309,7 @@ export default function AboutPage() {
         {/* Mission */}
         <section
           style={{
-            backgroundColor: TH.dark,
+            backgroundColor: C.primary,
             display: 'flex',
             flexDirection: md ? 'column-reverse' : 'row',
             gap: mobile ? 20 : tablet ? 80 : 119,
@@ -337,7 +329,7 @@ export default function AboutPage() {
                 fontWeight: 800,
                 fontSize: headingSize,
                 lineHeight: headingLine,
-                color: '#FFF',
+                color: C.white,
                 margin: '0 0 20px',
                 maxWidth: 577,
                 textTransform: 'capitalize',
@@ -345,10 +337,10 @@ export default function AboutPage() {
             >
               {cms.missionTitle}
             </h2>
-            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.lightText, paddingBottom: md ? 12 : 20, margin: 0, maxWidth: 667 }}>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: 'rgba(255,255,255,0.88)', paddingBottom: md ? 12 : 20, margin: 0, maxWidth: 667 }}>
               {cms.missionBaseDesc}
             </p>
-            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: TH.lightText, paddingBottom: md ? 20 : 30, margin: 0, maxWidth: 667 }}>
+            <p style={{ fontWeight: 400, fontSize: 14, lineHeight: '24px', color: 'rgba(255,255,255,0.88)', paddingBottom: md ? 20 : 30, margin: 0, maxWidth: 667 }}>
               {cms.missionSecondDesc}
             </p>
             <div style={{ textAlign: md ? 'center' : 'left', display: 'flex', justifyContent: mobile ? 'center' : 'flex-start' }}>
@@ -399,7 +391,7 @@ export default function AboutPage() {
               fontWeight: 800,
               fontSize: headingSize,
               lineHeight: headingLine,
-              color: TH.text,
+              color: C.primary,
               margin: '0 auto 20px',
               maxWidth: mobile ? 307 : 620,
               textAlign: 'center',
@@ -421,7 +413,8 @@ export default function AboutPage() {
               <div
                 key={item.title}
                 style={{
-                  border: '0.836px solid #DEDEDE',
+                  border: `1px solid rgba(212, 164, 55, 0.2)`,
+                  background: C.cream,
                   display: 'flex',
                   alignItems: mobile ? 'center' : 'flex-start',
                   textAlign: mobile ? 'center' : 'left',
@@ -429,6 +422,7 @@ export default function AboutPage() {
                   borderRadius: 13.37,
                   padding: 20,
                   flex: 1,
+                  boxShadow: '0px 10px 26px rgba(0, 0, 0, 0.04)',
                 }}
               >
                 <div
@@ -437,7 +431,7 @@ export default function AboutPage() {
                     height: mobile ? 36 : 50,
                     borderRadius: 8,
                     overflow: 'hidden',
-                    backgroundColor: TH.green,
+                    backgroundColor: C.gold,
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
@@ -446,10 +440,10 @@ export default function AboutPage() {
                 >
                   <img src={STRENGTH_ICONS[i]} alt="" style={{ width: mobile ? 20 : 'auto' }} />
                 </div>
-                <h3 style={{ fontWeight: 700, fontSize: mobile || tablet ? 14 : 16, lineHeight: mobile ? '14px' : '16px', color: '#131313', margin: '0 0 10px' }}>
+                <h3 style={{ fontWeight: 700, fontSize: mobile || tablet ? 14 : 16, lineHeight: mobile ? '14px' : '16px', color: C.primary, margin: '0 0 10px' }}>
                   {item.title}
                 </h3>
-                <p style={{ fontWeight: 400, fontSize: 12, lineHeight: '22px', color: TH.muted, opacity: 0.8, margin: 0 }}>
+                <p style={{ fontWeight: 400, fontSize: 12, lineHeight: '22px', color: C.textMuted, margin: 0 }}>
                   {item.description}
                 </p>
               </div>

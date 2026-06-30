@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { ASSETS } from '../../constants/assets'
+import { C } from '../../constants/brand'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 
 export default function DonateNowButton({ text = 'Donate Now' }: { text?: string }) {
@@ -10,11 +11,8 @@ export default function DonateNowButton({ text = 'Donate Now' }: { text?: string
     <button
       type="button"
       onClick={() => navigate('/campaigns')}
+      className="btn-donate"
       style={{
-        backgroundColor: '#F04951',
-        color: '#FFFFFF',
-        borderRadius: 10,
-        boxShadow: '0px 4px 0px #141414',
         padding: mobile ? '8px 16px' : '15px 24px',
         width: mobile ? 136 : 183,
         height: mobile ? 36 : 48,
@@ -28,7 +26,9 @@ export default function DonateNowButton({ text = 'Donate Now' }: { text?: string
         gap: mobile ? 4 : 8,
         border: 'none',
         cursor: 'pointer',
-        transition: 'all 0.3s ease',
+        backgroundColor: C.gold,
+        color: C.primary,
+        boxShadow: `0px 4px 0px ${C.primary}`,
       }}
     >
       {text}
@@ -37,7 +37,7 @@ export default function DonateNowButton({ text = 'Donate Now' }: { text?: string
         alt=""
         width={mobile ? 14 : 20}
         height={mobile ? 14 : 20}
-        style={{ filter: 'brightness(0) invert(1)' }}
+        style={{ filter: `brightness(0) saturate(100%)` }}
       />
     </button>
   )

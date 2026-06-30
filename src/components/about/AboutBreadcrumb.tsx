@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { C } from '../../constants/brand'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 
 interface Crumb {
@@ -27,14 +28,14 @@ export default function AboutBreadcrumb({ items }: { items: Crumb[] }) {
       {items.map((item, i) => (
         <span key={item.label} style={{ display: 'flex', alignItems: 'center' }}>
           {i > 0 && (
-            <span style={{ color: '#1D1D1B', fontSize: 18, fontWeight: 500, margin: '0 6px' }}>&gt;</span>
+            <span style={{ color: C.primary, fontSize: 18, fontWeight: 500, margin: '0 6px' }}>&gt;</span>
           )}
           {item.path ? (
             <button
               type="button"
               onClick={() => navigate(item.path!)}
               style={{
-                color: '#686866',
+                color: C.textMuted,
                 fontSize: 14,
                 fontWeight: 500,
                 lineHeight: 1,
@@ -48,7 +49,7 @@ export default function AboutBreadcrumb({ items }: { items: Crumb[] }) {
               {item.label}
             </button>
           ) : (
-            <span style={{ color: '#1D1D1B', fontSize: 14, fontWeight: 600, lineHeight: 1 }}>{item.label}</span>
+            <span style={{ color: C.primary, fontSize: 14, fontWeight: 600, lineHeight: 1 }}>{item.label}</span>
           )}
         </span>
       ))}
