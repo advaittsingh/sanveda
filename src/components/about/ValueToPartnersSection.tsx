@@ -13,14 +13,16 @@ import PartnerValueIcon from './PartnerValueIcon'
 export default function ValueToPartnersSection() {
   const mobile = useMediaQuery('(max-width: 600px)')
   const tablet = useMediaQuery('(max-width: 900px)')
+  const lg = useMediaQuery('(max-width: 1024px)')
 
   return (
-    <>
+    <div style={{ width: '100%', padding: lg ? '0 16px' : 0, boxSizing: 'border-box' }}>
       <section
         style={{
           ...creamSectionStyle(mobile, {
-            width: mobile ? 'calc(100% - 32px)' : '94.44%',
-            margin: `${mobile ? 32 : 56}px auto 0`,
+            width: '100%',
+            maxWidth: 'none',
+            margin: `${mobile ? 32 : 56}px 0 0`,
             padding: mobile ? '40px 20px 36px' : tablet ? '56px 32px 48px' : '64px 48px 56px',
             borderRadius: mobile ? 20 : 36,
             position: 'relative',
@@ -192,9 +194,8 @@ export default function ValueToPartnersSection() {
       {/* Governance CTA banner */}
       <section
         style={{
-          width: mobile ? 'calc(100% - 32px)' : '94.44%',
-          maxWidth: 1440,
-          margin: `${mobile ? 24 : 32}px auto ${mobile ? 32 : 48}px`,
+          width: '100%',
+          margin: `${mobile ? 24 : 32}px 0 ${mobile ? 32 : 48}px`,
         }}
       >
         <div
@@ -269,6 +270,6 @@ export default function ValueToPartnersSection() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }
