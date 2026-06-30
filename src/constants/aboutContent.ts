@@ -72,24 +72,77 @@ export const ABOUT_ACTIONS = [
   },
 ]
 
-export const ABOUT_PARTNER_VALUES = [
-  'Authentic humanitarian branding',
-  'Local and community-level reach',
-  'Long-term goodwill and credibility',
-  'Transparent impact reporting',
-  'Sustainable return on association',
-  'Ethical compliance across all initiatives',
-  'Zero tolerance for misuse of funds or false claims',
-  'Independent oversight and accountability mechanisms',
-  'Responsible representation and communication',
-  'Full transparency in operations and reporting',
+export interface PartnerValueItem {
+  title: string
+  description: string
+  icon: 'handshake' | 'community' | 'award' | 'chart' | 'growth' | 'compliance' | 'shield' | 'oversight' | 'communication' | 'transparency'
+}
+
+export const ABOUT_PARTNERS_INTRO = {
+  label: 'Value to Partners',
+  title: 'Why Partners Choose Sanveda',
+  description:
+    "We believe strong partnerships create lasting change. Here's the value our partners and supporters receive when they join hands with us.",
+}
+
+export const ABOUT_PARTNER_VALUES: PartnerValueItem[] = [
+  {
+    title: 'Authentic Humanitarian Branding',
+    description: 'Align with a purpose-driven organization creating real impact.',
+    icon: 'handshake',
+  },
+  {
+    title: 'Local & Community-Level Reach',
+    description: 'Deep, grassroots connections that ensure wider community impact.',
+    icon: 'community',
+  },
+  {
+    title: 'Long-term Goodwill & Credibility',
+    description: 'Build trust and credibility with communities and stakeholders.',
+    icon: 'award',
+  },
+  {
+    title: 'Transparent Impact Reporting',
+    description: 'Regular updates, real stories, and clear impact measurement.',
+    icon: 'chart',
+  },
+  {
+    title: 'Sustainable Return on Association',
+    description: 'Partner with initiatives that deliver measurable, sustainable outcomes.',
+    icon: 'growth',
+  },
+  {
+    title: 'Ethical Compliance Across All Initiatives',
+    description: 'All programs follow strict ethical standards and compliance.',
+    icon: 'compliance',
+  },
+  {
+    title: 'Zero Tolerance for Misuse',
+    description: 'We ensure complete integrity with zero tolerance for misuse of funds.',
+    icon: 'shield',
+  },
+  {
+    title: 'Independent Oversight & Accountability',
+    description: 'Governance model with independent checks and accountability.',
+    icon: 'oversight',
+  },
+  {
+    title: 'Responsible Representation & Communication',
+    description: 'Transparent communication and responsible partnership representation.',
+    icon: 'communication',
+  },
+  {
+    title: 'Full Transparency in Operations & Reporting',
+    description: 'Open books, clear processes, and honest reporting at every step.',
+    icon: 'transparency',
+  },
 ]
 
 export const ABOUT_PARTNERSHIP_NOTE =
-  'All partnerships are aligned with Sanveda’s humanitarian values and governance standards.'
+  "All Partnerships Are Aligned With Sanveda's Humanitarian Values And Governance Standards."
 
 export const ABOUT_GOVERNANCE =
-  'Sanveda Global Humanitarian Foundation operates under a strict governance framework.'
+  'Sanveda Global Humanitarian Foundation operates under a strict governance framework to ensure fairness, transparency, and long-term impact.'
 
 export const ABOUT_CLOSING =
   'Sanveda Global Humanitarian Foundation is a purpose-driven non-profit organization dedicated to creating meaningful and sustainable humanitarian impact.'
