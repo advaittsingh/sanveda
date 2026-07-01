@@ -3,6 +3,7 @@ import { fetchCMS, getCMSSection } from '../api'
 import { ASSETS } from '../constants/assets'
 import { C } from '../constants/brand'
 import { sectionShellStyle } from '../constants/sectionStyles'
+import CarouselNavButtons from './ui/CarouselNavButtons'
 
 interface Testimonial {
   id: number
@@ -59,6 +60,15 @@ export default function Testimonials() {
     setTimeout(updateScroll, 300)
   }
 
+  useEffect(() => {
+    updateScroll()
+    const el = scrollRef.current
+    if (!el) return
+    const ro = new ResizeObserver(updateScroll)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [items, mobile])
+
   return (
     <div
       style={{
@@ -87,86 +97,64 @@ export default function Testimonials() {
       </h2>
 
       <div
-        ref={scrollRef}
-        onScroll={updateScroll}
-        className="hide-scrollbar"
         style={{
-          display: 'flex',
-          gap: mobile ? '16px' : '24px',
-          overflowX: 'auto',
-          width: '100%',
-          padding: '10px 16px',
-          scrollSnapType: 'x mandatory',
           position: 'relative',
+          width: '100%',
           zIndex: 2,
         }}
       >
-        {items.map((t) => (
-          <div
-            key={t.id}
-            style={{
-              flexShrink: 0,
-              width: cardWidth,
-              scrollSnapAlign: 'start',
-              background: '#fff',
-              borderRadius: '16px',
-              padding: '24px',
-              border: '1px solid #f1f1f1',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-            }}
-          >
-            <img src={ASSETS.quote} alt="" width={32} style={{ marginBottom: '12px' }} />
-            <p style={{ fontSize: mobile ? '13px' : '14px', color: '#4A4A49', lineHeight: 1.6, marginBottom: '20px' }}>
-              {t.text}
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {t.image && (
-                <img src={t.image} alt={t.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
-              )}
-              <span style={{ fontWeight: 700, color: C.text, fontSize: '14px' }}>{t.name}</span>
+        <div
+          ref={scrollRef}
+          onScroll={updateScroll}
+          className="hide-scrollbar"
+          style={{
+            display: 'flex',
+            gap: mobile ? '16px' : '24px',
+            overflowX: 'auto',
+            width: '100%',
+            padding: mobile ? '10px 16px' : '10px 34px',
+            scrollSnapType: 'x mandatory',
+          }}
+        >
+          {items.map((t) => (
+            <div
+              key={t.id}
+              style={{
+                flexShrink: 0,
+                width: cardWidth,
+                scrollSnapAlign: 'start',
+                background: '#fff',
+                borderRadius: '16px',
+                padding: '24px',
+                border: '1px solid #f1f1f1',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+              }}
+            >
+              <img src={ASSETS.quote} alt="" width={32} style={{ marginBottom: '12px' }} />
+              <p style={{ fontSize: mobile ? '13px' : '14px', color: '#4A4A49', lineHeight: 1.6, marginBottom: '20px' }}>
+                {t.text}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {t.image && (
+                  <img src={t.image} alt={t.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
+                )}
+                <span style={{ fontWeight: 700, color: C.text, fontSize: '14px' }}>{t.name}</span>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <div style={{ display: 'flex', gap: mobile ? '10px' : '20px', marginTop: mobile ? '20px' : '40px', position: 'relative', zIndex: 2 }}>
-        <button
-          type="button"
-          onClick={() => scroll(-1)}
-          disabled={!canLeft}
-          style={{
-            width: mobile ? 25 : 50,
-            height: mobile ? 25 : 50,
-            borderRadius: '50%',
-            background: canLeft ? C.secondary : '#B9B9B8',
-            border: 'none',
-            cursor: canLeft ? 'pointer' : 'not-allowed',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <img src={ASSETS.leftArrow} alt="Previous" width={mobile ? 8 : 15} style={{ filter: canLeft ? 'brightness(0) invert(1)' : 'none' }} />
-        </button>
-        <button
-          type="button"
-          onClick={() => scroll(1)}
-          disabled={!canRight}
-          style={{
-            width: mobile ? 25 : 50,
-            height: mobile ? 25 : 50,
-            borderRadius: '50%',
-            background: canRight ? C.secondary : '#B9B9B8',
-            border: 'none',
-            cursor: canRight ? 'pointer' : 'not-allowed',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transform: 'rotate(180deg)',
-          }}
-        >
-          <img src={ASSETS.leftArrow} alt="Next" width={mobile ? 8 : 15} style={{ filter: canRight ? 'brightness(0) invert(1)' : 'none' }} />
-        </button>
+        {items.length > 0 && (
+          <CarouselNavButtons
+            mobile={mobile}
+            canLeft={canLeft}
+            canRight={canRight}
+            onPrev={() => scroll(-1)}
+            onNext={() => scroll(1)}
+            prevLabel="Previous testimonial"
+            nextLabel="Next testimonial"
+          />
+        )}
       </div>
     </div>
   )

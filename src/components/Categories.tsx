@@ -1,21 +1,27 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchCMS, fetchCampaigns, getCMSSection } from '../api'
 import { campaignMatchesFocusArea, FOCUS_AREAS } from '../constants/focusAreas'
 import type { Campaign } from '../types'
 import CampaignCard from './CampaignCard'
 import SectionTitle from './ui/SectionTitle'
+import CarouselNavButtons from './ui/CarouselNavButtons'
 import { C } from '../constants/brand'
 import { sectionShellStyle } from '../constants/sectionStyles'
 import ViewAllButton from './ui/ViewAllButton'
 
 export default function Categories() {
   const navigate = useNavigate()
+  const scrollRef = useRef<HTMLDivElement>(null)
   const [mobile, setMobile] = useState(false)
   const [title, setTitle] = useState('Behind every category lies a different story of suffering.')
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [activeSlug, setActiveSlug] = useState(FOCUS_AREAS[0].slug)
   const [loading, setLoading] = useState(true)
+  const [canLeft, setCanLeft] = useState(false)
+  const [canRight, setCanRight] = useState(false)
+
+  const cardStep = mobile ? 306 : 441
 
   const activeArea = FOCUS_AREAS.find((a) => a.slug === activeSlug) ?? FOCUS_AREAS[0]
 
@@ -43,6 +49,27 @@ export default function Categories() {
     () => campaigns.filter((c) => campaignMatchesFocusArea(c, activeArea)).slice(0, 8),
     [campaigns, activeArea],
   )
+
+  const updateScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanLeft(el.scrollLeft > 0)
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10)
+  }
+
+  useEffect(() => {
+    updateScroll()
+    const el = scrollRef.current
+    if (!el) return
+    const ro = new ResizeObserver(updateScroll)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [filtered, loading, mobile, activeSlug])
+
+  const scroll = (dir: number) => {
+    scrollRef.current?.scrollBy({ left: dir * cardStep, behavior: 'smooth' })
+    setTimeout(updateScroll, 300)
+  }
 
   return (
     <div
@@ -122,28 +149,53 @@ export default function Categories() {
       </div>
 
       <div
-        className="hide-scrollbar"
         style={{
-          display: 'flex',
-          width: '100%',
-          gap: mobile ? '16px' : '24px',
-          marginBottom: mobile ? '20px' : '48px',
-          paddingLeft: mobile ? '16px' : '34px',
-          paddingRight: mobile ? '16px' : '34px',
-          overflowX: 'auto',
           position: 'relative',
+          width: '100%',
+          marginBottom: mobile ? '20px' : '48px',
           zIndex: 2,
         }}
       >
-        {loading
-          ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} style={{ width: '300px', height: '320px', background: '#e8e8e8', borderRadius: '12px', flexShrink: 0 }} />
-            ))
-          : filtered.length
-            ? filtered.map((c) => <CampaignCard key={c.id} campaign={c} mobile={mobile} />)
-            : (
-              <p style={{ color: '#666', padding: '20px' }}>No campaigns in this focus area right now.</p>
-            )}
+        <div
+          ref={scrollRef}
+          onScroll={updateScroll}
+          className="hide-scrollbar"
+          style={{
+            display: 'flex',
+            width: '100%',
+            gap: mobile ? '16px' : '24px',
+            paddingLeft: mobile ? '16px' : '34px',
+            paddingRight: mobile ? '16px' : '34px',
+            overflowX: 'auto',
+            scrollSnapType: mobile ? 'x mandatory' : undefined,
+          }}
+        >
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} style={{ width: '300px', height: '320px', background: '#e8e8e8', borderRadius: '12px', flexShrink: 0 }} />
+              ))
+            : filtered.length
+              ? filtered.map((c) => (
+                  <div key={c.id} style={{ flexShrink: 0, scrollSnapAlign: mobile ? 'start' : undefined }}>
+                    <CampaignCard campaign={c} mobile={mobile} />
+                  </div>
+                ))
+              : (
+                <p style={{ color: '#666', padding: '20px' }}>No campaigns in this focus area right now.</p>
+              )}
+        </div>
+
+        {!loading && filtered.length > 0 && (
+          <CarouselNavButtons
+            mobile={mobile}
+            canLeft={canLeft}
+            canRight={canRight}
+            onPrev={() => scroll(-1)}
+            onNext={() => scroll(1)}
+            prevLabel="Previous campaigns"
+            nextLabel="Next campaigns"
+          />
+        )}
       </div>
 
       <ViewAllButton

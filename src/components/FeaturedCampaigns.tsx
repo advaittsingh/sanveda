@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchCMS, fetchFeaturedCampaigns, getCMSSection } from '../api'
-import { ASSETS } from '../constants/assets'
-import { C } from '../constants/brand'
 import type { Campaign } from '../types'
 import CampaignCard from './CampaignCard'
 import SectionLabel from './ui/SectionLabel'
 import SectionTitle from './ui/SectionTitle'
 import { creamSectionStyle } from '../constants/sectionStyles'
+import CarouselNavButtons from './ui/CarouselNavButtons'
 import ViewAllButton from './ui/ViewAllButton'
 
 export default function FeaturedCampaigns() {
@@ -84,109 +83,65 @@ export default function FeaturedCampaigns() {
       </div>
 
       <div
-        ref={scrollRef}
-        onScroll={updateScroll}
-        className="hide-scrollbar"
         style={{
-          display: 'flex',
-          width: '100%',
-          justifyContent: 'flex-start',
-          gap: mobile ? '16px' : '24px',
-          marginBottom: mobile ? '20px' : '32px',
-          paddingLeft: mobile ? '16px' : '34px',
-          paddingRight: mobile ? '16px' : '34px',
-          overflowX: 'auto',
-          alignItems: 'flex-start',
           position: 'relative',
+          width: '100%',
+          marginBottom: mobile ? '20px' : '32px',
           zIndex: 2,
-          scrollSnapType: mobile ? 'x mandatory' : undefined,
         }}
       >
-        {loading
-          ? Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  width: mobile ? 290 : 417,
-                  minHeight: 480,
-                  background: '#e8e8e8',
-                  borderRadius: 16,
-                  flexShrink: 0,
-                  scrollSnapAlign: mobile ? 'start' : undefined,
-                }}
-              />
-            ))
-          : campaigns.map((c) => (
-              <div
-                key={c.id}
-                style={{ flexShrink: 0, scrollSnapAlign: mobile ? 'start' : undefined }}
-              >
-                <CampaignCard campaign={c} mobile={mobile} />
-              </div>
-            ))}
-      </div>
-
-      {!loading && campaigns.length > 0 && (
         <div
+          ref={scrollRef}
+          onScroll={updateScroll}
+          className="hide-scrollbar"
           style={{
             display: 'flex',
-            gap: mobile ? 10 : 20,
-            marginBottom: mobile ? 20 : 32,
-            position: 'relative',
-            zIndex: 2,
+            width: '100%',
+            justifyContent: 'flex-start',
+            gap: mobile ? '16px' : '24px',
+            paddingLeft: mobile ? '16px' : '34px',
+            paddingRight: mobile ? '16px' : '34px',
+            overflowX: 'auto',
+            alignItems: 'flex-start',
+            scrollSnapType: mobile ? 'x mandatory' : undefined,
           }}
         >
-          <button
-            type="button"
-            onClick={() => scroll(-1)}
-            disabled={!canLeft}
-            aria-label="Previous campaigns"
-            style={{
-              width: mobile ? 32 : 50,
-              height: mobile ? 32 : 50,
-              borderRadius: '50%',
-              background: canLeft ? C.secondary : '#B9B9B8',
-              border: 'none',
-              cursor: canLeft ? 'pointer' : 'not-allowed',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <img
-              src={ASSETS.leftArrow}
-              alt=""
-              width={mobile ? 10 : 15}
-              style={{ filter: canLeft ? 'brightness(0) invert(1)' : 'none' }}
-            />
-          </button>
-          <button
-            type="button"
-            onClick={() => scroll(1)}
-            disabled={!canRight}
-            aria-label="Next campaigns"
-            style={{
-              width: mobile ? 32 : 50,
-              height: mobile ? 32 : 50,
-              borderRadius: '50%',
-              background: canRight ? C.secondary : '#B9B9B8',
-              border: 'none',
-              cursor: canRight ? 'pointer' : 'not-allowed',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transform: 'rotate(180deg)',
-            }}
-          >
-            <img
-              src={ASSETS.leftArrow}
-              alt=""
-              width={mobile ? 10 : 15}
-              style={{ filter: canRight ? 'brightness(0) invert(1)' : 'none' }}
-            />
-          </button>
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: mobile ? 290 : 417,
+                    minHeight: 480,
+                    background: '#e8e8e8',
+                    borderRadius: 16,
+                    flexShrink: 0,
+                    scrollSnapAlign: mobile ? 'start' : undefined,
+                  }}
+                />
+              ))
+            : campaigns.map((c) => (
+                <div
+                  key={c.id}
+                  style={{ flexShrink: 0, scrollSnapAlign: mobile ? 'start' : undefined }}
+                >
+                  <CampaignCard campaign={c} mobile={mobile} />
+                </div>
+              ))}
         </div>
-      )}
+
+        {!loading && campaigns.length > 0 && (
+          <CarouselNavButtons
+            mobile={mobile}
+            canLeft={canLeft}
+            canRight={canRight}
+            onPrev={() => scroll(-1)}
+            onNext={() => scroll(1)}
+            prevLabel="Previous campaigns"
+            nextLabel="Next campaigns"
+          />
+        )}
+      </div>
 
       <div style={{ position: 'relative', zIndex: 2 }}>
         <ViewAllButton text="View All Campaigns" mobile={mobile} onClick={() => navigate('/campaigns')} />
