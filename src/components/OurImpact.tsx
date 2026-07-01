@@ -1,9 +1,32 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fetchCMS, getCMSSection } from '../api'
 import { ASSETS } from '../constants/assets'
 import { C } from '../constants/brand'
+import { parseStatValue, useCountUp } from '../hooks/useCountUp'
 import { useBreakpoints } from '../hooks/useMediaQuery'
 import type { CMSItem } from '../types'
+
+function ImpactStatValue({
+  value,
+  enabled,
+  delay,
+  style,
+}: {
+  value: string
+  enabled: boolean
+  delay: number
+  style: React.CSSProperties
+}) {
+  const { number, suffix } = parseStatValue(value)
+  const count = useCountUp(number, { enabled, delay })
+
+  return (
+    <p style={style}>
+      {count}
+      {suffix}
+    </p>
+  )
+}
 
 const IMPACT_STATS = [
   { value: '50 K', title: 'Received Donations From', label: 'Our Loving People' },
@@ -15,9 +38,34 @@ const IMPACT_STATS = [
 export default function OurImpact() {
   const { mobile } = useBreakpoints()
   const [section, setSection] = useState<CMSItem | null>(null)
+  const statsRef = useRef<HTMLDivElement>(null)
+  const [statsVisible, setStatsVisible] = useState(false)
 
   useEffect(() => {
     fetchCMS().then((cms) => setSection(getCMSSection(cms, 'Our Impact') ?? null)).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const el = statsRef.current
+    if (!el) return
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setStatsVisible(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStatsVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.2 },
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
 
   const gridStats = IMPACT_STATS
@@ -85,6 +133,7 @@ export default function OurImpact() {
           </p>
 
           <div
+            ref={statsRef}
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
@@ -123,7 +172,10 @@ export default function OurImpact() {
                 }}
               >
                 {stat.value && (
-                  <p
+                  <ImpactStatValue
+                    value={stat.value}
+                    enabled={statsVisible}
+                    delay={i * 120}
                     style={{
                       fontWeight: 800,
                       fontSize: mobile ? 28 : 40,
@@ -132,9 +184,7 @@ export default function OurImpact() {
                       fontFamily: 'Red Hat Display, sans-serif',
                       margin: '0 0 10px',
                     }}
-                  >
-                    {stat.value}
-                  </p>
+                  />
                 )}
                 <p
                   style={{
