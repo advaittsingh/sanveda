@@ -21,8 +21,8 @@ export function sectionShellStyle(mobile: boolean, overrides?: CSSProperties): C
 export function creamSectionStyle(mobile: boolean, overrides?: CSSProperties): CSSProperties {
   return baseSectionStyle(mobile, {
     borderRadius: mobile ? 16 : 36,
-    backgroundColor: C.cream,
-    border: '1px solid rgba(212,164,55,0.2)',
+    backgroundColor: C.grayBg,
+    border: `1px solid ${C.border}`,
     ...overrides,
   })
 }

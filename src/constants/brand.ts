@@ -12,7 +12,7 @@ export const BRAND = {
     gold: '#D4A437',
     goldLight: '#F2C45A',
     accent: '#FFB73A',
-    cream: '#FDF8F3',
+    cream: '#F5F7FA',
     grayBg: '#F5F7FA',
     text: '#1B1B1B',
     textMuted: '#4A4A49',
