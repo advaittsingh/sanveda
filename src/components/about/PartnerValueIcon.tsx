@@ -87,7 +87,7 @@ export default function PartnerValueIcon({ type, size = 44 }: { type: PartnerVal
         width: size,
         height: size,
         borderRadius: '50%',
-        background: 'rgba(212, 164, 55, 0.18)',
+        background: 'rgba(14, 79, 168, 0.12)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

@@ -5,7 +5,6 @@ import { campaignMatchesFocusArea, FOCUS_AREAS } from '../constants/focusAreas'
 import type { Campaign } from '../types'
 import CampaignCard from './CampaignCard'
 import SectionTitle from './ui/SectionTitle'
-import SectionDecorations from './ui/SectionDecorations'
 import { C } from '../constants/brand'
 import { sectionShellStyle } from '../constants/sectionStyles'
 import ViewAllButton from './ui/ViewAllButton'
@@ -13,7 +12,6 @@ import ViewAllButton from './ui/ViewAllButton'
 export default function Categories() {
   const navigate = useNavigate()
   const [mobile, setMobile] = useState(false)
-  const [wide, setWide] = useState(false)
   const [title, setTitle] = useState('Behind every category lies a different story of suffering.')
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [activeSlug, setActiveSlug] = useState(FOCUS_AREAS[0].slug)
@@ -24,7 +22,6 @@ export default function Categories() {
   useEffect(() => {
     const check = () => {
       setMobile(window.innerWidth < 600)
-      setWide(window.innerWidth >= 1200)
     }
     check()
     window.addEventListener('resize', check)
@@ -56,8 +53,6 @@ export default function Categories() {
         alignItems: 'center',
       }}
     >
-      <SectionDecorations mobile={mobile} wide={wide} variant="categories" />
-
       <div style={{ marginBottom: mobile ? '14px' : '38px', position: 'relative', zIndex: 2, width: '100%' }}>
         <SectionTitle mobile={mobile} maxWidth={mobile ? '269px' : '682px'}>
           {title}

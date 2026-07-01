@@ -7,7 +7,7 @@ export default function HeroSection() {
   const fixedHeight = xl ? 704 : !tablet ? 600 : undefined
 
   return (
-    <section style={heroSectionStyle(mobile)}>
+    <section style={heroSectionStyle(mobile)} className="animate-hero-in">
       <div
         style={{
           width: '100%',

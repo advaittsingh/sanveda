@@ -133,6 +133,7 @@ export default function CampaignCard({ campaign, mobile }: Props) {
       onKeyDown={(e) => e.key === 'Enter' && goToCampaign()}
       role="button"
       tabIndex={0}
+      className="card-interactive"
       style={{
         width: mobile ? '100%' : '417px',
         minWidth: mobile ? 290 : undefined,
@@ -143,7 +144,6 @@ export default function CampaignCard({ campaign, mobile }: Props) {
         overflow: 'visible',
         fontFamily: "'Red Hat Display', sans-serif",
         cursor: 'pointer',
-        transition: 'transform 0.2s ease',
         flexShrink: 0,
       }}
     >

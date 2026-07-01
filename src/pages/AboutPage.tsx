@@ -6,6 +6,7 @@ import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
 import AboutSectionLabel from '../components/about/AboutSectionLabel'
 import DonateNowButton from '../components/about/DonateNowButton'
 import ValueToPartnersSection from '../components/about/ValueToPartnersSection'
+import AnimatedSection from '../components/ui/AnimatedSection'
 
 function maskImg(mask: string): React.CSSProperties {
   return {
@@ -62,18 +63,6 @@ function WhoWeAreCollage({
   return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
       <div style={{ width: boxW, height: boxH, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <img
-          src={ASSETS.orangeSparks}
-          alt=""
-          style={{
-            position: 'absolute',
-            top: mobile ? 2 : 8,
-            left: mobile ? -30 : -45,
-            width: mobile ? 250 : tablet ? 300 : 358,
-            height: mobile ? 220 : tablet ? 280 : 344,
-            zIndex: 0,
-          }}
-        />
         {image1 && (
           <div
             style={{
@@ -125,7 +114,7 @@ function VisionStatCard({ value, mobile, tablet }: { value: string; mobile: bool
   return (
     <div
       style={{
-        border: `1px solid rgba(212, 164, 55, 0.25)`,
+        border: `1px solid rgba(14, 79, 168, 0.2)`,
         background: C.cream,
         borderRadius: mobile ? 16 : 30,
         height: mobile ? 102 : 181,
@@ -412,7 +401,7 @@ export default function AboutPage() {
               <div
                 key={item.title}
                 style={{
-                  border: `1px solid rgba(212, 164, 55, 0.2)`,
+                  border: `1px solid rgba(14, 79, 168, 0.18)`,
                   background: C.cream,
                   display: 'flex',
                   alignItems: mobile ? 'center' : 'flex-start',
@@ -450,7 +439,9 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <ValueToPartnersSection />
+        <AnimatedSection delay={120}>
+          <ValueToPartnersSection />
+        </AnimatedSection>
       </div>
     </div>
   )

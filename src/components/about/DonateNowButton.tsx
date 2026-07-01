@@ -26,8 +26,8 @@ export default function DonateNowButton({ text = 'Donate Now' }: { text?: string
         gap: mobile ? 4 : 8,
         border: 'none',
         cursor: 'pointer',
-        backgroundColor: C.gold,
-        color: C.primary,
+        backgroundColor: C.secondary,
+        color: C.white,
         boxShadow: `0px 4px 0px ${C.primary}`,
       }}
     >
@@ -37,7 +37,7 @@ export default function DonateNowButton({ text = 'Donate Now' }: { text?: string
         alt=""
         width={mobile ? 14 : 20}
         height={mobile ? 14 : 20}
-        style={{ filter: `brightness(0) saturate(100%)` }}
+        style={{ filter: 'brightness(0) invert(1)' }}
       />
     </button>
   )

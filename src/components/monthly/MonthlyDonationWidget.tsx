@@ -178,7 +178,7 @@ export default function MonthlyDonationWidget({
           height: s.customH,
           borderRadius: s.dropdownRadius,
           padding: `0 ${s.dropdownPadX}px`,
-          border: `${s.borderW}px solid rgba(212,164,55,0.55)`,
+          border: `${s.borderW}px solid rgba(14, 79, 168, 0.45)`,
           background: C.cream,
           marginBottom: s.customMb,
           display: 'flex',
@@ -187,7 +187,7 @@ export default function MonthlyDonationWidget({
         }}
       >
         <span style={{ fontWeight: 700, fontSize: s.customFont, color: '#4A4A49' }}>₹</span>
-        <div style={{ width: 1, height: 20, background: 'rgba(212,164,55,0.55)' }} />
+        <div style={{ width: 1, height: 20, background: 'rgba(14, 79, 168, 0.45)' }} />
         <input
           value={amountText}
           onChange={(e) => onAmountInput(e.target.value)}

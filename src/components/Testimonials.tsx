@@ -3,7 +3,6 @@ import { fetchCMS, getCMSSection } from '../api'
 import { ASSETS } from '../constants/assets'
 import { C } from '../constants/brand'
 import { sectionShellStyle } from '../constants/sectionStyles'
-import SectionDecorations from './ui/SectionDecorations'
 
 interface Testimonial {
   id: number
@@ -15,7 +14,6 @@ interface Testimonial {
 export default function Testimonials() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [mobile, setMobile] = useState(false)
-  const [wide, setWide] = useState(false)
   const [title, setTitle] = useState('How do donors describe their experience with our NGO?')
   const [items, setItems] = useState<Testimonial[]>([])
   const [canLeft, setCanLeft] = useState(false)
@@ -24,7 +22,6 @@ export default function Testimonials() {
   useEffect(() => {
     const check = () => {
       setMobile(window.innerWidth < 600)
-      setWide(window.innerWidth >= 1200)
     }
     check()
     window.addEventListener('resize', check)
@@ -71,8 +68,6 @@ export default function Testimonials() {
         alignItems: 'center',
       }}
     >
-      <SectionDecorations mobile={mobile} wide={wide} variant="testimonials" />
-
       <h2
         style={{
           fontFamily: 'Red Hat Display',

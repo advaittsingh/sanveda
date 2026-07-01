@@ -17,7 +17,7 @@ function SectionDivider({ title, mobile }: { title: string; mobile?: boolean }) 
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: mobile ? 12 : 16, marginBottom: mobile ? 24 : 32 }}>
-      <div style={{ ...lineStyle, borderImageSource: 'linear-gradient(90deg, rgba(212,164,55,0.08) 0%, rgba(212,164,55,0.5) 100%)' }} />
+      <div style={{ ...lineStyle, borderImageSource: 'linear-gradient(90deg, rgba(14, 79, 168, 0.08) 0%, rgba(14, 79, 168, 0.45) 100%)' }} />
       <h2
         style={{
           fontFamily: 'Red Hat Display, sans-serif',
@@ -30,7 +30,7 @@ function SectionDivider({ title, mobile }: { title: string; mobile?: boolean }) 
       >
         {title}
       </h2>
-      <div style={{ ...lineStyle, borderImageSource: 'linear-gradient(90deg, rgba(212,164,55,0.5) 0%, rgba(212,164,55,0.08) 100%)' }} />
+      <div style={{ ...lineStyle, borderImageSource: 'linear-gradient(90deg, rgba(14, 79, 168, 0.45) 0%, rgba(14, 79, 168, 0.08) 100%)' }} />
     </div>
   )
 }

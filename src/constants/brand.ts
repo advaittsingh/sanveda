@@ -9,9 +9,9 @@ export const BRAND = {
   colors: {
     primary: '#041B4D',
     secondary: '#0E4FA8',
-    gold: '#D4A437',
-    goldLight: '#F2C45A',
-    accent: '#FFB73A',
+    gold: '#0E4FA8',
+    goldLight: '#5B9AE8',
+    accent: '#0E4FA8',
     cream: '#F5F7FA',
     grayBg: '#F5F7FA',
     text: '#1B1B1B',
@@ -19,7 +19,7 @@ export const BRAND = {
     white: '#FFFFFF',
     border: '#DDDDDD',
   },
-  gradient: 'linear-gradient(135deg, #041B4D 0%, #0E4FA8 50%, #D4A437 100%)',
+  gradient: 'linear-gradient(135deg, #041B4D 0%, #0E4FA8 100%)',
 } as const
 
 export const C = BRAND.colors

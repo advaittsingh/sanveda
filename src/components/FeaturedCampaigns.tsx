@@ -7,7 +7,6 @@ import type { Campaign } from '../types'
 import CampaignCard from './CampaignCard'
 import SectionLabel from './ui/SectionLabel'
 import SectionTitle from './ui/SectionTitle'
-import SectionDecorations from './ui/SectionDecorations'
 import { creamSectionStyle } from '../constants/sectionStyles'
 import ViewAllButton from './ui/ViewAllButton'
 
@@ -15,7 +14,6 @@ export default function FeaturedCampaigns() {
   const navigate = useNavigate()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [mobile, setMobile] = useState(false)
-  const [wide, setWide] = useState(false)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [title, setTitle] = useState('Featured Campaign That Urgently Need Your Support')
   const [loading, setLoading] = useState(true)
@@ -28,7 +26,6 @@ export default function FeaturedCampaigns() {
     const check = () => {
       const w = window.innerWidth
       setMobile(w < 600)
-      setWide(w >= 1200)
     }
     check()
     window.addEventListener('resize', check)
@@ -76,8 +73,6 @@ export default function FeaturedCampaigns() {
         alignItems: 'center',
       }}
     >
-      <SectionDecorations mobile={mobile} wide={wide} />
-
       <div style={{ marginBottom: mobile ? '8px' : '16px', position: 'relative', zIndex: 2 }}>
         <SectionLabel mobile={mobile}>Featured Campaigns</SectionLabel>
       </div>

@@ -88,32 +88,6 @@ export default function DonateMonthly() {
         margin: mobile ? '0 auto 28px' : 0,
       }}
     >
-      <img
-        src={ASSETS.pinkSplash}
-        alt=""
-        aria-hidden
-        style={{
-          position: 'absolute',
-          top: mobile ? -10 : -20,
-          left: mobile ? -20 : -45,
-          width: mobile ? 180 : 300,
-          zIndex: 0,
-          opacity: 0.85,
-        }}
-      />
-      <img
-        src={ASSETS.pinkCircles}
-        alt=""
-        aria-hidden
-        style={{
-          position: 'absolute',
-          bottom: mobile ? 20 : 50,
-          left: mobile ? 10 : 30,
-          width: mobile ? 48 : 71,
-          zIndex: 4,
-        }}
-      />
-
       {imgs[0] && (
         <MaskedImage
           src={imgs[0]}

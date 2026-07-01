@@ -30,65 +30,6 @@ export default function ValueToPartnersSection() {
           }),
         }}
       >
-        {/* Dot grid — top left */}
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: mobile ? 16 : 32,
-            left: mobile ? 12 : 40,
-            width: mobile ? 80 : 120,
-            height: mobile ? 80 : 120,
-            backgroundImage: 'radial-gradient(circle, rgba(212,164,55,0.35) 1.5px, transparent 1.5px)',
-            backgroundSize: '14px 14px',
-            opacity: 0.6,
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Decorative accents */}
-        <img
-          src={ASSETS.orangeSparks}
-          alt=""
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: mobile ? 20 : 48,
-            right: mobile ? 16 : 80,
-            width: mobile ? 36 : 48,
-            opacity: 0.85,
-            pointerEvents: 'none',
-            display: mobile ? 'none' : 'block',
-          }}
-        />
-        <img
-          src={ASSETS.starIcon}
-          alt=""
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: mobile ? 28 : 56,
-            right: mobile ? 48 : 160,
-            width: mobile ? 14 : 18,
-            opacity: 0.7,
-            pointerEvents: 'none',
-          }}
-        />
-        <img
-          src={ASSETS.greenRope}
-          alt=""
-          aria-hidden
-          style={{
-            position: 'absolute',
-            bottom: mobile ? 24 : 40,
-            right: mobile ? -20 : 24,
-            width: mobile ? 90 : 140,
-            opacity: 0.35,
-            pointerEvents: 'none',
-            display: mobile ? 'none' : 'block',
-          }}
-        />
-
         <div style={{ position: 'relative', zIndex: 2 }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: mobile ? 28 : 40 }}>
@@ -225,7 +166,7 @@ export default function ValueToPartnersSection() {
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'radial-gradient(ellipse at 20% 50%, rgba(212,164,55,0.12) 0%, transparent 55%), radial-gradient(ellipse at 80% 50%, rgba(255,255,255,0.06) 0%, transparent 50%)',
+              background: 'radial-gradient(ellipse at 20% 50%, rgba(14, 79, 168, 0.15) 0%, transparent 55%), radial-gradient(ellipse at 80% 50%, rgba(255,255,255,0.06) 0%, transparent 50%)',
             }}
           />
 
@@ -238,7 +179,7 @@ export default function ValueToPartnersSection() {
               style={{
                 display: 'block',
                 margin: '0 auto 20px',
-                filter: 'brightness(0) saturate(100%) invert(76%) sepia(47%) saturate(522%) hue-rotate(6deg) brightness(95%) contrast(90%)',
+                filter: 'brightness(0) saturate(100%) invert(76%) sepia(30%) saturate(1200%) hue-rotate(186deg) brightness(95%) contrast(95%)',
               }}
             />
             <h3
