@@ -148,54 +148,44 @@ export default function Categories() {
         </div>
       </div>
 
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          marginBottom: mobile ? '20px' : '48px',
-          zIndex: 2,
-        }}
-      >
-        <div
-          ref={scrollRef}
-          onScroll={updateScroll}
-          className="hide-scrollbar"
-          style={{
-            display: 'flex',
-            width: '100%',
-            gap: mobile ? '16px' : '24px',
-            paddingLeft: mobile ? '16px' : '34px',
-            paddingRight: mobile ? '16px' : '34px',
-            overflowX: 'auto',
-            scrollSnapType: mobile ? 'x mandatory' : undefined,
-          }}
+      <div style={{ width: '100%', marginBottom: mobile ? '20px' : '48px', zIndex: 2 }}>
+        <CarouselNavButtons
+          mobile={mobile}
+          canLeft={canLeft}
+          canRight={canRight}
+          onPrev={() => scroll(-1)}
+          onNext={() => scroll(1)}
+          showNav={!loading && filtered.length > 0}
+          prevLabel="Previous campaigns"
+          nextLabel="Next campaigns"
         >
-          {loading
-            ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} style={{ width: '300px', height: '320px', background: '#e8e8e8', borderRadius: '12px', flexShrink: 0 }} />
-              ))
-            : filtered.length
-              ? filtered.map((c) => (
-                  <div key={c.id} style={{ flexShrink: 0, scrollSnapAlign: mobile ? 'start' : undefined }}>
-                    <CampaignCard campaign={c} mobile={mobile} />
-                  </div>
+          <div
+            ref={scrollRef}
+            onScroll={updateScroll}
+            className="hide-scrollbar"
+            style={{
+              display: 'flex',
+              width: '100%',
+              gap: mobile ? '16px' : '24px',
+              overflowX: 'auto',
+              scrollSnapType: mobile ? 'x mandatory' : undefined,
+            }}
+          >
+            {loading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} style={{ width: '300px', height: '320px', background: '#e8e8e8', borderRadius: '12px', flexShrink: 0 }} />
                 ))
-              : (
-                <p style={{ color: '#666', padding: '20px' }}>No campaigns in this focus area right now.</p>
-              )}
-        </div>
-
-        {!loading && filtered.length > 0 && (
-          <CarouselNavButtons
-            mobile={mobile}
-            canLeft={canLeft}
-            canRight={canRight}
-            onPrev={() => scroll(-1)}
-            onNext={() => scroll(1)}
-            prevLabel="Previous campaigns"
-            nextLabel="Next campaigns"
-          />
-        )}
+              : filtered.length
+                ? filtered.map((c) => (
+                    <div key={c.id} style={{ flexShrink: 0, scrollSnapAlign: mobile ? 'start' : undefined }}>
+                      <CampaignCard campaign={c} mobile={mobile} />
+                    </div>
+                  ))
+                : (
+                  <p style={{ color: '#666', padding: '20px' }}>No campaigns in this focus area right now.</p>
+                )}
+          </div>
+        </CarouselNavButtons>
       </div>
 
       <ViewAllButton

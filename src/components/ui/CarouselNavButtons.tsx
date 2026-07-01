@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { ASSETS } from '../../constants/assets'
 
 interface Props {
@@ -6,6 +7,8 @@ interface Props {
   canRight: boolean
   onPrev: () => void
   onNext: () => void
+  children: ReactNode
+  showNav?: boolean
   prevLabel?: string
   nextLabel?: string
 }
@@ -15,28 +18,55 @@ const arrowFilter = (enabled: boolean) =>
     ? 'brightness(0) saturate(100%) invert(28%) sepia(85%) saturate(2500%) hue-rotate(196deg) brightness(95%)'
     : 'brightness(0) saturate(100%) opacity(0.3)'
 
-function navButtonStyle(mobile: boolean, enabled: boolean, side: 'left' | 'right'): React.CSSProperties {
+function NavButton({
+  mobile,
+  enabled,
+  side,
+  onClick,
+  label,
+}: {
+  mobile: boolean
+  enabled: boolean
+  side: 'left' | 'right'
+  onClick: () => void
+  label: string
+}) {
   const size = mobile ? 36 : 50
-  const edge = mobile ? 22 : 34
-  return {
-    position: 'absolute',
-    top: '50%',
-    ...(side === 'left' ? { left: edge } : { right: edge }),
-    transform: side === 'left' ? 'translate(-50%, -50%)' : 'translate(50%, -50%)',
-    width: size,
-    height: size,
-    borderRadius: '50%',
-    background: '#FFFFFF',
-    border: '1px solid rgba(0, 0, 0, 0.08)',
-    boxShadow: enabled ? '0px 4px 14px rgba(0, 0, 0, 0.12)' : '0px 2px 6px rgba(0, 0, 0, 0.06)',
-    cursor: enabled ? 'pointer' : 'not-allowed',
-    opacity: enabled ? 1 : 0.55,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-    padding: 0,
-  }
+  const arrowSize = mobile ? 10 : 15
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!enabled}
+      aria-label={label}
+      style={{
+        flexShrink: 0,
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: '#FFFFFF',
+        border: '1px solid rgba(0, 0, 0, 0.08)',
+        boxShadow: enabled ? '0px 4px 14px rgba(0, 0, 0, 0.12)' : '0px 2px 6px rgba(0, 0, 0, 0.06)',
+        cursor: enabled ? 'pointer' : 'not-allowed',
+        opacity: enabled ? 1 : 0.55,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 0,
+      }}
+    >
+      <img
+        src={ASSETS.leftArrow}
+        alt=""
+        width={arrowSize}
+        style={{
+          filter: arrowFilter(enabled),
+          transform: side === 'right' ? 'rotate(180deg)' : undefined,
+        }}
+      />
+    </button>
+  )
 }
 
 export default function CarouselNavButtons({
@@ -45,41 +75,27 @@ export default function CarouselNavButtons({
   canRight,
   onPrev,
   onNext,
+  children,
+  showNav = true,
   prevLabel = 'Previous',
   nextLabel = 'Next',
 }: Props) {
-  const arrowSize = mobile ? 10 : 15
+  if (!showNav) {
+    return <div style={{ width: '100%' }}>{children}</div>
+  }
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={onPrev}
-        disabled={!canLeft}
-        aria-label={prevLabel}
-        style={navButtonStyle(mobile, canLeft, 'left')}
-      >
-        <img
-          src={ASSETS.leftArrow}
-          alt=""
-          width={arrowSize}
-          style={{ filter: arrowFilter(canLeft) }}
-        />
-      </button>
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={!canRight}
-        aria-label={nextLabel}
-        style={navButtonStyle(mobile, canRight, 'right')}
-      >
-        <img
-          src={ASSETS.leftArrow}
-          alt=""
-          width={arrowSize}
-          style={{ filter: arrowFilter(canRight), transform: 'rotate(180deg)' }}
-        />
-      </button>
-    </>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        width: '100%',
+        gap: mobile ? 10 : 20,
+      }}
+    >
+      <NavButton mobile={mobile} enabled={canLeft} side="left" onClick={onPrev} label={prevLabel} />
+      <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+      <NavButton mobile={mobile} enabled={canRight} side="right" onClick={onNext} label={nextLabel} />
+    </div>
   )
 }

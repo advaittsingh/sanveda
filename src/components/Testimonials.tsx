@@ -96,65 +96,58 @@ export default function Testimonials() {
         {title}
       </h2>
 
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          zIndex: 2,
-        }}
-      >
-        <div
-          ref={scrollRef}
-          onScroll={updateScroll}
-          className="hide-scrollbar"
-          style={{
-            display: 'flex',
-            gap: mobile ? '16px' : '24px',
-            overflowX: 'auto',
-            width: '100%',
-            padding: mobile ? '10px 16px' : '10px 34px',
-            scrollSnapType: 'x mandatory',
-          }}
+      <div style={{ width: '100%', zIndex: 2 }}>
+        <CarouselNavButtons
+          mobile={mobile}
+          canLeft={canLeft}
+          canRight={canRight}
+          onPrev={() => scroll(-1)}
+          onNext={() => scroll(1)}
+          showNav={items.length > 0}
+          prevLabel="Previous testimonial"
+          nextLabel="Next testimonial"
         >
-          {items.map((t) => (
-            <div
-              key={t.id}
-              style={{
-                flexShrink: 0,
-                width: cardWidth,
-                scrollSnapAlign: 'start',
-                background: '#fff',
-                borderRadius: '16px',
-                padding: '24px',
-                border: '1px solid #f1f1f1',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-              }}
-            >
-              <img src={ASSETS.quote} alt="" width={32} style={{ marginBottom: '12px' }} />
-              <p style={{ fontSize: mobile ? '13px' : '14px', color: '#4A4A49', lineHeight: 1.6, marginBottom: '20px' }}>
-                {t.text}
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {t.image && (
-                  <img src={t.image} alt={t.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
-                )}
-                <span style={{ fontWeight: 700, color: C.text, fontSize: '14px' }}>{t.name}</span>
+          <div
+            ref={scrollRef}
+            onScroll={updateScroll}
+            className="hide-scrollbar"
+            style={{
+              display: 'flex',
+              gap: mobile ? '16px' : '24px',
+              overflowX: 'auto',
+              width: '100%',
+              padding: '10px 0',
+              scrollSnapType: 'x mandatory',
+            }}
+          >
+            {items.map((t) => (
+              <div
+                key={t.id}
+                style={{
+                  flexShrink: 0,
+                  width: cardWidth,
+                  scrollSnapAlign: 'start',
+                  background: '#fff',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  border: '1px solid #f1f1f1',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                }}
+              >
+                <img src={ASSETS.quote} alt="" width={32} style={{ marginBottom: '12px' }} />
+                <p style={{ fontSize: mobile ? '13px' : '14px', color: '#4A4A49', lineHeight: 1.6, marginBottom: '20px' }}>
+                  {t.text}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {t.image && (
+                    <img src={t.image} alt={t.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
+                  )}
+                  <span style={{ fontWeight: 700, color: C.text, fontSize: '14px' }}>{t.name}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {items.length > 0 && (
-          <CarouselNavButtons
-            mobile={mobile}
-            canLeft={canLeft}
-            canRight={canRight}
-            onPrev={() => scroll(-1)}
-            onNext={() => scroll(1)}
-            prevLabel="Previous testimonial"
-            nextLabel="Next testimonial"
-          />
-        )}
+            ))}
+          </div>
+        </CarouselNavButtons>
       </div>
     </div>
   )
