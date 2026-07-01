@@ -53,7 +53,7 @@ export default function LiveDonation() {
             {title}
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
-            <div style={{ width: 20, height: 20, background: '#FFFFFF19', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 20, height: 20, background: '#FFFFFF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div className="live-pulse-dot" style={{ width: 9, height: 9, background: C.accent, borderRadius: '50%' }} />
             </div>
             <span style={{ color: C.gold, fontWeight: 700, fontSize: mobile ? 12 : 16, textTransform: 'uppercase' }}>Live</span>
@@ -90,7 +90,7 @@ export default function LiveDonation() {
             {transactions.map((tx) => (
               <div key={tx.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #333' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.gold, fontWeight: 700, fontSize: 14 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.secondary, fontWeight: 700, fontSize: 14 }}>
                     {(tx.username || '?')[0].toUpperCase()}
                   </div>
                   <div>
