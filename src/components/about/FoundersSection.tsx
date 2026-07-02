@@ -54,18 +54,6 @@ export default function FoundersSection() {
               />
             </div>
             <div style={{ padding: mobile ? '20px 18px 24px' : '24px 24px 28px', textAlign: 'center' }}>
-              <p
-                style={{
-                  margin: '0 0 8px',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: C.gold,
-                }}
-              >
-                {founder.label}
-              </p>
               <h3
                 style={{
                   margin: '0 0 8px',

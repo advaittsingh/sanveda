@@ -1,11 +1,13 @@
+import { useEffect, useMemo, useState } from 'react'
+import { fetchCMS } from '../api'
 import {
-  ABOUT_HERO,
   ABOUT_MISSION_SECTION,
   ABOUT_PAGE_IMAGES,
   ABOUT_STRENGTH_SECTION,
   ABOUT_VISION_SECTION,
   ABOUT_WHO_WE_ARE,
 } from '../constants/aboutContent'
+import type { CMSItem } from '../types'
 
 export interface AboutCMSData {
   heroTitle: string
@@ -34,16 +36,7 @@ export interface AboutCMSData {
   strengthItems: { title: string; description: string }[]
 }
 
-const SANVEDA_ABOUT_DATA: AboutCMSData = {
-  heroTitle: ABOUT_HERO.title,
-  heroDescription: ABOUT_HERO.intro,
-  heroImages: [
-    ABOUT_PAGE_IMAGES.hero[0],
-    ABOUT_PAGE_IMAGES.hero[1],
-    ABOUT_PAGE_IMAGES.hero[2],
-    ABOUT_PAGE_IMAGES.hero[0],
-    ABOUT_PAGE_IMAGES.hero[1],
-  ],
+const SANVEDA_SECTIONS: Omit<AboutCMSData, 'heroTitle' | 'heroDescription' | 'heroImages'> = {
   whoWeAreTitle: ABOUT_WHO_WE_ARE.title,
   whoWeAreBaseDesc: ABOUT_WHO_WE_ARE.description,
   whoWeAreSecondDesc: ABOUT_WHO_WE_ARE.secondDescription,
@@ -67,6 +60,35 @@ const SANVEDA_ABOUT_DATA: AboutCMSData = {
   strengthItems: ABOUT_STRENGTH_SECTION.items,
 }
 
+function byId(sections: CMSItem[], id: number) {
+  return sections.find((s) => s.id === id)
+}
+
+function parseHeroFromCMS(sections: CMSItem[]) {
+  const hero = byId(sections, 85)
+  const heroRelated = hero?.relatedCMS ?? []
+  const story = heroRelated[0] ?? {}
+  const leadership = heroRelated[1] ?? {}
+  const heroImages = [story.image, story.image2, story.image3, leadership.image, leadership.image2].filter(
+    Boolean,
+  ) as string[]
+
+  return {
+    heroTitle: hero?.title ?? '',
+    heroDescription: hero?.sub_title ?? '',
+    heroImages,
+  }
+}
+
 export function useAboutCMS(): AboutCMSData {
-  return SANVEDA_ABOUT_DATA
+  const [sections, setSections] = useState<CMSItem[]>([])
+
+  useEffect(() => {
+    fetchCMS().then(setSections).catch(() => {})
+  }, [])
+
+  return useMemo(() => {
+    const hero = parseHeroFromCMS(sections)
+    return { ...SANVEDA_SECTIONS, ...hero }
+  }, [sections])
 }

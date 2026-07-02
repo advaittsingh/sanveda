@@ -6,7 +6,6 @@ export const ABOUT_HERO = {
 }
 
 export interface AboutFounder {
-  label: string
   name: string
   role: string
   organization: string
@@ -15,14 +14,12 @@ export interface AboutFounder {
 
 export const ABOUT_FOUNDERS: AboutFounder[] = [
   {
-    label: 'Founder 1',
     name: 'Hamdan Pathan',
     role: 'Founder & Visionary',
     organization: 'SGH Foundation',
     image: '/assets/founder-hamdan.png',
   },
   {
-    label: 'Founder 2',
     name: 'Nayma Hussain Jivani',
     role: 'Senior Director and Co founder',
     organization: 'SGH Foundation',
