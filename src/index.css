@@ -249,3 +249,25 @@ body {
   transform: translateY(-4px);
   box-shadow: 0px 14px 32px rgba(4, 27, 77, 0.1);
 }
+
+@media (min-width: 1440px) {
+  .blog-card-image {
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+  }
+}
+
+.blogs-grid {
+  gap: 20px;
+}
+
+@media (min-width: 1200px) {
+  .blogs-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+  }
+}
+
+.blog-read-more:active {
+  transform: translateY(2px);
+  box-shadow: 0px 2px 0px 0px #B9B9B8;
+}

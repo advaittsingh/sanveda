@@ -115,12 +115,13 @@ export default function BlogsPage() {
         </div>
       </section>
 
-      <section style={{ width: '94.44%', maxWidth: 1440, margin: '0 auto' }}>
+      <section style={{ width: '94.44%', maxWidth: 1440, margin: '0 auto', paddingBottom: mobile ? 8 : 16 }}>
         <div
+          className="blogs-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: mobile ? '1fr' : tablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
-            gap: mobile ? 16 : tablet ? 20 : 24,
+            gap: 20,
             alignItems: 'stretch',
           }}
         >
