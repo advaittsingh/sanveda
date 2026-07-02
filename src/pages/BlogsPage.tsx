@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
-import { BlogListItem } from '../components/blogs/BlogCard'
+import BlogCard from '../components/blogs/BlogCard'
 import { fetchBlogs } from '../api'
 import { BLOGS_PAGE } from '../constants/blogContent'
 import { C } from '../constants/brand'
@@ -115,12 +115,21 @@ export default function BlogsPage() {
         </div>
       </section>
 
-      <section style={{ width: '94.44%', maxWidth: 960, margin: '0 auto' }}>
-        {loading
-          ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} style={{ height: mobile ? 280 : 220, background: C.cream, borderRadius: 16, marginBottom: 16 }} />
-            ))
-          : blogs.map((post) => <BlogListItem key={post.id} post={post} mobile={mobile} />)}
+      <section style={{ width: '94.44%', maxWidth: 1440, margin: '0 auto' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: mobile ? '1fr' : tablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+            gap: mobile ? 16 : tablet ? 20 : 24,
+            alignItems: 'stretch',
+          }}
+        >
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} style={{ height: mobile ? 360 : 420, background: C.cream, borderRadius: 16 }} />
+              ))
+            : blogs.map((post) => <BlogCard key={post.id} post={post} mobile={mobile} />)}
+        </div>
       </section>
 
       <section
