@@ -60,7 +60,7 @@ export const FOCUS_AREAS: FocusArea[] = [
     image: '/assets/focus-areas/sports.jpg',
     icon: '/assets/rocket-MIcon-ee6a8bd2.svg',
     accent: '#0E4FA8',
-    categoryKeys: ['diy', 'urgent'],
+    categoryKeys: ['sports'],
     keywords: ['sport', 'athlete', 'training', 'stadium', 'coach', 'olympic', 'cricket', 'football'],
   },
   {
@@ -74,7 +74,7 @@ export const FOCUS_AREAS: FocusArea[] = [
     icon: '/assets/education-ce7b51eb.svg',
     accent: '#041B4D',
     categoryKeys: ['education', 'children'],
-    keywords: ['education', 'school', 'college', 'scholarship', 'skill', 'learning', 'student', 'study'],
+    keywords: ['education', 'school', 'college', 'scholarship', 'skill', 'learning', 'student', 'study', 'neet'],
   },
   {
     slug: 'community-social-upliftment',

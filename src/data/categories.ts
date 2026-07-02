@@ -13,4 +13,5 @@ export const categories: Category[] = [
   { id: 10, name: 'Medical', icon: '/assets/medical-fcb29601.svg', slug: '/medical-campaigns' },
   { id: 11, name: 'Diy', icon: '/assets/diy-1e5ba583.svg', slug: '/diy' },
   { id: 12, name: 'Women', icon: '/assets/women-039dce7e.svg', slug: '/women' },
+  { id: 13, name: 'Sports', icon: '/assets/rocket-MIcon-ee6a8bd2.svg', slug: '/sports-campaigns' },
 ]

@@ -20,6 +20,7 @@ const PATH_CATEGORIES: Record<string, string> = {
   '/diy': 'DIY',
   '/women': 'Women',
   '/medical-campaigns': 'Medical',
+  '/sports-campaigns': 'Sports',
 }
 
 export default function CampaignsPage() {

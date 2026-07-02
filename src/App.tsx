@@ -66,6 +66,7 @@ function AppShell() {
           <Route path="/hunger" element={<CampaignsPage />} />
           <Route path="/diy" element={<CampaignsPage />} />
           <Route path="/women" element={<CampaignsPage />} />
+          <Route path="/sports-campaigns" element={<CampaignsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>

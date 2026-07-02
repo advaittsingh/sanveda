@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { BlogPost, Campaign, CMSItem, MonthlyDonation } from '../types'
 import { DEMO_BLOGS } from '../constants/blogs'
+import { filterSanvedaCampaigns, SANVEDA_CAMPAIGNS } from '../constants/campaignContent'
 
 const api = axios.create({
   baseURL: '/api',
@@ -51,24 +52,18 @@ export function getCMSByPage(sections: CMSItem[], page: string): CMSItem | undef
   return sections.find((s) => (s.page ?? '').toLowerCase() === target)
 }
 
+async function loadSanvedaCampaigns(): Promise<Campaign[]> {
+  return SANVEDA_CAMPAIGNS
+}
+
 export async function fetchCampaigns(params?: Record<string, string | number>): Promise<Campaign[]> {
-  try {
-    const { data } = await api.get<{ data: Campaign[] }>('/campaigns', { params })
-    return data.data ?? []
-  } catch {
-    const res = await fetch('/campaigns-fallback.json')
-    const data = await res.json()
-    return data.data ?? []
-  }
+  const campaigns = await loadSanvedaCampaigns()
+  return filterSanvedaCampaigns(campaigns, params)
 }
 
 export async function fetchCampaignBySlug(slug: string): Promise<Campaign | null> {
-  try {
-    const { data } = await api.get<{ data: Campaign }>(`/campaigns/slug/${encodeURIComponent(slug)}`)
-    return data.data ?? null
-  } catch {
-    return null
-  }
+  const campaigns = await loadSanvedaCampaigns()
+  return campaigns.find((c) => getCampaignSlug(c) === slug) ?? null
 }
 
 export async function fetchFeaturedCampaigns(): Promise<Campaign[]> {
