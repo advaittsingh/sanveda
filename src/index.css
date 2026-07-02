@@ -128,71 +128,189 @@ body {
   transform-origin: center;
 }
 
-@media (max-width: 900px) {
-  .campaign-detail-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .campaign-detail-layout {
-    display: block !important;
-  }
+/* True Hope campaign detail page */
+.th-donate-btn {
+  background-color: #F04951;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0px 4px 0px #141414;
+  font-family: 'Red Hat Display', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.campaign-detail-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 23.5%);
-  gap: 32px;
-  align-items: start;
+.th-donate-btn:hover {
+  background-color: #d63f46;
 }
 
-.campaign-detail-sidebar {
+.th-donate-btn:active {
+  box-shadow: 0px 2px 0px #141414;
+  transform: translateY(2px);
+}
+
+.campaign-detail-page {
+  min-height: 50vh;
+}
+
+.campaign-detail-shell {
+  width: 94.44%;
+  max-width: 1440px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.campaign-progress-overlap {
+  width: 97%;
+  margin: -105px auto 0;
+  position: relative;
+  z-index: 1;
+}
+
+.campaign-detail-body {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  margin-top: 50px;
+  position: relative;
+  margin-bottom: 60px;
+}
+
+.campaign-detail-left {
+  width: 23.41%;
   position: sticky;
   top: 20px;
   align-self: flex-start;
 }
 
-.campaign-detail-tabs {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  position: sticky;
-  top: 10px;
-  z-index: 20;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(6px);
-  margin: 0 -4px;
-  padding: 4px;
+.campaign-detail-right,
+.campaign-detail-mobile-content {
+  width: 100%;
 }
 
-.campaign-detail-mobile-donate {
+.campaign-mobile-nav-wrap {
+  margin-top: 30px;
+  margin-bottom: 30px;
+  position: sticky;
+  top: 10px;
+  z-index: 999;
+}
+
+.campaign-section-nav-horizontal {
+  background: rgba(245, 245, 245, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 8px;
+  width: 100%;
+  display: flex;
+  gap: 4px;
+  justify-content: space-evenly;
+  overflow-x: auto;
+  max-height: 60px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.35),
+    0 4px 16px rgba(0, 0, 0, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.campaign-section-nav-item-h:hover {
+  background: rgba(29, 29, 27, 0.1);
+}
+
+.campaign-section-nav-item-v:hover {
+  background: #F8F8F8;
+}
+
+.campaign-fixed-donation-bar {
   position: fixed;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  z-index: 90;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  z-index: 1000;
+  padding: 10px 0;
   background: rgba(255, 255, 255, 0.98);
-  border-top: 1px solid #DDDDDD;
+  border-top: 1px solid #E8E8E8;
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
 }
 
-.campaign-detail-layout .html-content h3,
-.campaign-detail-layout [class*='html'] h3 {
+.campaign-fixed-donation-inner {
+  width: 94.44%;
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.campaign-amount-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  flex: 1;
+  min-width: 0;
+}
+
+.campaign-amount-chip {
+  flex-shrink: 0;
+  border: 1px solid #DDDDDD;
+  background: #FFFFFF;
+  color: #1D1D1B;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'Red Hat Display', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.campaign-amount-chip[data-selected='true'] {
+  border-color: #1D1D1B;
+  background: #1D1D1B;
+  color: #FFFFFF;
+}
+
+.campaign-detail-page .html-content h3,
+.campaign-detail-page [class*='html'] h3 {
   font-size: 18px;
   font-weight: 800;
-  color: var(--color-primary);
+  color: #041B4D;
   margin: 24px 0 12px;
 }
 
-.campaign-detail-layout ul {
+.campaign-detail-page ul {
   padding-left: 20px;
   margin: 0 0 16px;
 }
 
-.campaign-detail-layout li {
+.campaign-detail-page li {
   margin-bottom: 8px;
   line-height: 1.6;
+}
+
+@media (min-width: 1001px) {
+  .campaign-detail-right {
+    width: 76.59%;
+  }
+}
+
+@media (max-width: 1000px) {
+  .campaign-progress-overlap {
+    width: 90%;
+    margin-top: -60px;
+    margin-bottom: 16px;
+  }
+
+  .campaign-mobile-nav-wrap {
+    margin-top: 0;
+  }
 }
 
 @media (max-width: 600px) {
