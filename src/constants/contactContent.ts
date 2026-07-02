@@ -12,15 +12,16 @@ export const CONTACT_PAGE = {
 
 export const CONTACT_MAP_QUERY = encodeURIComponent(BRAND.address)
 
-// Sheet Nagar, Mira Road — used for a precise map pin
+// Sheet Nagar, Mira Road — precise pin for map embed
 export const CONTACT_MAP_COORDS = {
-  lat: 19.2862,
-  lng: 72.8694,
+  lat: 19.2831,
+  lng: 72.8728,
 }
 
 export function getContactMapEmbedUrl() {
-  const label = encodeURIComponent(BRAND.name)
-  return `https://maps.google.com/maps?q=${CONTACT_MAP_COORDS.lat},${CONTACT_MAP_COORDS.lng}+(${label})&z=16&hl=en&output=embed`
+  const address = encodeURIComponent(BRAND.address)
+  const { lat, lng } = CONTACT_MAP_COORDS
+  return `https://maps.google.com/maps?q=${address}&ll=${lat},${lng}&z=17&hl=en&output=embed`
 }
 
 export const CONTACT_LOCATION = {

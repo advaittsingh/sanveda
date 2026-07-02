@@ -1,14 +1,8 @@
-import { useState } from 'react'
-import { Mail, MapPin, Phone } from 'lucide-react'
+import { useRef, useState } from 'react'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
+import GetInTouchSection from '../components/contact/GetInTouchSection'
 import { C } from '../constants/brand'
-import {
-  CONTACT_EMAIL,
-  CONTACT_LOCATION,
-  CONTACT_PAGE,
-  CONTACT_PHONE,
-  getContactMapEmbedUrl,
-} from '../constants/contactContent'
+import { CONTACT_PAGE } from '../constants/contactContent'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 
 const inputStyle: React.CSSProperties = {
@@ -31,86 +25,16 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 8,
 }
 
-function ContactInfoIcon({ type }: { type: 'location' | 'phone' | 'email' }) {
-  const iconProps = { size: 22, color: C.white, strokeWidth: 2 }
-  return (
-    <div
-      style={{
-        width: 48,
-        height: 48,
-        borderRadius: 12,
-        background: C.secondary,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}
-    >
-      {type === 'location' && <MapPin {...iconProps} />}
-      {type === 'phone' && <Phone {...iconProps} />}
-      {type === 'email' && <Mail {...iconProps} />}
-    </div>
-  )
-}
-
-function ContactInfoCard({
-  label,
-  value,
-  icon,
-  compact,
-  nowrap,
-}: {
-  label: string
-  value: string
-  icon: 'location' | 'phone' | 'email'
-  compact?: boolean
-  nowrap?: boolean
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        gap: compact ? 10 : 16,
-        alignItems: 'flex-start',
-        padding: compact ? '18px 14px' : '24px 22px',
-        background: C.cream,
-        borderRadius: 16,
-        border: `1px solid rgba(14, 79, 168, 0.12)`,
-        boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.04)',
-        height: '100%',
-        boxSizing: 'border-box',
-      }}
-    >
-      <ContactInfoIcon type={icon} />
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: compact ? 14 : 15, color: C.primary, marginBottom: 8 }}>{label}</div>
-        <div
-          style={{
-            fontSize: compact ? 12 : 14,
-            lineHeight: 1.6,
-            color: C.textMuted,
-            wordBreak: nowrap ? 'normal' : 'break-word',
-            whiteSpace: nowrap ? 'nowrap' : 'normal',
-          }}
-        >
-          {value}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function ContactPage() {
   const mobile = useMediaQuery('(max-width: 600px)')
   const tablet = useMediaQuery('(max-width: 900px)')
+  const formRef = useRef<HTMLDivElement>(null)
   const [formSent, setFormSent] = useState(false)
 
   const submitForm = (e: React.FormEvent) => {
     e.preventDefault()
     setFormSent(true)
   }
-
-  const mapSrc = getContactMapEmbedUrl()
 
   return (
     <div style={{ background: C.white, paddingBottom: mobile ? 40 : 80 }}>
@@ -172,87 +96,21 @@ export default function ContactPage() {
           maxWidth: 1440,
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: tablet ? '1fr' : 'minmax(280px, 1fr) minmax(360px, 1.35fr)',
+          gridTemplateColumns: tablet ? '1fr' : 'minmax(300px, 1fr) minmax(360px, 1.35fr)',
           gap: mobile ? 28 : 40,
-          alignItems: 'stretch',
+          alignItems: 'start',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <h2
-            style={{
-              margin: `0 0 ${mobile ? 20 : 28}px`,
-              fontSize: mobile ? 20 : 24,
-              fontWeight: 800,
-              color: C.primary,
-              flexShrink: 0,
-            }}
-          >
-            {CONTACT_PAGE.getInTouch}
-          </h2>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 16 : 20, flex: 1, minHeight: 0 }}>
-            <ContactInfoCard
-              label={CONTACT_LOCATION.label}
-              value={CONTACT_LOCATION.value}
-              icon={CONTACT_LOCATION.icon}
-            />
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: mobile ? 'minmax(0, 0.82fr) minmax(0, 1.38fr)' : 'minmax(130px, 0.72fr) minmax(0, 1.55fr)',
-                gap: mobile ? 12 : 20,
-                flexShrink: 0,
-              }}
-            >
-              <ContactInfoCard
-                label={CONTACT_PHONE.label}
-                value={CONTACT_PHONE.value}
-                icon={CONTACT_PHONE.icon}
-                compact
-              />
-              <ContactInfoCard
-                label={CONTACT_EMAIL.label}
-                value={CONTACT_EMAIL.value}
-                icon={CONTACT_EMAIL.icon}
-                compact
-                nowrap
-              />
-            </div>
-
-            <div
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: mobile ? 220 : 280,
-                borderRadius: 16,
-                overflow: 'hidden',
-                border: `1px solid rgba(14, 79, 168, 0.12)`,
-                boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.04)',
-                background: C.cream,
-              }}
-            >
-              <iframe
-                title="Sanveda office location"
-                src={mapSrc}
-                style={{ border: 0, display: 'block', width: '100%', height: '100%', flex: 1, minHeight: mobile ? 220 : 280 }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
+        <GetInTouchSection formRef={formRef} />
 
         <div
+          ref={formRef}
           style={{
             background: C.white,
             borderRadius: 20,
             padding: mobile ? '24px 20px' : '32px 28px',
             border: `1px solid ${C.border}`,
             boxShadow: '0px 12px 32px rgba(4, 27, 77, 0.06)',
-            height: '100%',
             boxSizing: 'border-box',
           }}
         >
