@@ -7,7 +7,4 @@ export const BLOGS_PAGE = {
   ctaDescription: 'Explore active campaigns and help us create lasting change across healthcare, education, and community upliftment.',
   ctaButton: 'Explore Campaigns',
   continueReading: 'Read More',
-  newsletterTitle: 'Subscribe Our Newsletter',
-  newsletterSubtitle: 'Join us in creating sustainable humanitarian impact',
-  newsletterPlaceholder: 'Enter your email address',
 } as const

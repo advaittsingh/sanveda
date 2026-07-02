@@ -9,24 +9,11 @@ import { DEMO_BLOGS } from '../constants/blogs'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import type { BlogPost } from '../types'
 
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '14px 16px',
-  borderRadius: 10,
-  border: `1px solid ${C.border}`,
-  fontFamily: 'Red Hat Display, sans-serif',
-  fontSize: 14,
-  color: C.text,
-  background: C.white,
-  boxSizing: 'border-box',
-}
-
 export default function BlogsPage() {
   const mobile = useMediaQuery('(max-width: 600px)')
   const tablet = useMediaQuery('(max-width: 900px)')
   const [blogs, setBlogs] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
-  const [newsletterSent, setNewsletterSent] = useState(false)
 
   useEffect(() => {
     fetchBlogs()
@@ -34,11 +21,6 @@ export default function BlogsPage() {
       .catch(() => setBlogs(DEMO_BLOGS))
       .finally(() => setLoading(false))
   }, [])
-
-  const submitNewsletter = (e: React.FormEvent) => {
-    e.preventDefault()
-    setNewsletterSent(true)
-  }
 
   return (
     <div style={{ background: C.white, paddingBottom: mobile ? 40 : 80 }}>
@@ -131,64 +113,6 @@ export default function BlogsPage() {
               ))
             : blogs.map((post) => <BlogCard key={post.id} post={post} mobile={mobile} />)}
         </div>
-      </section>
-
-      <section
-        style={{
-          width: '94.44%',
-          maxWidth: 1440,
-          margin: `${mobile ? 40 : 64}px auto 0`,
-          padding: mobile ? '28px 20px' : '36px 40px',
-          background: C.primary,
-          borderRadius: mobile ? 20 : 28,
-          display: 'flex',
-          flexDirection: tablet ? 'column' : 'row',
-          alignItems: tablet ? 'stretch' : 'center',
-          justifyContent: 'space-between',
-          gap: mobile ? 20 : 32,
-        }}
-      >
-        <div style={{ flex: tablet ? undefined : '1 1 40%' }}>
-          <h2 style={{ margin: '0 0 8px', fontSize: mobile ? 20 : 26, fontWeight: 800, color: C.white }}>{BLOGS_PAGE.newsletterTitle}</h2>
-          <p style={{ margin: 0, fontSize: mobile ? 14 : 15, color: C.goldLight, lineHeight: 1.5 }}>{BLOGS_PAGE.newsletterSubtitle}</p>
-        </div>
-
-        <form
-          onSubmit={submitNewsletter}
-          style={{
-            flex: tablet ? undefined : '1 1 50%',
-            display: 'flex',
-            flexDirection: mobile ? 'column' : 'row',
-            gap: 12,
-            alignItems: mobile ? 'stretch' : 'center',
-          }}
-        >
-          <input
-            type="email"
-            required
-            placeholder={BLOGS_PAGE.newsletterPlaceholder}
-            style={{ ...inputStyle, flex: 1, border: 'none', minWidth: 0 }}
-          />
-          <button
-            type="submit"
-            className="btn-primary"
-            style={{
-              padding: '14px 28px',
-              border: 'none',
-              borderRadius: 10,
-              fontWeight: 700,
-              fontSize: 15,
-              cursor: 'pointer',
-              fontFamily: 'Red Hat Display, sans-serif',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Submit
-          </button>
-          {newsletterSent && (
-            <p style={{ color: C.goldLight, fontSize: 13, margin: 0, fontWeight: 600, width: '100%' }}>Subscribed successfully!</p>
-          )}
-        </form>
       </section>
     </div>
   )
