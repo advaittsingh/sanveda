@@ -5,6 +5,7 @@ import { useAboutCMS } from '../hooks/useAboutCMS'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
 import AboutSectionLabel from '../components/about/AboutSectionLabel'
 import DonateNowButton from '../components/about/DonateNowButton'
+import FoundersSection from '../components/about/FoundersSection'
 import ValueToPartnersSection from '../components/about/ValueToPartnersSection'
 import AnimatedSection from '../components/ui/AnimatedSection'
 
@@ -110,7 +111,17 @@ function WhoWeAreCollage({
   )
 }
 
-function VisionStatCard({ value, mobile, tablet }: { value: string; mobile: boolean; tablet: boolean }) {
+function VisionStatCard({
+  value,
+  label,
+  mobile,
+  tablet,
+}: {
+  value: string
+  label: string
+  mobile: boolean
+  tablet: boolean
+}) {
   return (
     <div
       style={{
@@ -128,7 +139,7 @@ function VisionStatCard({ value, mobile, tablet }: { value: string; mobile: bool
         {value}
       </p>
       <p style={{ fontWeight: 600, fontSize: mobile ? 12 : 18, lineHeight: mobile ? '20px' : '29px', color: C.textMuted, margin: 0 }}>
-        Communities Reached
+        {label}
       </p>
     </div>
   )
@@ -178,6 +189,8 @@ export default function AboutPage() {
           </div>
           <AboutHeroBanner images={cms.heroImages} mobile={mobile} tablet={tablet} />
         </section>
+
+        <FoundersSection />
 
         {/* Who we are */}
         <section
@@ -255,10 +268,10 @@ export default function AboutPage() {
               >
                 {cms.visionImage1 && <img src={cms.visionImage1} alt="Vision Image 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </div>
-              <VisionStatCard value={cms.visionPoint1} mobile={mobile} tablet={tablet} />
+              <VisionStatCard value={cms.visionPoint1} label={cms.visionPoint1Label} mobile={mobile} tablet={tablet} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 10 : 20 }}>
-              <VisionStatCard value={cms.visionPoint2} mobile={mobile} tablet={tablet} />
+              <VisionStatCard value={cms.visionPoint2} label={cms.visionPoint2Label} mobile={mobile} tablet={tablet} />
               <div style={{ width: '100%', height: mobile ? 172 : 304, borderRadius: 30, overflow: 'hidden' }}>
                 {cms.visionImage2 && <img src={cms.visionImage2} alt="Vision Image 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </div>

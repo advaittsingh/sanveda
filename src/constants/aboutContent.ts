@@ -1,8 +1,96 @@
 export const ABOUT_HERO = {
   label: 'About',
-  title: 'Empowering Sustainable Humanitarian Change',
+  title: 'Empowering Communities Through Sustainable Humanitarian Impact',
   intro:
     'Sanveda Global Humanitarian Foundation is a purpose-driven, non-profit organization committed to advancing humanitarian impact through structured initiatives across healthcare, therapeutic support, sports development, education, community upliftment, and social responsibility. Sanveda operates at the intersection of humanitarian service, ethical innovation, and community empowerment, creating sustainable impact rather than short-term relief.',
+}
+
+export interface AboutFounder {
+  label: string
+  name: string
+  role: string
+  organization: string
+  image: string
+}
+
+export const ABOUT_FOUNDERS: AboutFounder[] = [
+  {
+    label: 'Founder 1',
+    name: 'Hamdan Pathan',
+    role: 'Founder & Visionary',
+    organization: 'SGH Foundation',
+    image: '/assets/founder-hamdan.png',
+  },
+  {
+    label: 'Founder 2',
+    name: 'Nayma Hussain Jivani',
+    role: 'Senior Director and Co founder',
+    organization: 'SGH Foundation',
+    image: '/assets/founder-nayma.png',
+  },
+]
+
+export const ABOUT_FOUNDERS_INTRO = {
+  organization: 'Sanveda Global Humanitarian Foundation',
+  tagline: 'Empowering Communities Through Sustainable Humanitarian Impact',
+  description: ABOUT_HERO.intro,
+}
+
+export const ABOUT_WHO_WE_ARE = {
+  title: 'A Purpose-Driven Humanitarian Institution',
+  description:
+    'Sanveda Global Humanitarian Foundation is dedicated to creating meaningful, measurable, and sustainable change across communities. We work through structured programs in healthcare, education, sports development, therapeutic support, and social welfare—always guided by dignity, transparency, and long-term impact.',
+  secondDescription:
+    'Our approach goes beyond short-term relief. We build ethical partnerships, empower communities to participate in their own development, and operate with governance standards that ensure every initiative delivers lasting value.',
+}
+
+export const ABOUT_VISION_SECTION = {
+  title: 'Building A Globally Respected Humanitarian Institution',
+  description:
+    'To build a globally respected humanitarian institution that empowers individuals, communities, and future generations through ethical support systems, inclusive development, and long-term social impact.',
+  secondDescription:
+    'We envision a world where humanitarian work strengthens dignity, capability, and opportunity—creating self-sustaining models of care, education, and community upliftment that endure for generations.',
+  point1: '50+',
+  point1Label: 'Communities Served',
+  point2: '10+',
+  point2Label: 'Active Programs',
+}
+
+export const ABOUT_MISSION_SECTION = {
+  title: 'Advancing Humanitarian Impact With Structure And Integrity',
+  description:
+    'Sanveda exists to heal, empower, and elevate. We believe humanitarian work is not an act of charity, but a responsibility—delivered through structured programs, ethical partnerships, and measurable outcomes.',
+  secondDescription:
+    'Our mission spans healthcare and therapeutic support, sports development for underrepresented talent, education and mentorship, and community-driven platforms that create sustainable social impact with full transparency and accountability.',
+}
+
+export const ABOUT_STRENGTH_SECTION = {
+  title: 'What Sets Sanveda Apart',
+  items: [
+    {
+      title: 'Long-Term Impact',
+      description: 'We prioritize sustainable humanitarian models over short-term charity, building programs that create lasting change.',
+    },
+    {
+      title: 'Ethical Partnerships',
+      description: 'Every collaboration aligns with our values—transparent, accountable, and focused on measurable community outcomes.',
+    },
+    {
+      title: 'Structured Programs',
+      description: 'From healthcare to education and sports, our initiatives follow clear frameworks for delivery, oversight, and reporting.',
+    },
+    {
+      title: 'Community Empowerment',
+      description: 'We engage communities as active participants, fostering ownership and participation at every stage of our work.',
+    },
+  ],
+}
+
+export const ABOUT_PAGE_IMAGES = {
+  hero: ['/assets/hero-banner.jpg', '/assets/OurImpact-e70006e2.png', '/assets/hero-banner.jpg'],
+  whoWeAre: ['/assets/OurImpact-e70006e2.png', '/assets/hero-banner.jpg', '/assets/OurImpact-e70006e2.png'],
+  vision: ['/assets/hero-banner.jpg', '/assets/OurImpact-e70006e2.png'],
+  mission: '/assets/OurImpact-e70006e2.png',
 }
 
 export const ABOUT_FOUNDER = {

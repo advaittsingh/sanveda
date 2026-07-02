@@ -3,7 +3,8 @@ import { BRAND } from './brand'
 export const ASSETS = {
   logo: BRAND.logo,
   footerLogo: BRAND.logo,
-  orangeSparks: '/assets/orange-sparks-2e0df875.svg',
+  founderHamdan: '/assets/founder-hamdan.png',
+  founderNayma: '/assets/founder-nayma.png',
   heart: '/assets/heart-30990fcb.svg',
   stringHand: '/assets/string-hand-bc11192c.svg',
   greenRope: '/assets/green-rope-79c4cf8c.svg',

@@ -1,6 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
-import { fetchCMS } from '../api'
-import type { CMSItem } from '../types'
+import {
+  ABOUT_HERO,
+  ABOUT_MISSION_SECTION,
+  ABOUT_PAGE_IMAGES,
+  ABOUT_STRENGTH_SECTION,
+  ABOUT_VISION_SECTION,
+  ABOUT_WHO_WE_ARE,
+} from '../constants/aboutContent'
 
 export interface AboutCMSData {
   heroTitle: string
@@ -16,7 +21,9 @@ export interface AboutCMSData {
   visionDesc1: string
   visionDesc2: string
   visionPoint1: string
+  visionPoint1Label: string
   visionPoint2: string
+  visionPoint2Label: string
   visionImage1: string
   visionImage2: string
   missionTitle: string
@@ -27,64 +34,39 @@ export interface AboutCMSData {
   strengthItems: { title: string; description: string }[]
 }
 
-function byId(sections: CMSItem[], id: number) {
-  return sections.find((s) => s.id === id)
+const SANVEDA_ABOUT_DATA: AboutCMSData = {
+  heroTitle: ABOUT_HERO.title,
+  heroDescription: ABOUT_HERO.intro,
+  heroImages: [
+    ABOUT_PAGE_IMAGES.hero[0],
+    ABOUT_PAGE_IMAGES.hero[1],
+    ABOUT_PAGE_IMAGES.hero[2],
+    ABOUT_PAGE_IMAGES.hero[0],
+    ABOUT_PAGE_IMAGES.hero[1],
+  ],
+  whoWeAreTitle: ABOUT_WHO_WE_ARE.title,
+  whoWeAreBaseDesc: ABOUT_WHO_WE_ARE.description,
+  whoWeAreSecondDesc: ABOUT_WHO_WE_ARE.secondDescription,
+  whoWeAreImage1: ABOUT_PAGE_IMAGES.whoWeAre[0],
+  whoWeAreImage2: ABOUT_PAGE_IMAGES.whoWeAre[1],
+  whoWeAreImage3: ABOUT_PAGE_IMAGES.whoWeAre[2],
+  visionTitle: ABOUT_VISION_SECTION.title,
+  visionDesc1: ABOUT_VISION_SECTION.description,
+  visionDesc2: ABOUT_VISION_SECTION.secondDescription,
+  visionPoint1: ABOUT_VISION_SECTION.point1,
+  visionPoint1Label: ABOUT_VISION_SECTION.point1Label,
+  visionPoint2: ABOUT_VISION_SECTION.point2,
+  visionPoint2Label: ABOUT_VISION_SECTION.point2Label,
+  visionImage1: ABOUT_PAGE_IMAGES.vision[0],
+  visionImage2: ABOUT_PAGE_IMAGES.vision[1],
+  missionTitle: ABOUT_MISSION_SECTION.title,
+  missionBaseDesc: ABOUT_MISSION_SECTION.description,
+  missionSecondDesc: ABOUT_MISSION_SECTION.secondDescription,
+  missionImage: ABOUT_PAGE_IMAGES.mission,
+  strengthTitle: ABOUT_STRENGTH_SECTION.title,
+  strengthItems: ABOUT_STRENGTH_SECTION.items,
 }
 
-export function parseAboutCMS(sections: CMSItem[]): AboutCMSData {
-  const hero = byId(sections, 85)
-  const who = byId(sections, 86)
-  const vision = byId(sections, 87)
-  const mission = byId(sections, 88)
-  const strength = byId(sections, 89)
-
-  const heroRelated = hero?.relatedCMS ?? []
-  const story = heroRelated[0] ?? {}
-  const leadership = heroRelated[1] ?? {}
-  const heroImages = [story.image, story.image2, story.image3, leadership.image, leadership.image2].filter(
-    Boolean,
-  ) as string[]
-
-  const whoRel = (who?.relatedCMS ?? [])[0] ?? {}
-  const visionRel = (vision?.relatedCMS ?? [])[0] ?? {}
-  const missionRel = (mission?.relatedCMS ?? [])[0] ?? {}
-
-  return {
-    heroTitle: hero?.title ?? '',
-    heroDescription: hero?.sub_title ?? '',
-    heroImages,
-    whoWeAreTitle: who?.title ?? '',
-    whoWeAreBaseDesc: who?.description ?? '',
-    whoWeAreSecondDesc: whoRel.description ?? '',
-    whoWeAreImage1: whoRel.image ?? '',
-    whoWeAreImage2: whoRel.image2 ?? '',
-    whoWeAreImage3: whoRel.image3 ?? '',
-    visionTitle: vision?.title ?? '',
-    visionDesc1: vision?.description ?? '',
-    visionDesc2: visionRel.description ?? '',
-    visionPoint1: visionRel.title ?? '',
-    visionPoint2: visionRel.sub_title ?? '',
-    visionImage1: visionRel.image ?? '',
-    visionImage2: visionRel.image2 ?? '',
-    missionTitle: mission?.title ?? '',
-    missionBaseDesc: mission?.description ?? '',
-    missionSecondDesc: missionRel.description ?? '',
-    missionImage: missionRel.image ?? '',
-    strengthTitle: strength?.title ?? '',
-    strengthItems: (strength?.relatedCMS ?? []).slice(0, 4).map((r) => ({
-      title: r.title ?? '',
-      description: r.description ?? '',
-    })),
-  }
-}
-
-export function useAboutCMS() {
-  const [sections, setSections] = useState<CMSItem[]>([])
-  const data = useMemo(() => parseAboutCMS(sections), [sections])
-
-  useEffect(() => {
-    fetchCMS().then(setSections).catch(() => {})
-  }, [])
-
-  return data
+export function useAboutCMS(): AboutCMSData {
+  return SANVEDA_ABOUT_DATA
 }
