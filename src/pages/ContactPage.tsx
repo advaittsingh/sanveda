@@ -2,7 +2,13 @@ import { useState } from 'react'
 import { Mail, MapPin, Phone } from 'lucide-react'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
 import { C } from '../constants/brand'
-import { CONTACT_DETAILS, CONTACT_PAGE } from '../constants/contactContent'
+import {
+  CONTACT_EMAIL,
+  CONTACT_LOCATION,
+  CONTACT_MAP_QUERY,
+  CONTACT_PAGE,
+  CONTACT_PHONE,
+} from '../constants/contactContent'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 
 const inputStyle: React.CSSProperties = {
@@ -47,21 +53,52 @@ function ContactInfoIcon({ type }: { type: 'location' | 'phone' | 'email' }) {
   )
 }
 
+function ContactInfoCard({
+  label,
+  value,
+  icon,
+  compact,
+}: {
+  label: string
+  value: string
+  icon: 'location' | 'phone' | 'email'
+  compact?: boolean
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: compact ? 12 : 16,
+        alignItems: 'flex-start',
+        padding: compact ? '18px 16px' : '24px 22px',
+        background: C.cream,
+        borderRadius: 16,
+        border: `1px solid rgba(14, 79, 168, 0.12)`,
+        boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.04)',
+        height: '100%',
+        boxSizing: 'border-box',
+      }}
+    >
+      <ContactInfoIcon type={icon} />
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: compact ? 14 : 15, color: C.primary, marginBottom: 8 }}>{label}</div>
+        <div style={{ fontSize: compact ? 13 : 14, lineHeight: 1.6, color: C.textMuted, wordBreak: 'break-word' }}>{value}</div>
+      </div>
+    </div>
+  )
+}
+
 export default function ContactPage() {
   const mobile = useMediaQuery('(max-width: 600px)')
   const tablet = useMediaQuery('(max-width: 900px)')
   const [formSent, setFormSent] = useState(false)
-  const [newsletterSent, setNewsletterSent] = useState(false)
 
   const submitForm = (e: React.FormEvent) => {
     e.preventDefault()
     setFormSent(true)
   }
 
-  const submitNewsletter = (e: React.FormEvent) => {
-    e.preventDefault()
-    setNewsletterSent(true)
-  }
+  const mapSrc = `https://maps.google.com/maps?q=${CONTACT_MAP_QUERY}&t=&z=15&ie=UTF8&iwloc=&output=embed`
 
   return (
     <div style={{ background: C.white, paddingBottom: mobile ? 40 : 80 }}>
@@ -141,27 +178,53 @@ export default function ContactPage() {
           </h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 16 : 20 }}>
-            {CONTACT_DETAILS.map((item) => (
-              <div
-                key={item.label}
-                style={{
-                  display: 'flex',
-                  gap: 16,
-                  alignItems: 'flex-start',
-                  padding: mobile ? '20px 18px' : '24px 22px',
-                  background: C.cream,
-                  borderRadius: 16,
-                  border: `1px solid rgba(14, 79, 168, 0.12)`,
-                  boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.04)',
-                }}
-              >
-                <ContactInfoIcon type={item.icon} />
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: C.primary, marginBottom: 8 }}>{item.label}</div>
-                  <div style={{ fontSize: 14, lineHeight: 1.6, color: C.textMuted }}>{item.value}</div>
-                </div>
-              </div>
-            ))}
+            <ContactInfoCard
+              label={CONTACT_LOCATION.label}
+              value={CONTACT_LOCATION.value}
+              icon={CONTACT_LOCATION.icon}
+            />
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: mobile ? 12 : 20,
+              }}
+            >
+              <ContactInfoCard
+                label={CONTACT_PHONE.label}
+                value={CONTACT_PHONE.value}
+                icon={CONTACT_PHONE.icon}
+                compact
+              />
+              <ContactInfoCard
+                label={CONTACT_EMAIL.label}
+                value={CONTACT_EMAIL.value}
+                icon={CONTACT_EMAIL.icon}
+                compact
+              />
+            </div>
+
+            <div
+              style={{
+                borderRadius: 16,
+                overflow: 'hidden',
+                border: `1px solid rgba(14, 79, 168, 0.12)`,
+                boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.04)',
+                background: C.cream,
+              }}
+            >
+              <iframe
+                title="Sanveda office location"
+                src={mapSrc}
+                width="100%"
+                height={mobile ? 220 : 280}
+                style={{ border: 0, display: 'block' }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
           </div>
         </div>
 
@@ -246,82 +309,6 @@ export default function ContactPage() {
             )}
           </form>
         </div>
-      </section>
-
-      <section
-        style={{
-          width: '94.44%',
-          maxWidth: 1440,
-          margin: `${mobile ? 40 : 64}px auto 0`,
-          padding: mobile ? '28px 20px' : '36px 40px',
-          background: C.primary,
-          borderRadius: mobile ? 20 : 28,
-          display: 'flex',
-          flexDirection: tablet ? 'column' : 'row',
-          alignItems: tablet ? 'stretch' : 'center',
-          justifyContent: 'space-between',
-          gap: mobile ? 20 : 32,
-        }}
-      >
-        <div style={{ flex: tablet ? undefined : '1 1 40%' }}>
-          <h2
-            style={{
-              margin: '0 0 8px',
-              fontSize: mobile ? 20 : 26,
-              fontWeight: 800,
-              color: C.white,
-            }}
-          >
-            {CONTACT_PAGE.newsletterTitle}
-          </h2>
-          <p style={{ margin: 0, fontSize: mobile ? 14 : 15, color: C.goldLight, lineHeight: 1.5 }}>
-            {CONTACT_PAGE.newsletterSubtitle}
-          </p>
-        </div>
-
-        <form
-          onSubmit={submitNewsletter}
-          style={{
-            flex: tablet ? undefined : '1 1 50%',
-            display: 'flex',
-            flexDirection: mobile ? 'column' : 'row',
-            gap: 12,
-            alignItems: mobile ? 'stretch' : 'center',
-          }}
-        >
-          <input
-            type="email"
-            required
-            placeholder={CONTACT_PAGE.newsletterPlaceholder}
-            style={{
-              ...inputStyle,
-              flex: 1,
-              border: 'none',
-              minWidth: 0,
-            }}
-          />
-          <button
-            type="submit"
-            className="btn-primary"
-            style={{
-              padding: '14px 28px',
-              border: 'none',
-              borderRadius: 10,
-              fontWeight: 700,
-              fontSize: 15,
-              cursor: 'pointer',
-              fontFamily: 'Red Hat Display, sans-serif',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Submit
-          </button>
-          {newsletterSent && (
-            <p style={{ color: C.goldLight, fontSize: 13, margin: 0, fontWeight: 600, width: '100%' }}>
-              Subscribed successfully!
-            </p>
-          )}
-        </form>
       </section>
     </div>
   )
