@@ -128,31 +128,7 @@ body {
   transform-origin: center;
 }
 
-/* True Hope campaign detail page */
-.th-donate-btn {
-  background-color: #F04951;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 10px;
-  box-shadow: 0px 4px 0px #141414;
-  font-family: 'Red Hat Display', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.th-donate-btn:hover {
-  background-color: #d63f46;
-}
-
-.th-donate-btn:active {
-  box-shadow: 0px 2px 0px #141414;
-  transform: translateY(2px);
-}
-
+/* Campaign detail page */
 .campaign-detail-page {
   min-height: 50vh;
 }
@@ -203,9 +179,10 @@ body {
 }
 
 .campaign-section-nav-horizontal {
-  background: rgba(245, 245, 245, 0.95);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(10px);
-  border-radius: 8px;
+  border-radius: 12px;
+  border: 1px solid #DDDDDD;
   padding: 8px;
   width: 100%;
   display: flex;
@@ -213,10 +190,7 @@ body {
   justify-content: space-evenly;
   overflow-x: auto;
   max-height: 60px;
-  box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.35),
-    0 4px 16px rgba(0, 0, 0, 0.25),
-    0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 10px 26px rgba(0, 0, 0, 0.06);
 }
 
 .campaign-section-nav-item-h:hover {
@@ -272,8 +246,8 @@ body {
 }
 
 .campaign-amount-chip[data-selected='true'] {
-  border-color: #1D1D1B;
-  background: #1D1D1B;
+  border-color: #0E4FA8;
+  background: #0E4FA8;
   color: #FFFFFF;
 }
 

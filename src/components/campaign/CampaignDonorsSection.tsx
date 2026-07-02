@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ASSETS } from '../../constants/assets'
-import { TH } from './campaignDetailTheme'
+import { CD } from './campaignDetailTheme'
 
 interface Props {
   mobile?: boolean
@@ -13,7 +13,7 @@ export default function CampaignDonorsSection({ mobile }: Props) {
     <section id="donors" style={{ marginBottom: 30 }}>
       <div
         style={{
-          border: `1px solid ${TH.border}`,
+          border: `1px solid ${CD.border}`,
           borderRadius: 12,
           padding: 20,
           width: '100%',
@@ -31,7 +31,7 @@ export default function CampaignDonorsSection({ mobile }: Props) {
             gap: 12,
           }}
         >
-          <h2 style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: mobile ? 14 : 24, fontWeight: 700, color: TH.textDark, margin: 0 }}>
+          <h2 style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: mobile ? 14 : 24, fontWeight: 700, color: CD.primary, margin: 0 }}>
             <img src={ASSETS.starIcon} alt="" width={mobile ? 18 : 24} height={mobile ? 18 : 24} />
             Donors
           </h2>
@@ -57,8 +57,8 @@ export default function CampaignDonorsSection({ mobile }: Props) {
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: mobile ? 10 : 14,
-                color: tab === i ? '#FFFFFF' : TH.textMuted,
-                backgroundColor: tab === i ? TH.tabGreen : '#FFFFFF',
+                color: tab === i ? '#FFFFFF' : CD.textMuted,
+                backgroundColor: tab === i ? CD.secondary : '#FFFFFF',
                 fontFamily: 'Red Hat Display, sans-serif',
                 transition: 'all 0.3s ease',
               }}
@@ -68,7 +68,7 @@ export default function CampaignDonorsSection({ mobile }: Props) {
           ))}
         </div>
 
-        <p style={{ textAlign: 'center', color: TH.textMuted, fontSize: 14, margin: '8px 0 0' }}>
+        <p style={{ textAlign: 'center', color: CD.textMuted, fontSize: 14, margin: '8px 0 0' }}>
           {tab === 0 ? 'No top donors yet.' : 'No recent donors yet.'}
         </p>
       </div>

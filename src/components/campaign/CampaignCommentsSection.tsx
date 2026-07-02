@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ASSETS } from '../../constants/assets'
-import { TH } from './campaignDetailTheme'
+import { CD } from './campaignDetailTheme'
 
 interface Props {
   mobile?: boolean
@@ -13,7 +13,7 @@ export default function CampaignCommentsSection({ mobile }: Props) {
     <section id="comments" style={{ marginTop: 30, marginBottom: 30 }}>
       <div
         style={{
-          border: `1px solid ${TH.border}`,
+          border: `1px solid ${CD.border}`,
           borderRadius: 12,
           padding: mobile ? '20px 16px' : 30,
           background: '#FFFFFF',
@@ -27,8 +27,8 @@ export default function CampaignCommentsSection({ mobile }: Props) {
             fontSize: mobile ? 14 : 24,
             fontWeight: 700,
             margin: `0 0 ${mobile ? 16 : 22}px`,
-            color: TH.textDark,
-            borderBottom: mobile ? `1px solid ${TH.borderLight}` : 'none',
+            color: CD.primary,
+            borderBottom: mobile ? `1px solid ${CD.borderLight}` : 'none',
             paddingBottom: mobile ? 16 : 0,
           }}
         >
@@ -44,7 +44,7 @@ export default function CampaignCommentsSection({ mobile }: Props) {
           style={{
             width: '100%',
             borderRadius: 10,
-            border: `1px solid ${TH.border}`,
+            border: `1px solid ${CD.border}`,
             padding: '14px 16px',
             fontFamily: 'Red Hat Display, sans-serif',
             fontSize: 14,
@@ -53,11 +53,11 @@ export default function CampaignCommentsSection({ mobile }: Props) {
             marginBottom: 12,
           }}
         />
-        <button type="button" className="th-donate-btn" style={{ width: mobile ? '100%' : 160, height: 44 }}>
+        <button type="button" className="btn-secondary" style={{ width: mobile ? '100%' : 160, height: 44 }}>
           Post Comment
         </button>
 
-        <p style={{ textAlign: 'center', color: TH.textMuted, fontSize: 14, margin: '24px 0 0' }}>
+        <p style={{ textAlign: 'center', color: CD.textMuted, fontSize: 14, margin: '24px 0 0' }}>
           Be the first to show support for this campaign.
         </p>
       </div>

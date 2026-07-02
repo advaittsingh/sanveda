@@ -1,4 +1,4 @@
-import { TH } from './campaignDetailTheme'
+import { CD } from './campaignDetailTheme'
 
 interface Props {
   title: string
@@ -31,7 +31,7 @@ export default function CampaignDetailHero({ title, image, mobile, tablet, onDon
             lineHeight: mobile ? '30px' : '150%',
             letterSpacing: '-0.01em',
             textTransform: 'capitalize',
-            color: TH.textDark,
+            color: CD.textDark,
             width: '100%',
           }}
         >
@@ -41,7 +41,7 @@ export default function CampaignDetailHero({ title, image, mobile, tablet, onDon
           <button
             type="button"
             onClick={onDonate}
-            className="th-donate-btn"
+            className="btn-donate"
             style={{ flexShrink: 0, width: 160, height: 44 }}
           >
             Donate Now
@@ -83,7 +83,7 @@ export function DonateNowButton({
     <button
       type="button"
       onClick={onClick}
-      className="th-donate-btn"
+      className="btn-donate"
       style={{
         width: fullWidth ? '100%' : mobile ? 115 : 160,
         height: mobile ? 36 : 44,

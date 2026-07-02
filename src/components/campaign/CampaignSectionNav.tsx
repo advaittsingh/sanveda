@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ASSETS } from '../../constants/assets'
-import { TH } from './campaignDetailTheme'
+import { CD } from './campaignDetailTheme'
 
 export type CampaignSectionId = 'project' | 'updates' | 'comments'
 
@@ -79,7 +79,7 @@ export default function CampaignSectionNav({
           : {
               background: '#FFFFFF',
               borderRadius: 12,
-              border: `1px solid ${TH.border}`,
+              border: `1px solid ${CD.border}`,
               padding: mobile ? '16px 20px' : tablet ? '20px 24px' : '24px 30px',
               width: '100%',
             }
@@ -109,8 +109,8 @@ export default function CampaignSectionNav({
               cursor: 'pointer',
               position: 'relative',
               border: 'none',
-              background: horizontal && selected ? TH.textDark : 'transparent',
-              color: horizontal && selected ? '#FFFFFF' : TH.textDark,
+              background: horizontal && selected ? CD.secondary : 'transparent',
+              color: horizontal && selected ? '#FFFFFF' : CD.textDark,
               borderRadius: horizontal ? 6 : 0,
               fontFamily: 'Red Hat Display, sans-serif',
               fontWeight: 600,
@@ -130,7 +130,7 @@ export default function CampaignSectionNav({
                   top: 0,
                   width: 4,
                   height: '100%',
-                  backgroundColor: TH.navAccent,
+                  backgroundColor: CD.secondary,
                   borderRadius: '0 2px 2px 0',
                 }}
               />

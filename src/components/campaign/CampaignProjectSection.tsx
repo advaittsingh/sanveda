@@ -1,6 +1,6 @@
 import HtmlContent from '../ui/HtmlContent'
 import { ASSETS } from '../../constants/assets'
-import { TH } from './campaignDetailTheme'
+import { CD } from './campaignDetailTheme'
 
 interface ProjectBlock {
   id: number | string
@@ -22,16 +22,16 @@ export default function CampaignProjectSection({ projects, mobile }: Props) {
         style={{
           background: '#FFFFFF',
           borderRadius: mobile ? 0 : 12,
-          border: `1px solid ${TH.border}`,
+          border: `1px solid ${CD.border}`,
           padding: mobile ? '20px 16px' : '30px',
           width: '100%',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: mobile ? 10 : 20 }}>
           <img src={ASSETS.starIcon} alt="" width={mobile ? 14 : 24} height={mobile ? 14 : 24} />
-          <h2 style={{ margin: 0, fontSize: mobile ? 14 : 24, fontWeight: 700, color: TH.textDark }}>Project</h2>
+          <h2 style={{ margin: 0, fontSize: mobile ? 14 : 24, fontWeight: 700, color: CD.primary }}>Project</h2>
         </div>
-        <div style={{ height: 1, background: TH.border, marginBottom: mobile ? 16 : 20 }} />
+        <div style={{ height: 1, background: CD.border, marginBottom: mobile ? 16 : 20 }} />
 
         {projects.map((block) => (
           <div key={block.id} style={{ marginBottom: mobile ? 20 : 0 }}>

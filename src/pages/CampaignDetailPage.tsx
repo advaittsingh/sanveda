@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
 import CampaignCommentsSection from '../components/campaign/CampaignCommentsSection'
 import CampaignDetailHero from '../components/campaign/CampaignDetailHero'
@@ -8,15 +8,16 @@ import CampaignFixedDonationBar from '../components/campaign/CampaignFixedDonati
 import CampaignMonthlySidebar from '../components/campaign/CampaignMonthlySidebar'
 import CampaignProgressCard from '../components/campaign/CampaignProgressCard'
 import CampaignProjectSection from '../components/campaign/CampaignProjectSection'
-import CampaignReferFriend from '../components/campaign/CampaignReferFriend'
 import CampaignRelatedCampaigns from '../components/campaign/CampaignRelatedCampaigns'
 import CampaignSectionNav from '../components/campaign/CampaignSectionNav'
 import { fetchCampaignBySlug } from '../api'
 import { ASSETS } from '../constants/assets'
+import { C } from '../constants/brand'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import type { Campaign } from '../types'
 
 export default function CampaignDetailPage() {
+  const navigate = useNavigate()
   const { slug } = useParams<{ slug: string }>()
   const mobile = useMediaQuery('(max-width: 600px)')
   const tablet = useMediaQuery('(max-width: 900px)')
@@ -90,9 +91,9 @@ export default function CampaignDetailPage() {
       <CampaignProjectSection projects={projects} mobile={mobile} />
       {hasUpdates && (
         <section id="updates" style={{ marginTop: 30, marginBottom: 30 }}>
-          <div style={{ border: '1px solid #F1F1F1', borderRadius: 12, padding: mobile ? 20 : 30, background: '#FFFFFF' }}>
-            <h2 style={{ fontSize: mobile ? 14 : 24, fontWeight: 700, color: '#1D1D1B', margin: '0 0 16px' }}>Updates</h2>
-            <p style={{ color: '#4A4A49', margin: 0 }}>No updates posted yet.</p>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: mobile ? 20 : 30, background: C.white }}>
+            <h2 style={{ fontSize: mobile ? 14 : 24, fontWeight: 700, color: C.primary, margin: '0 0 16px' }}>Updates</h2>
+            <p style={{ color: C.textMuted, margin: 0 }}>No updates posted yet.</p>
           </div>
         </section>
       )}
@@ -102,7 +103,7 @@ export default function CampaignDetailPage() {
   )
 
   return (
-    <div className="campaign-detail-page" style={{ background: '#FFFFFF', paddingBottom: mobile ? 120 : 0 }}>
+    <div className="campaign-detail-page" style={{ background: C.white, paddingBottom: mobile ? 120 : 0 }}>
       <AboutBreadcrumb
         items={[
           { label: 'Home', path: '/' },
@@ -162,14 +163,16 @@ export default function CampaignDetailPage() {
           <div className="campaign-detail-mobile-content">{contentSections}</div>
         )}
 
-        <CampaignReferFriend mobile={mobile} title={campaign.title} />
-
-        {!mobile && <CampaignRelatedCampaigns currentId={campaign.id} mobile={mobile} />}
+        {!mobile && (
+          <CampaignRelatedCampaigns currentId={campaign.id} mobile={mobile} onViewAll={() => navigate('/campaigns')} />
+        )}
 
         {!desktopNav && <CampaignMonthlySidebar mobile={mobile} tablet={tablet} />}
       </div>
 
-      {mobile && <CampaignRelatedCampaigns currentId={campaign.id} mobile={mobile} />}
+      {mobile && (
+        <CampaignRelatedCampaigns currentId={campaign.id} mobile={mobile} onViewAll={() => navigate('/campaigns')} />
+      )}
 
       <CampaignFixedDonationBar
         amount={amount}

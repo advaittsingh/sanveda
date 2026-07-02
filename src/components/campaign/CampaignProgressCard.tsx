@@ -1,6 +1,6 @@
 import { formatCurrency } from '../../api'
 import { ASSETS } from '../../constants/assets'
-import { TH } from './campaignDetailTheme'
+import { CD } from './campaignDetailTheme'
 
 interface Props {
   goal: number
@@ -33,9 +33,9 @@ function StatItem({
         style={{
           width: mobile ? 28 : 50,
           height: mobile ? 28 : 50,
-          background: TH.rupeeBg,
+          background: CD.rupeeBg,
           borderRadius: mobile ? 8 : 11,
-          border: `0.37px solid ${TH.rupeeBorder}`,
+          border: `0.37px solid ${CD.rupeeBorder}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -45,10 +45,10 @@ function StatItem({
         <img src={ASSETS.rupee} alt="" width={mobile ? 16 : 26} height={mobile ? 16 : 26} />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 1 : 2, minWidth: 0 }}>
-        <span style={{ fontWeight: label === 'Raised' ? 700 : 500, fontSize: mobile ? 12 : 14, color: TH.textLabel, textTransform: 'capitalize' }}>
+        <span style={{ fontWeight: label === 'Raised' ? 700 : 500, fontSize: mobile ? 12 : 14, color: CD.textLabel, textTransform: 'capitalize' }}>
           {label}
         </span>
-        <span style={{ fontWeight: bold ? 800 : 700, fontSize: mobile ? 14 : 16, color: TH.textDark, whiteSpace: 'nowrap' }}>
+        <span style={{ fontWeight: bold ? 800 : 700, fontSize: mobile ? 14 : 16, color: CD.textDark, whiteSpace: 'nowrap' }}>
           {value}
         </span>
       </div>
@@ -73,7 +73,7 @@ export default function CampaignProgressCard({ goal, raised, donors, hideGoal, h
         background: '#FFFFFF',
         borderRadius: mobile ? 12 : 20,
         padding: mobile ? 12 : 24,
-        boxShadow: TH.cardShadow,
+        boxShadow: CD.cardShadow,
       }}
     >
       <div style={{ position: 'relative', marginTop: mobile ? 12 : 16 }}>
@@ -83,7 +83,7 @@ export default function CampaignProgressCard({ goal, raised, donors, hideGoal, h
             top: mobile ? -4 : -8,
             left: chipLeft,
             transform: 'translateX(-50%)',
-            background: TH.progressGreen,
+            background: CD.progressGreen,
             color: '#FFFFFF',
             fontWeight: 700,
             fontSize: mobile ? 12 : 16,
@@ -102,7 +102,7 @@ export default function CampaignProgressCard({ goal, raised, donors, hideGoal, h
           style={{
             width: '100%',
             height: mobile ? 12 : 16,
-            backgroundColor: TH.progressTrack,
+            backgroundColor: CD.progressTrack,
             borderRadius: mobile ? 16 : 21,
             overflow: 'hidden',
             position: 'relative',
@@ -114,7 +114,7 @@ export default function CampaignProgressCard({ goal, raised, donors, hideGoal, h
             style={{
               width: `${progress}%`,
               height: mobile ? 6 : 8,
-              backgroundColor: TH.progressGreen,
+              backgroundColor: CD.progressGreen,
               marginLeft: mobile ? 3 : 4,
               borderRadius: mobile ? 8 : 10,
               transition: 'width 0.3s ease',
