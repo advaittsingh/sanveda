@@ -5,9 +5,9 @@ import { C } from '../constants/brand'
 import {
   CONTACT_EMAIL,
   CONTACT_LOCATION,
-  CONTACT_MAP_QUERY,
   CONTACT_PAGE,
   CONTACT_PHONE,
+  getContactMapEmbedUrl,
 } from '../constants/contactContent'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 
@@ -58,19 +58,21 @@ function ContactInfoCard({
   value,
   icon,
   compact,
+  nowrap,
 }: {
   label: string
   value: string
   icon: 'location' | 'phone' | 'email'
   compact?: boolean
+  nowrap?: boolean
 }) {
   return (
     <div
       style={{
         display: 'flex',
-        gap: compact ? 12 : 16,
+        gap: compact ? 10 : 16,
         alignItems: 'flex-start',
-        padding: compact ? '18px 16px' : '24px 22px',
+        padding: compact ? '18px 14px' : '24px 22px',
         background: C.cream,
         borderRadius: 16,
         border: `1px solid rgba(14, 79, 168, 0.12)`,
@@ -82,7 +84,17 @@ function ContactInfoCard({
       <ContactInfoIcon type={icon} />
       <div style={{ minWidth: 0 }}>
         <div style={{ fontWeight: 700, fontSize: compact ? 14 : 15, color: C.primary, marginBottom: 8 }}>{label}</div>
-        <div style={{ fontSize: compact ? 13 : 14, lineHeight: 1.6, color: C.textMuted, wordBreak: 'break-word' }}>{value}</div>
+        <div
+          style={{
+            fontSize: compact ? 12 : 14,
+            lineHeight: 1.6,
+            color: C.textMuted,
+            wordBreak: nowrap ? 'normal' : 'break-word',
+            whiteSpace: nowrap ? 'nowrap' : 'normal',
+          }}
+        >
+          {value}
+        </div>
       </div>
     </div>
   )
@@ -98,7 +110,7 @@ export default function ContactPage() {
     setFormSent(true)
   }
 
-  const mapSrc = `https://maps.google.com/maps?q=${CONTACT_MAP_QUERY}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+  const mapSrc = getContactMapEmbedUrl()
 
   return (
     <div style={{ background: C.white, paddingBottom: mobile ? 40 : 80 }}>
@@ -162,22 +174,23 @@ export default function ContactPage() {
           display: 'grid',
           gridTemplateColumns: tablet ? '1fr' : 'minmax(280px, 1fr) minmax(360px, 1.35fr)',
           gap: mobile ? 28 : 40,
-          alignItems: 'start',
+          alignItems: 'stretch',
         }}
       >
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h2
             style={{
               margin: `0 0 ${mobile ? 20 : 28}px`,
               fontSize: mobile ? 20 : 24,
               fontWeight: 800,
               color: C.primary,
+              flexShrink: 0,
             }}
           >
             {CONTACT_PAGE.getInTouch}
           </h2>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 16 : 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: mobile ? 16 : 20, flex: 1, minHeight: 0 }}>
             <ContactInfoCard
               label={CONTACT_LOCATION.label}
               value={CONTACT_LOCATION.value}
@@ -187,8 +200,9 @@ export default function ContactPage() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                gridTemplateColumns: mobile ? 'minmax(0, 0.82fr) minmax(0, 1.38fr)' : 'minmax(130px, 0.72fr) minmax(0, 1.55fr)',
                 gap: mobile ? 12 : 20,
+                flexShrink: 0,
               }}
             >
               <ContactInfoCard
@@ -202,11 +216,16 @@ export default function ContactPage() {
                 value={CONTACT_EMAIL.value}
                 icon={CONTACT_EMAIL.icon}
                 compact
+                nowrap
               />
             </div>
 
             <div
               style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: mobile ? 220 : 280,
                 borderRadius: 16,
                 overflow: 'hidden',
                 border: `1px solid rgba(14, 79, 168, 0.12)`,
@@ -217,9 +236,7 @@ export default function ContactPage() {
               <iframe
                 title="Sanveda office location"
                 src={mapSrc}
-                width="100%"
-                height={mobile ? 220 : 280}
-                style={{ border: 0, display: 'block' }}
+                style={{ border: 0, display: 'block', width: '100%', height: '100%', flex: 1, minHeight: mobile ? 220 : 280 }}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 allowFullScreen
@@ -235,6 +252,8 @@ export default function ContactPage() {
             padding: mobile ? '24px 20px' : '32px 28px',
             border: `1px solid ${C.border}`,
             boxShadow: '0px 12px 32px rgba(4, 27, 77, 0.06)',
+            height: '100%',
+            boxSizing: 'border-box',
           }}
         >
           <h2
