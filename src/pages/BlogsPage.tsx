@@ -35,17 +35,6 @@ export default function BlogsPage() {
           textAlign: 'center',
         }}
       >
-        <p
-          style={{
-            margin: '0 0 12px',
-            fontSize: mobile ? 14 : 18,
-            fontWeight: 600,
-            color: C.gold,
-            fontFamily: 'Nunito, sans-serif',
-          }}
-        >
-          {BLOGS_PAGE.label}
-        </p>
         <h1
           style={{
             margin: `0 0 ${mobile ? 10 : 14}px`,

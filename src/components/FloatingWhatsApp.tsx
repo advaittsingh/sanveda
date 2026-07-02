@@ -1,26 +1,14 @@
-import { useEffect, useState } from 'react'
-import { fetchCMS, getCMSSection } from '../api'
 import { ASSETS } from '../constants/assets'
+import { BRAND, toWhatsAppNumber } from '../constants/brand'
+
+const WHATSAPP_MESSAGE =
+  'Hello Sanveda, I would like to know more about your humanitarian initiatives and how I can support.'
 
 export default function FloatingWhatsApp() {
-  const [phone, setPhone] = useState('919216063278')
-  const [message, setMessage] = useState('')
-
-  useEffect(() => {
-    fetchCMS().then((cms) => {
-      const section = cms.find((s) => s.id === 108) ?? getCMSSection(cms, 'Whatsapp first message')
-      if (section?.title) {
-        const digits = section.title.replace(/[^0-9]/g, '')
-        if (digits) setPhone(digits)
-      }
-      if (section?.description) setMessage(section.description)
-    }).catch(() => {})
-  }, [])
+  const phone = toWhatsAppNumber(BRAND.phone)
 
   const openWhatsApp = () => {
-    const url = message
-      ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
-      : `https://wa.me/${phone}`
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 

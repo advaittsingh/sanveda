@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Mail, MapPin, Phone } from 'lucide-react'
-import { C } from '../../constants/brand'
+import { C, toWhatsAppNumber } from '../../constants/brand'
 import {
   CONTACT_EMAIL,
   CONTACT_LOCATION,
@@ -141,7 +141,7 @@ export default function GetInTouchSection({ formRef }: Props) {
     }
   }, [formRef, tablet, mobile])
 
-  const phoneHref = `tel:${CONTACT_PHONE.value.replace(/\s/g, '')}`
+  const phoneHref = `https://wa.me/${toWhatsAppNumber(CONTACT_PHONE.value)}`
   const emailHref = `mailto:${CONTACT_EMAIL.value}`
 
   return (

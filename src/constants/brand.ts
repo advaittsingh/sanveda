@@ -23,3 +23,9 @@ export const BRAND = {
 } as const
 
 export const C = BRAND.colors
+
+export function toWhatsAppNumber(phone: string = BRAND.phone): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 10) return `91${digits}`
+  return digits
+}
