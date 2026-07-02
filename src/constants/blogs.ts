@@ -6,6 +6,7 @@ export const DEMO_BLOGS: BlogPost[] = [
     title: 'How Community Support Transformed a Rural Healthcare Camp',
     banner_image: '/assets/focus-areas/healthcare.jpg',
     status: 1,
+    createdAt: '2026-02-15T10:00:00.000Z',
     description:
       'Through generous donations, Sanveda brought medical care to over 500 families in underserved villages.',
     BlogDescs: [
@@ -21,6 +22,7 @@ export const DEMO_BLOGS: BlogPost[] = [
     title: 'Empowering Young Athletes Through Sports Development',
     banner_image: '/assets/focus-areas/sports.jpg',
     status: 1,
+    createdAt: '2026-01-28T10:00:00.000Z',
     description:
       'Our sports initiative equips talented youth with training, gear, and mentorship to compete at state and national levels.',
     BlogDescs: [
@@ -36,6 +38,7 @@ export const DEMO_BLOGS: BlogPost[] = [
     title: 'Education Scholarships Opening Doors for Tomorrow',
     banner_image: '/assets/focus-areas/education.jpg',
     status: 1,
+    createdAt: '2026-01-10T10:00:00.000Z',
     description:
       'Scholarship programs funded by monthly donors are helping students complete schooling and vocational training.',
     BlogDescs: [
@@ -43,6 +46,54 @@ export const DEMO_BLOGS: BlogPost[] = [
         id: 3,
         description:
           'Scholarship programs funded by monthly donors are helping students complete schooling and vocational training. Read how your support creates lasting change.',
+      },
+    ],
+  },
+  {
+    id: 4,
+    title: 'Why Structured Humanitarian Programs Create Lasting Change',
+    banner_image: '/assets/OurImpact-e70006e2.png',
+    status: 1,
+    createdAt: '2025-12-20T10:00:00.000Z',
+    description:
+      'Sanveda believes sustainable impact comes from ethical partnerships, transparent reporting, and community participation.',
+    BlogDescs: [
+      {
+        id: 4,
+        description:
+          'Sanveda believes sustainable impact comes from ethical partnerships, transparent reporting, and community participation—not one-time charity. Learn how our programs are designed for long-term outcomes.',
+      },
+    ],
+  },
+  {
+    id: 5,
+    title: 'Therapeutic Support and Wellness: A Compassionate Approach',
+    banner_image: '/assets/hero-banner.jpg',
+    status: 1,
+    createdAt: '2025-12-05T10:00:00.000Z',
+    description:
+      'Our therapeutic initiatives focus on dignity, access, and ethical frameworks for community wellness.',
+    BlogDescs: [
+      {
+        id: 5,
+        description:
+          'Our therapeutic initiatives focus on dignity, access, and ethical frameworks for community wellness. Discover how Sanveda supports holistic care across underserved communities.',
+      },
+    ],
+  },
+  {
+    id: 6,
+    title: 'How Monthly Donors Power Community Upliftment Year-Round',
+    banner_image: '/assets/focus-areas/healthcare.jpg',
+    status: 1,
+    createdAt: '2025-11-18T10:00:00.000Z',
+    description:
+      'Monthly giving helps Sanveda plan structured programs in healthcare, education, and social welfare with continuity.',
+    BlogDescs: [
+      {
+        id: 6,
+        description:
+          'Monthly giving helps Sanveda plan structured programs in healthcare, education, and social welfare with continuity. See how recurring support multiplies impact across the year.',
       },
     ],
   },

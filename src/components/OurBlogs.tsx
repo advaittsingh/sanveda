@@ -1,101 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { fetchBlogs, fetchCMS, getCMSSection } from '../api'
-import { ASSETS } from '../constants/assets'
+import BlogCard from './blogs/BlogCard'
 import { C } from '../constants/brand'
 import { sectionShellStyle } from '../constants/sectionStyles'
-import { useBreakpoints } from '../hooks/useMediaQuery'
 import { DEMO_BLOGS } from '../constants/blogs'
+import { useBreakpoints } from '../hooks/useMediaQuery'
 import type { BlogPost } from '../types'
 import SectionLabel from './ui/SectionLabel'
 import SectionTitle from './ui/SectionTitle'
 import ViewAllButton from './ui/ViewAllButton'
-
-function blogExcerpt(post: BlogPost): string {
-  const html = post.BlogDescs?.[0]?.description ?? post.description ?? ''
-  const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-  if (!text) return ''
-  return text.length > 120 ? `${text.slice(0, 120)}…` : text
-}
-
-function BlogCard({ post, mobile }: { post: BlogPost; mobile?: boolean }) {
-  const image = post.banner_image || ASSETS.fallBackCard
-
-  return (
-    <Link
-      to={`/blogs/${post.id}`}
-      style={{
-        width: mobile ? '100%' : '100%',
-        maxWidth: mobile ? '100%' : 417,
-        minWidth: mobile ? 290 : undefined,
-        background: '#FFFFFF',
-        boxShadow: '0px 10px 26px rgba(0, 0, 0, 0.04)',
-        borderRadius: mobile ? 12 : 16,
-        overflow: 'hidden',
-        textDecoration: 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        flexShrink: 0,
-        fontFamily: "'Red Hat Display', sans-serif",
-      }}
-    >
-      <div style={{ padding: mobile ? 12 : 16, paddingBottom: mobile ? 16 : 20, flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div
-          style={{
-            width: '100%',
-            height: mobile ? 156 : 217,
-            borderRadius: mobile ? 12 : 16,
-            overflow: 'hidden',
-            marginBottom: mobile ? 14 : 18,
-          }}
-        >
-          <img
-            src={image}
-            alt={post.title}
-            loading="lazy"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-        </div>
-        <h3
-          style={{
-            fontWeight: 700,
-            fontSize: mobile ? 14 : 18,
-            lineHeight: mobile ? '18px' : '26px',
-            color: '#1D1D1B',
-            margin: `0 0 ${mobile ? 8 : 10}px`,
-            minHeight: mobile ? 36 : 52,
-            maxHeight: mobile ? 36 : 52,
-            overflow: 'hidden',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            textTransform: 'capitalize',
-          }}
-        >
-          {post.title}
-        </h3>
-        {blogExcerpt(post) && (
-          <p
-            style={{
-              fontWeight: 500,
-              fontSize: mobile ? 12 : 14,
-              lineHeight: mobile ? '18px' : '22px',
-              color: '#686866',
-              margin: 0,
-              flex: 1,
-              overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-            }}
-          >
-            {blogExcerpt(post)}
-          </p>
-        )}
-      </div>
-    </Link>
-  )
-}
 
 export default function OurBlogs() {
   const navigate = useNavigate()

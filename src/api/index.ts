@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { BlogPost, Campaign, CMSItem, MonthlyDonation } from '../types'
+import { DEMO_BLOGS } from '../constants/blogs'
 
 const api = axios.create({
   baseURL: '/api',
@@ -80,19 +81,14 @@ export async function fetchRecentCampaigns(): Promise<Campaign[]> {
 
 export async function fetchBlogs(): Promise<BlogPost[]> {
   try {
-    const { data } = await api.get<BlogPost[]>('/blog')
-    const blogs = Array.isArray(data) ? data.filter((b) => b.status === 1 || b.status === undefined) : []
-    if (blogs.length) return blogs
-  } catch {
-    /* fall through to static fallback */
-  }
-  try {
     const res = await fetch('/blogs-fallback.json')
     const data = await res.json()
-    return Array.isArray(data) ? data : data.data ?? []
+    const local = Array.isArray(data) ? data : data.data ?? []
+    if (local.length) return local
   } catch {
-    return []
+    /* fall through */
   }
+  return DEMO_BLOGS
 }
 
 export function formatCurrency(amount: number): string {
