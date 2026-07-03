@@ -8,6 +8,8 @@ interface Props {
   prefix?: string
   suffix?: string
   sub?: string
+  trend?: string
+  trendPositive?: boolean
   icon?: LucideIcon
   accent?: 'primary' | 'secondary' | 'green' | 'blue'
   delay?: number
@@ -20,7 +22,7 @@ const accents = {
   blue: 'bg-sky-50 text-sky-700',
 }
 
-export default function StatCard({ label, value, prefix, suffix, sub, icon: Icon, accent = 'primary', delay = 0 }: Props) {
+export default function StatCard({ label, value, prefix, suffix, sub, trend, trendPositive = true, icon: Icon, accent = 'primary', delay = 0 }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -37,8 +39,15 @@ export default function StatCard({ label, value, prefix, suffix, sub, icon: Icon
           </span>
         ) : null}
       </div>
-      <div className="text-2xl font-bold tracking-tight text-[#0B2C6B]">
-        <AnimatedCounter value={value} prefix={prefix} suffix={suffix} />
+      <div className="flex items-end gap-2">
+        <div className="text-2xl font-bold tracking-tight text-[#0B2C6B]">
+          <AnimatedCounter value={value} prefix={prefix} suffix={suffix} />
+        </div>
+        {trend ? (
+          <span className={`mb-0.5 text-xs font-semibold ${trendPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+            {trend}
+          </span>
+        ) : null}
       </div>
       {sub ? <p className="mt-1 text-xs text-slate-500">{sub}</p> : null}
     </motion.div>

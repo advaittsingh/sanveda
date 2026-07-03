@@ -1,26 +1,25 @@
 import { useEffect, useState } from 'react'
-import { Bell, Menu, Search, Wallet, ChevronDown, LogOut } from 'lucide-react'
+import { Bell, Menu, ChevronDown, LogOut } from 'lucide-react'
 import { useAdminAuth } from '../../../context/AdminAuthContext'
 import { useAdminLayout } from '../../../context/AdminLayoutContext'
-import { getDashboardAnalytics } from '../../../lib/analyticsService'
+import { getOperationsDashboard } from '../../../lib/operationsDashboardService'
+import { formatIndianCompact, currentFinancialYear } from '../../../lib/formatIndian'
+import GlobalSearch from '../dashboard/GlobalSearch'
+import QuickCreateMenu from '../dashboard/QuickCreateMenu'
 
 export default function AdminHeader() {
   const { signOut } = useAdminAuth()
-  const { toggleSidebar, toggleNotifications, searchQuery, setSearchQuery } = useAdminLayout()
+  const { toggleSidebar, toggleNotifications } = useAdminLayout()
   const [profileOpen, setProfileOpen] = useState(false)
   const [raised, setRaised] = useState(0)
   const [pending, setPending] = useState(0)
   const [notifications, setNotifications] = useState(0)
 
   useEffect(() => {
-    getDashboardAnalytics().then((stats) => {
-      setRaised(stats.donations.total)
-      setPending(
-        stats.volunteers.pending +
-        stats.memberships.pending +
-        stats.enquiries.new,
-      )
-      setNotifications(stats.enquiries.new + stats.volunteers.pending)
+    getOperationsDashboard().then((ops) => {
+      setRaised(ops.financial.fundsRaised)
+      setPending(ops.pendingTotal)
+      setNotifications(ops.actions.length + ops.activity.length > 0 ? Math.min(ops.pendingTotal, 99) : 0)
     })
   }, [])
 
@@ -35,22 +34,26 @@ export default function AdminHeader() {
         <Menu size={20} />
       </button>
 
-      <div className="relative hidden min-w-0 flex-1 sm:block sm:max-w-md">
-        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          type="search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search campaigns, donors, volunteers…"
-          className="w-full rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-[#0B2C6B]/30 focus:ring-2 focus:ring-[#0B2C6B]/10"
-        />
-      </div>
+      <GlobalSearch />
 
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
-        <div className="hidden items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-sm font-semibold text-[#0B2C6B] md:flex">
-          <Wallet size={16} className="text-[#0E4FA8]" />
-          <span>₹{raised.toLocaleString('en-IN')} Raised</span>
+        <span className="hidden rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold text-[#0B2C6B] lg:inline">
+          FY {currentFinancialYear()}
+        </span>
+
+        <div className="hidden flex-col items-end sm:flex">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Raised</span>
+          <span className="text-sm font-bold text-[#0B2C6B]">{formatIndianCompact(raised)}</span>
         </div>
+
+        {pending > 0 && (
+          <div className="hidden flex-col items-end sm:flex">
+            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Pending</span>
+            <span className="text-sm font-bold text-amber-700">{pending}</span>
+          </div>
+        )}
+
+        <QuickCreateMenu />
 
         <button
           type="button"
@@ -65,12 +68,6 @@ export default function AdminHeader() {
             </span>
           )}
         </button>
-
-        {pending > 0 && (
-          <span className="hidden rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 lg:inline">
-            {pending} pending
-          </span>
-        )}
 
         <div className="relative">
           <button
