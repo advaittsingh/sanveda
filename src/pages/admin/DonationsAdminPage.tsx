@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   BadgeCheck,
   CircleDollarSign,
@@ -56,6 +56,19 @@ export default function DonationsAdminPage() {
     if (authed) refresh()
   }, [authed, refresh])
 
+  const selectedDonations = dashboard?.allDonations.filter((donation) => selectedIds.has(donation.id)) ?? []
+  const allRecentSelected =
+    dashboard?.recentDonations.length
+      ? dashboard.recentDonations.every((donation) => selectedIds.has(donation.id))
+      : false
+
+  const bulkActions = [
+    { label: 'Generate Receipts', run: async () => bulkGenerateReceipts(Array.from(selectedIds)), cls: adminBtnSecondary, icon: ReceiptText },
+    { label: 'Send Email', run: async () => bulkSendReceipts(Array.from(selectedIds)), cls: adminBtnSecondary, icon: Mail },
+    { label: 'Export CSV', run: async () => exportDonationsCsv(selectedDonations), cls: adminBtnSecondary, icon: FileSpreadsheet },
+    { label: 'Mark Verified', run: async () => bulkVerifyDonations(Array.from(selectedIds)), cls: adminBtnPrimary, icon: BadgeCheck },
+  ]
+
   if (!authed) {
     return <AdminLogin title="Donation Management" subtitle="View donation analytics and receipts." />
   }
@@ -71,11 +84,6 @@ export default function DonationsAdminPage() {
       </AdminShell>
     )
   }
-
-  const selectedDonations = dashboard.allDonations.filter((donation) => selectedIds.has(donation.id))
-  const allRecentSelected =
-    dashboard.recentDonations.length > 0 &&
-    dashboard.recentDonations.every((donation) => selectedIds.has(donation.id))
 
   const toggleSelection = (id: string) => {
     setSelectedIds((prev) => {
@@ -97,16 +105,6 @@ export default function DonationsAdminPage() {
     if (donation) downloadReceipt(donation)
     await refresh()
   }
-
-  const bulkActions = useMemo(
-    () => [
-      { label: 'Generate Receipts', run: async () => bulkGenerateReceipts(Array.from(selectedIds)), cls: adminBtnSecondary, icon: ReceiptText },
-      { label: 'Send Email', run: async () => bulkSendReceipts(Array.from(selectedIds)), cls: adminBtnSecondary, icon: Mail },
-      { label: 'Export CSV', run: async () => exportDonationsCsv(selectedDonations), cls: adminBtnSecondary, icon: FileSpreadsheet },
-      { label: 'Mark Verified', run: async () => bulkVerifyDonations(Array.from(selectedIds)), cls: adminBtnPrimary, icon: BadgeCheck },
-    ],
-    [selectedDonations, selectedIds],
-  )
 
   return (
     <AdminShell title="Donation Management" subtitle="Fundraising operations dashboard for revenue, receipts, reconciliation, and compliance">
