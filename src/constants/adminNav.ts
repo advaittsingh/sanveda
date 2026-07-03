@@ -1,29 +1,31 @@
-import type { LucideIcon } from 'lucide-react'
 import {
   BarChart3,
   BookOpen,
+  Building2,
   Calendar,
   FileText,
   FolderKanban,
   HandCoins,
   Heart,
   Image,
+  KeyRound,
   LayoutDashboard,
   Megaphone,
+  MessageSquare,
   Receipt,
   Repeat,
+  ScrollText,
   Settings,
   Shield,
   Users,
   Wallet,
   ClipboardList,
   GraduationCap,
-  MessageSquare,
   Layers,
   FileCheck,
   UserCog,
-  ScrollText,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 export interface AdminNavItem {
   label: string
@@ -91,12 +93,14 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: 'Administration',
+    title: 'Settings',
     items: [
-      { label: 'Users', to: '/admin/users', icon: Users },
-      { label: 'Roles', to: '/admin/roles', icon: Shield },
-      { label: 'Audit Logs', to: '/admin/audit', icon: ScrollText },
-      { label: 'Settings', to: '/admin/settings', icon: Settings },
+      { label: 'Admin Users', to: '/admin/users', icon: Users },
+      { label: 'Roles', to: '/admin/users?tab=roles', icon: Shield },
+      { label: 'Departments', to: '/admin/users?tab=departments', icon: Building2 },
+      { label: 'Permissions', to: '/admin/users?tab=permissions', icon: KeyRound },
+      { label: 'Audit Logs', to: '/admin/users?tab=audit', icon: ScrollText },
+      { label: 'System Settings', to: '/admin/settings', icon: Settings },
     ],
   },
 ]
