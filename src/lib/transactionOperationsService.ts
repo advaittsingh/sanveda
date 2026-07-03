@@ -33,6 +33,9 @@ export interface TransactionRecord {
   settledAt?: string
   refundStatus: 'none' | 'requested' | 'processed'
   refundReason?: string
+  refundRequestedAt?: string
+  refundRisk?: 'low' | 'medium' | 'high'
+  failureReason?: string
   lastContactedAt?: string
   gatewayReference: string
   auditLog: TransactionAuditLog[]
@@ -78,6 +81,7 @@ const DONOR_LAST_NAMES = [
 
 const METHODS: TransactionMethod[] = ['UPI', 'Card', 'Netbanking', 'Wallet', 'Bank Transfer']
 const GATEWAYS: TransactionGateway[] = ['Razorpay', 'UPI', 'Bank']
+const FAILURE_REASONS = ['Bank timeout', 'Insufficient funds', 'Card declined', 'UPI mandate expired']
 
 function readLedger(): TransactionRecord[] {
   try {
@@ -170,6 +174,9 @@ async function buildSeedLedger(): Promise<TransactionRecord[]> {
     const refundStatus =
       seededStatus === 'refunded' ? 'processed' :
       seededStatus === 'success' && index % 15 === 0 ? 'requested' : 'none'
+    const refundRequestedAt = refundStatus === 'requested' ? new Date(now.getTime() - (index % 6 + 1) * 3600000).toISOString() : undefined
+    const refundRisk: TransactionRecord['refundRisk'] =
+      amount >= 5000 ? 'high' : amount >= 2000 ? 'medium' : 'low'
 
     const settledAt =
       seededStatus === 'success' && index % 5 !== 0
@@ -190,6 +197,9 @@ async function buildSeedLedger(): Promise<TransactionRecord[]> {
       settledAt,
       refundStatus,
       refundReason: refundStatus === 'requested' ? 'Duplicate payment flagged by donor.' : undefined,
+      refundRequestedAt,
+      refundRisk: refundStatus === 'requested' ? refundRisk : undefined,
+      failureReason: seededStatus === 'failed' ? FAILURE_REASONS[index % FAILURE_REASONS.length] : undefined,
       gatewayReference: donation?.razorpayPaymentId ?? donation?.razorpayOrderId ?? `rzp_${100000 + index}`,
       auditLog: [
         buildAudit('Payment received', `${formatIndianCompact(amount)} collected via ${method}.`, date),
@@ -359,11 +369,14 @@ export async function markTransactionsSettled(ids: string[]) {
 
 export async function requestTransactionRefund(id: string, reason: string) {
   await ensureLedger()
+  const requestedAt = new Date().toISOString()
   updateLedger([id], (record) => ({
     ...record,
     refundStatus: 'requested',
     refundReason: reason,
-    auditLog: [...record.auditLog, buildAudit('Refund requested', reason)],
+    refundRequestedAt: requestedAt,
+    refundRisk: record.amount >= 5000 ? 'high' : record.amount >= 2000 ? 'medium' : 'low',
+    auditLog: [...record.auditLog, buildAudit('Refund requested', reason, requestedAt)],
   }))
 }
 
@@ -375,6 +388,18 @@ export async function approveRefundRequest(id: string) {
     refundStatus: 'processed',
     settlementStatus: 'pending',
     auditLog: [...record.auditLog, buildAudit('Refund processed', 'Refund approved and sent to the payment gateway.')],
+  }))
+}
+
+export async function rejectRefundRequest(id: string) {
+  await ensureLedger()
+  updateLedger([id], (record) => ({
+    ...record,
+    refundStatus: 'none',
+    refundReason: undefined,
+    refundRequestedAt: undefined,
+    refundRisk: undefined,
+    auditLog: [...record.auditLog, buildAudit('Refund rejected', 'Refund request declined after review.')],
   }))
 }
 

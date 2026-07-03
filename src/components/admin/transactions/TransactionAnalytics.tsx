@@ -19,13 +19,14 @@ interface Props {
   volumeTrend: { label: string; value: number }[]
   paymentMethodDistribution: { label: string; value: number }[]
   settlementOverview: Array<{ gateway: string; collected: number; settled: number; pending: number }>
+  onViewSettlements?: () => void
 }
 
-export default function TransactionAnalytics({ volumeTrend, paymentMethodDistribution, settlementOverview }: Props) {
+export default function TransactionAnalytics({ volumeTrend, paymentMethodDistribution, settlementOverview, onViewSettlements }: Props) {
   return (
     <div className="grid gap-5 xl:grid-cols-3">
       <ChartCard title="Transactions Over Time" subtitle="Payment volume trend" className="min-h-0">
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={200}>
           <AreaChart data={volumeTrend}>
             <defs>
               <linearGradient id="transactionArea" x1="0" y1="0" x2="0" y2="1">
@@ -43,7 +44,7 @@ export default function TransactionAnalytics({ volumeTrend, paymentMethodDistrib
       </ChartCard>
 
       <ChartCard title="Payment Method Distribution" subtitle="Collection mix by method">
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={200}>
           <PieChart>
             <Pie
               data={paymentMethodDistribution.length ? paymentMethodDistribution : [{ label: 'No data', value: 1 }]}
@@ -71,28 +72,28 @@ export default function TransactionAnalytics({ volumeTrend, paymentMethodDistrib
               <div key={item.gateway} className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-[#0B2C6B]">{item.gateway}</p>
-                  <span className="text-xs font-semibold text-slate-500">{pct}% settled</span>
+                  <span className="text-xs font-semibold text-slate-500">{pct}%</span>
                 </div>
-                <div className="mb-2 h-2 rounded-full bg-slate-200">
+                <div className="mb-3 h-2 rounded-full bg-slate-200">
                   <div className="h-2 rounded-full bg-[#0E4FA8]" style={{ width: `${pct}%` }} />
                 </div>
-                <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
-                  <div>
-                    <span className="block text-[11px] uppercase tracking-wide text-slate-400">Collected</span>
-                    <span className="font-semibold text-[#0B2C6B]">{formatIndianCompact(item.collected)}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[11px] uppercase tracking-wide text-slate-400">Settled</span>
-                    <span className="font-semibold text-emerald-700">{formatIndianCompact(item.settled)}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[11px] uppercase tracking-wide text-slate-400">Pending</span>
-                    <span className="font-semibold text-amber-700">{formatIndianCompact(item.pending)}</span>
-                  </div>
+                <div className="space-y-1 text-xs text-slate-600">
+                  <p><span className="text-slate-400">Collected</span> <span className="font-semibold text-[#0B2C6B]">{formatIndianCompact(item.collected)}</span></p>
+                  <p><span className="text-slate-400">Settled</span> <span className="font-semibold text-emerald-700">{formatIndianCompact(item.settled)}</span></p>
+                  <p><span className="text-slate-400">Pending</span> <span className="font-semibold text-amber-700">{formatIndianCompact(item.pending)}</span></p>
                 </div>
               </div>
             )
           })}
+          {onViewSettlements ? (
+            <button
+              type="button"
+              onClick={onViewSettlements}
+              className="w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#0B2C6B] transition hover:bg-[#F8FAFC]"
+            >
+              View Settlements
+            </button>
+          ) : null}
         </div>
       </ChartCard>
     </div>

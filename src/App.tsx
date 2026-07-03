@@ -76,7 +76,7 @@ function isAdminRoute(pathname: string) {
 
 function AppShell() {
   const { pathname } = useLocation()
-  const showWhatsApp = !HIDE_WHATSAPP.includes(pathname)
+  const showWhatsApp = !HIDE_WHATSAPP.includes(pathname) && !isAdminRoute(pathname)
   const showHeader = !HIDE_WHATSAPP.includes(pathname) && !isAdminRoute(pathname)
   const showFooter = !HIDE_WHATSAPP.includes(pathname) && !isAdminRoute(pathname)
 
