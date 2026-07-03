@@ -53,9 +53,9 @@ import RolesAdminPage from './pages/admin/RolesAdminPage'
 import ExpensesAdminPage from './pages/admin/ExpensesAdminPage'
 import TaxReceiptsAdminPage from './pages/admin/TaxReceiptsAdminPage'
 import CmsAdminPage from './pages/admin/CmsAdminPage'
+import TestimonialsAdminPage from './pages/admin/TestimonialsAdminPage'
 import {
   IncomeAdminPage,
-  TestimonialsAdminPage,
 } from './pages/admin/AdminAliasPages'
 import DocumentsAdminPage from './pages/admin/DocumentsAdminPage'
 import FocusAreasAdminPage from './pages/admin/FocusAreasAdminPage'
