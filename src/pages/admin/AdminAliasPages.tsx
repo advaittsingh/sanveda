@@ -31,10 +31,6 @@ export function TaxReceiptsAdminPage() {
   return <Navigate to="/admin/donations" replace />
 }
 
-export function DocumentsAdminPage() {
-  return <PlaceholderAdminPage title="Documents" subtitle="Manage public documents and compliance files." />
-}
-
 export function CmsAdminPage() {
   return <PlaceholderAdminPage title="CMS" subtitle="Content management for homepage sections and banners." />
 }

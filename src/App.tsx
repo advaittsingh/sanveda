@@ -54,10 +54,10 @@ import {
   IncomeAdminPage,
   ExpensesAdminPage,
   TaxReceiptsAdminPage,
-  DocumentsAdminPage,
   CmsAdminPage,
   TestimonialsAdminPage,
 } from './pages/admin/AdminAliasPages'
+import DocumentsAdminPage from './pages/admin/DocumentsAdminPage'
 import FocusAreasAdminPage from './pages/admin/FocusAreasAdminPage'
 import GalleryPage from './pages/GalleryPage'
 import VerifyPage from './pages/VerifyPage'
