@@ -106,7 +106,7 @@ export async function getOperationsDashboard(): Promise<OperationsDashboard> {
   ])
 
   const pendingDonations = donations.filter((d) => d.status === 'pending').length
-  const pendingCampaigns = campaigns.filter((c) => c.status === 'pending' || c.status === 'draft').length
+  const pendingCampaigns = campaigns.filter((c) => ['review', 'pending', 'draft'].includes(c.status)).length
   const pendingVolunteers = volunteers.filter((v) => v.status === 'pending' || v.status === 'screening').length
   const pendingMemberships = memberships.filter((m) => m.status === 'pending').length
   const pendingBeneficiary = beneficiaries.filter((b) => b.status === 'on_hold').length
@@ -143,7 +143,7 @@ export async function getOperationsDashboard(): Promise<OperationsDashboard> {
     })
   })
 
-  campaigns.filter((c) => c.status === 'active').slice(0, 3).forEach((c) => {
+  campaigns.filter((c) => ['published', 'active', 'approved'].includes(c.status)).slice(0, 3).forEach((c) => {
     activity.push({
       id: `camp-${c.id}`,
       time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
@@ -178,7 +178,7 @@ export async function getOperationsDashboard(): Promise<OperationsDashboard> {
   let performing = 0
   let belowTarget = 0
   let urgent = 0
-  for (const c of campaigns.filter((x) => x.status === 'active')) {
+  for (const c of campaigns.filter((x) => ['published', 'active', 'approved'].includes(x.status))) {
     const pct = c.goal > 0 ? (c.raised / c.goal) * 100 : 0
     if (pct >= 50) performing++
     else if (pct >= 20) belowTarget++
@@ -256,7 +256,7 @@ export async function getOperationsDashboard(): Promise<OperationsDashboard> {
     raisedPositive: raisedTrend.positive,
     donorsTrend: donorEmails.size > 0 ? '↑7%' : '—',
     donorsPositive: true,
-    campaignsDelta: `+${campaigns.filter((c) => c.status === 'active').length}`,
+    campaignsDelta: `+${campaigns.filter((c) => ['published', 'active', 'approved'].includes(c.status)).length}`,
     beneficiariesTrend: beneficiaries.length > 0 ? '↑12%' : '—',
     beneficiariesPositive: true,
     donorCount: donorEmails.size || analytics.donations.count,
