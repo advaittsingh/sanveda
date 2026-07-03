@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { X, ChevronLeft, ChevronRight, ExternalLink, Monitor, Smartphone } from 'lucide-react'
+import {
+  X,
+  ChevronRight,
+  Eye,
+  Save,
+  User,
+  Shield,
+  Calendar,
+} from 'lucide-react'
 import type { CampaignRecord } from '../../../lib/campaignService'
 import type { CampaignAdminMeta } from '../../../types/campaignAdmin'
 import {
@@ -74,13 +82,21 @@ function formatLastSaved(iso?: string) {
   return `${Math.round(sec / 60)} min ago`
 }
 
+function formatEndDate(iso?: string) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ')
+}
+
 export default function CampaignWizard({ open, initial, onClose, onSave }: Props) {
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<Partial<CampaignRecord>>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [lastSavedAt, setLastSavedAt] = useState<string | undefined>()
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile' | null>(null)
 
   const editing = Boolean(initial?.id)
 
@@ -88,7 +104,6 @@ export default function CampaignWizard({ open, initial, onClose, onSave }: Props
     if (!open) return
     setStep(0)
     setError('')
-    setPreviewMode(null)
     const base = initial
       ? { ...initial, meta: { ...EMPTY.meta, ...initial.meta } }
       : { ...EMPTY, meta: { ...EMPTY.meta } }
@@ -112,6 +127,7 @@ export default function CampaignWizard({ open, initial, onClose, onSave }: Props
 
   const validations = useMemo(() => WIZARD_STEPS.map((_, i) => validateWizardStep(i, form)), [form])
   const completion = wizardCompletionPercent(form)
+  const completedSteps = validations.filter((v) => v.status === 'complete').length
 
   const handleSave = async (asDraft = false) => {
     setError('')
@@ -167,54 +183,86 @@ export default function CampaignWizard({ open, initial, onClose, onSave }: Props
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       <button type="button" className="absolute inset-0 bg-black/40" onClick={onClose} aria-label="Close wizard" />
-      <div className="relative flex max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="relative flex max-h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-[#E5E7EB] px-5 py-4 sm:px-6">
-          <div>
-            <h2 className="text-lg font-bold text-[#0B2C6B]">{editing ? 'Edit Campaign' : 'New Campaign'}</h2>
-            <p className="text-sm text-slate-500">Step {step + 1} of {WIZARD_STEPS.length}: {WIZARD_STEPS[step]}</p>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="hidden text-right sm:block">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Campaign Completion</p>
-              <p className="text-2xl font-bold text-[#0B2C6B]">{completion}%</p>
-              <ul className="mt-1 space-y-0.5 text-[10px] text-slate-500">
-                {WIZARD_STEPS.slice(0, 6).map((label, i) => (
-                  <li key={label}>
-                    {stepIndicator(validations[i])} {label.split(' ')[0]}
-                  </li>
-                ))}
-              </ul>
+        <div className="border-b border-[#E5E7EB] px-5 py-4 sm:px-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            {/* Left: title + step + autosave */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-3 lg:block">
+                <div>
+                  <h2 className="text-xl font-bold text-[#0B2C6B]">{editing ? 'Edit Campaign' : 'New Campaign'}</h2>
+                  <p className="mt-0.5 text-sm text-slate-500">
+                    Step {step + 1} of {WIZARD_STEPS.length}: {WIZARD_STEPS[step]}
+                  </p>
+                </div>
+                <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 lg:hidden">
+                  <X size={20} />
+                </button>
+              </div>
+              <p className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                Last saved {formatLastSaved(lastSavedAt)} · Auto-saved
+              </p>
             </div>
-            <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={20} /></button>
+
+            {/* Center: completion bar */}
+            <div className="w-full lg:max-w-xs lg:pt-1">
+              <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                <span>Campaign Completion</span>
+                <span className="text-[#0B2C6B]">{completion}%</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#0B2C6B] to-[#0E4FA8] transition-all duration-500"
+                  style={{ width: `${completion}%` }}
+                />
+              </div>
+              <p className="mt-1 text-right text-xs text-slate-400">{completedSteps} of {WIZARD_STEPS.length} steps</p>
+            </div>
+
+            {/* Right: meta pills + preview + close */}
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              <MetaPill icon={User} label="Workflow Status" value={capitalize(form.status ?? 'draft')} />
+              <MetaPill icon={Shield} label="Priority" value={capitalize(meta.priority ?? 'medium')} />
+              <MetaPill icon={Calendar} label="End Date" value={formatEndDate(meta.endDate)} />
+              <button
+                type="button"
+                onClick={handlePreview}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#0E4FA8] px-4 py-2 text-sm font-semibold text-[#0E4FA8] transition hover:bg-[#0E4FA8]/5"
+              >
+                <Eye size={16} />
+                Preview Campaign
+              </button>
+              <button type="button" onClick={onClose} className="hidden rounded-lg p-2 text-slate-400 hover:bg-slate-100 lg:block">
+                <X size={20} />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Step nav with validation */}
-        <div className="flex gap-1 overflow-x-auto border-b border-[#E5E7EB] px-4 py-3 sm:px-6">
+        {/* Step nav */}
+        <div className="flex gap-2 overflow-x-auto border-b border-[#E5E7EB] bg-[#FAFBFC] px-4 py-3 sm:px-6">
           {WIZARD_STEPS.map((label, i) => {
-            const v = validations[i]
             const active = i === step
-            const done = v.status === 'complete'
-            const warn = v.status === 'warning'
-            const invalid = v.status === 'invalid'
             return (
               <button
                 key={label}
                 type="button"
                 onClick={() => setStep(i)}
-                title={v.message}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold sm:px-3 ${
-                  active ? 'bg-[#0B2C6B] text-white'
-                    : done ? 'bg-emerald-50 text-emerald-700'
-                      : warn ? 'bg-amber-50 text-amber-700'
-                        : invalid ? 'bg-red-50 text-red-700'
-                          : 'bg-slate-100 text-slate-500'
+                title={validations[i].message}
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition sm:text-sm ${
+                  active
+                    ? 'bg-[#0B2C6B] text-white shadow-sm'
+                    : 'bg-white text-slate-600 ring-1 ring-[#E5E7EB] hover:bg-slate-50'
                 }`}
               >
-                <span>{stepIndicator(v)}</span>
-                <span className="hidden sm:inline">{label}</span>
-                <span className="sm:hidden">{i + 1}</span>
+                <span className={`flex h-5 w-5 items-center justify-center rounded-md text-[10px] font-bold ${
+                  active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {validations[i].status === 'complete' && !active ? '✓' : i + 1}
+                </span>
+                <span className="whitespace-nowrap">{label}</span>
               </button>
             )
           })}
@@ -222,6 +270,9 @@ export default function CampaignWizard({ open, initial, onClose, onSave }: Props
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+          <h3 className="mb-5 text-base font-semibold text-[#0B2C6B]">
+            {step === 0 ? 'Campaign Information' : WIZARD_STEPS[step]}
+          </h3>
           {step === 0 && <StepBasic {...stepProps} />}
           {step === 1 && <StepBeneficiary meta={meta} setMeta={setMeta} />}
           {step === 2 && <StepStory {...stepProps} />}
@@ -231,55 +282,33 @@ export default function CampaignWizard({ open, initial, onClose, onSave }: Props
           {step === 6 && <StepPublishing {...stepProps} />}
           {step === 7 && <StepCommunication meta={meta} setMeta={setMeta} />}
 
-          {step === 6 && form.slug && (
-            <div className="mt-6 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-4">
-              <p className="mb-3 text-sm font-semibold text-[#0B2C6B]">Preview before publishing</p>
-              <div className="flex flex-wrap gap-2">
-                <button type="button" className={adminBtnSecondary} onClick={() => setPreviewMode('desktop')}>
-                  <Monitor size={14} className="mr-1" />Desktop Preview
-                </button>
-                <button type="button" className={adminBtnSecondary} onClick={() => setPreviewMode('mobile')}>
-                  <Smartphone size={14} className="mr-1" />Mobile Preview
-                </button>
-                <button type="button" className={adminBtnSecondary} onClick={handlePreview}>
-                  <ExternalLink size={14} className="mr-1" />Open Public URL
-                </button>
-              </div>
-              {previewMode && (
-                <div className={`mt-4 overflow-hidden rounded-xl border border-[#E5E7EB] bg-white ${previewMode === 'mobile' ? 'mx-auto max-w-[375px]' : ''}`}>
-                  <iframe title="Campaign preview" src={`/campaign/${form.slug}`} className="h-64 w-full" />
-                </div>
-              )}
-            </div>
-          )}
-
           {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
         </div>
 
         {/* Sticky footer */}
         <div className="border-t border-[#E5E7EB] bg-white px-5 py-4 sm:px-6">
-          <div className="mb-3 flex items-center justify-between text-xs text-slate-500">
-            <span>Auto-saved · Last saved {formatLastSaved(lastSavedAt)}</span>
-            {validations[step].message && validations[step].status !== 'complete' ? (
-              <span className={validations[step].status === 'invalid' ? 'text-red-600' : 'text-amber-600'}>
-                {stepIndicator(validations[step])} {validations[step].message}
-              </span>
-            ) : null}
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <button type="button" className={adminBtnSecondary} disabled={step === 0} onClick={() => setStep((s) => s - 1)}>
-              <ChevronLeft size={16} className="mr-1" />Back
+          {validations[step].message && validations[step].status !== 'complete' ? (
+            <p className={`mb-3 text-center text-xs sm:text-left ${validations[step].status === 'invalid' ? 'text-red-600' : 'text-amber-600'}`}>
+              {stepIndicator(validations[step])} {validations[step].message}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <button type="button" className={adminBtnSecondary} onClick={onClose}>
+              Cancel
             </button>
             <div className="flex flex-wrap gap-2">
               <button type="button" className={adminBtnSecondary} disabled={saving} onClick={() => handleSave(true)}>
+                <Save size={14} className="mr-1.5" />
                 Save Draft
               </button>
               <button type="button" className={adminBtnSecondary} onClick={handlePreview}>
-                <ExternalLink size={14} className="mr-1" />Preview
+                <Eye size={14} className="mr-1.5" />
+                Preview
               </button>
               {step < WIZARD_STEPS.length - 1 ? (
                 <button type="button" className={adminBtnPrimary} onClick={() => setStep((s) => s + 1)}>
-                  Next<ChevronRight size={16} className="ml-1" />
+                  Next
+                  <ChevronRight size={16} className="ml-1" />
                 </button>
               ) : (
                 <button type="button" className={adminBtnPrimary} disabled={saving} onClick={() => handleSave(false)}>
@@ -289,6 +318,18 @@ export default function CampaignWizard({ open, initial, onClose, onSave }: Props
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function MetaPill({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2">
+      <Icon size={16} className="shrink-0 text-[#0E4FA8]" />
+      <div className="min-w-0">
+        <p className="truncate text-xs font-semibold text-[#0B2C6B]">{value}</p>
+        <p className="text-[10px] text-slate-400">{label}</p>
       </div>
     </div>
   )

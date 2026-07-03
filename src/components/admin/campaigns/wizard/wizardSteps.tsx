@@ -39,12 +39,27 @@ interface StepProps {
 
 export function StepBasic({ form, setForm, meta, setMeta }: StepProps) {
   return (
-    <div className="space-y-5">
-      <Field label="Campaign Title *" value={form.title ?? ''} onChange={(v) => setForm({ ...form, title: v })} />
-      <Field label="URL Slug *" value={form.slug ?? ''} onChange={(v) => setForm({ ...form, slug: v })} />
-      <Field label="Category" value={String(form.category ?? '["General"]')} onChange={(v) => setForm({ ...form, category: v })} />
-      <Field label="Focus Area" value={meta.focusArea ?? ''} onChange={(v) => setMeta({ focusArea: v })} />
-      <Field label="Tax Benefit" value={form.exemption_tag ?? 'Tax Benefit'} onChange={(v) => setForm({ ...form, exemption_tag: v })} />
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Campaign Title *" value={form.title ?? ''} onChange={(v) => setForm({ ...form, title: v })} />
+        <div>
+          <Field label="URL Slug *" value={form.slug ?? ''} onChange={(v) => setForm({ ...form, slug: v })} />
+          {form.slug ? (
+            <p className="mt-1 text-xs text-slate-500">
+              https://sanveda.org/campaigns/{form.slug}
+            </p>
+          ) : null}
+        </div>
+        <Field label="Category" value={String(form.category ?? '["General"]')} onChange={(v) => setForm({ ...form, category: v })} />
+        <Field label="Focus Area" value={meta.focusArea ?? ''} onChange={(v) => setMeta({ focusArea: v })} />
+        <Field label="Tax Benefit" value={form.exemption_tag ?? 'Tax Benefit'} onChange={(v) => setForm({ ...form, exemption_tag: v })} />
+        <label className="block">
+          <span className={adminLabelClass}>Campaign Owner</span>
+          <select className={adminInputClass} value={meta.campaignOwner ?? 'Admin'} onChange={(e) => setMeta({ campaignOwner: e.target.value })}>
+            {STAFF_MEMBERS.map((s: string) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+      </div>
 
       <RadioGroup
         label="Campaign Type"
@@ -63,13 +78,8 @@ export function StepBasic({ form, setForm, meta, setMeta }: StepProps) {
         value={meta.priority ?? 'medium'}
         options={PRIORITIES}
         onChange={(v) => setMeta({ priority: v as CampaignPriority })}
+        priorityColors
       />
-      <label className="block">
-        <span className={adminLabelClass}>Campaign Owner</span>
-        <select className={adminInputClass} value={meta.campaignOwner ?? 'Admin'} onChange={(e) => setMeta({ campaignOwner: e.target.value })}>
-          {STAFF_MEMBERS.map((s: string) => <option key={s} value={s}>{s}</option>)}
-        </select>
-      </label>
     </div>
   )
 }
@@ -332,15 +342,27 @@ function Field({ label, value, onChange, type = 'text', multiline, placeholder }
   )
 }
 
-function RadioGroup<T extends string>({ label, value, options, onChange }: {
-  label: string; value: string; options: { value: T; label: string }[]; onChange: (v: T) => void
+function RadioGroup<T extends string>({ label, value, options, onChange, priorityColors }: {
+  label: string; value: string; options: { value: T; label: string }[]; onChange: (v: T) => void; priorityColors?: boolean
 }) {
+  const priorityCls: Record<string, string> = {
+    low: 'border-slate-200',
+    medium: 'border-amber-200 bg-amber-50/50',
+    high: 'border-orange-200 bg-orange-50/50',
+    emergency: 'border-red-200 bg-red-50/50',
+  }
+
   return (
     <fieldset>
       <legend className={adminLabelClass}>{label}</legend>
       <div className="mt-2 flex flex-wrap gap-3">
         {options.map((opt) => (
-          <label key={opt.value} className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm hover:bg-[#F8FAFC]">
+          <label
+            key={opt.value}
+            className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-[#F8FAFC] ${
+              priorityColors && value === opt.value ? priorityCls[opt.value] ?? 'border-[#0E4FA8] bg-[#0E4FA8]/5' : 'border-[#E5E7EB]'
+            } ${!priorityColors && value === opt.value ? 'border-[#0E4FA8] bg-[#0E4FA8]/5' : ''}`}
+          >
             <input type="radio" name={label} checked={value === opt.value} onChange={() => onChange(opt.value)} />
             {opt.label}
           </label>
