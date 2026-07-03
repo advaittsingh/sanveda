@@ -31,10 +31,6 @@ export function TaxReceiptsAdminPage() {
   return <Navigate to="/admin/donations" replace />
 }
 
-export function FocusAreasAdminPage() {
-  return <PlaceholderAdminPage title="Focus Areas" subtitle="Manage focus area content and campaign mappings." />
-}
-
 export function DocumentsAdminPage() {
   return <PlaceholderAdminPage title="Documents" subtitle="Manage public documents and compliance files." />
 }
