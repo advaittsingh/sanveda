@@ -21,7 +21,7 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: Props) {
       <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
         {!collapsed && (
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#D4A73F]">Sanveda</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#5B9AE8]">Sanveda</p>
             <p className="text-sm font-bold text-white">NGO OS</p>
           </div>
         )}

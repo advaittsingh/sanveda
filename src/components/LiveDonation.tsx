@@ -56,7 +56,7 @@ export default function LiveDonation() {
             <div style={{ width: 20, height: 20, background: '#FFFFFF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div className="live-pulse-dot" style={{ width: 9, height: 9, background: C.accent, borderRadius: '50%' }} />
             </div>
-            <span style={{ color: C.gold, fontWeight: 700, fontSize: mobile ? 12 : 16, textTransform: 'uppercase' }}>Live</span>
+            <span style={{ color: C.secondary, fontWeight: 700, fontSize: mobile ? 12 : 16, textTransform: 'uppercase' }}>Live</span>
           </div>
         </div>
 
@@ -68,7 +68,7 @@ export default function LiveDonation() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <div>
               <div style={{ color: '#fff', fontSize: mobile ? 12 : 14, marginBottom: 6 }}>Raised in the past hour</div>
-              <div style={{ color: C.goldLight, fontWeight: 700, fontSize: mobile ? 16 : 20 }}>
+              <div style={{ color: C.secondaryLight, fontWeight: 700, fontSize: mobile ? 16 : 20 }}>
                 ₹{totalAmount.toLocaleString('en-IN')}
               </div>
             </div>
@@ -98,7 +98,7 @@ export default function LiveDonation() {
                     <div style={{ color: '#888', fontSize: 11 }}>{formatTimeAgo(tx.createdAt)}</div>
                   </div>
                 </div>
-                <div style={{ color: C.goldLight, fontWeight: 700, fontSize: 14 }}>₹{Number(tx.amount).toLocaleString('en-IN')}</div>
+                <div style={{ color: C.secondaryLight, fontWeight: 700, fontSize: 14 }}>₹{Number(tx.amount).toLocaleString('en-IN')}</div>
               </div>
             ))}
           </div>

@@ -15,7 +15,7 @@ export default function SectionLabel({ children, mobile, center }: Props) {
         fontSize: mobile ? '12px' : '18px',
         lineHeight: mobile ? '12px' : '18px',
         textAlign: center || mobile ? 'center' : 'left',
-        color: C.gold,
+        color: C.secondary,
         margin: 0,
         padding: 0,
       }}

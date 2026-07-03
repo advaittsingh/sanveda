@@ -70,10 +70,10 @@ export default function DonateMonthly() {
 
   const labelRow = (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: mobile ? 12 : 11 }}>
-      <span style={{ fontFamily: md ? 'Red Hat Display' : 'Caveat', fontWeight: 700, fontSize: mobile ? 12 : 18, color: C.gold }}>
+      <span style={{ fontFamily: md ? 'Red Hat Display' : 'Caveat', fontWeight: 700, fontSize: mobile ? 12 : 18, color: C.secondary }}>
         Donate Monthly
       </span>
-      <div style={{ width: mobile ? 30 : 46, height: 2, background: C.gold }} />
+      <div style={{ width: mobile ? 30 : 46, height: 2, background: C.secondary }} />
     </div>
   )
 
@@ -143,7 +143,7 @@ export default function DonateMonthly() {
             top: 56,
             bottom: 56,
             width: 2,
-            borderLeft: `2px dashed ${C.gold}`,
+            borderLeft: `2px dashed ${C.secondary}`,
             zIndex: 0,
           }}
         />

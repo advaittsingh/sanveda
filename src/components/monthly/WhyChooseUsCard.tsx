@@ -30,7 +30,7 @@ export default function WhyChooseUsCard({ icon, title, description, variant = 'd
           height: s.iconBox,
           borderRadius: s.iconRadius,
           padding: s.iconPad,
-          background: C.gold,
+          background: C.secondary,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

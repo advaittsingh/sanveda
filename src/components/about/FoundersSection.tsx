@@ -47,7 +47,7 @@ function FounderCard({ founder, mobile }: { founder: (typeof ABOUT_FOUNDERS)[num
         <p style={{ margin: '0 0 6px', fontSize: mobile ? 13 : 14, fontWeight: 600, color: C.textMuted }}>
           {founder.role}
         </p>
-        <p style={{ margin: 0, fontSize: mobile ? 12 : 13, fontWeight: 500, color: C.gold }}>
+        <p style={{ margin: 0, fontSize: mobile ? 12 : 13, fontWeight: 500, color: C.secondary }}>
           {founder.organization}
         </p>
       </div>
@@ -110,7 +110,7 @@ export default function FoundersSection() {
               fontSize: mobile ? 14 : 16,
               fontWeight: 600,
               lineHeight: 1.5,
-              color: C.goldLight,
+              color: C.secondaryLight,
             }}
           >
             {ABOUT_FOUNDERS_INTRO.tagline}

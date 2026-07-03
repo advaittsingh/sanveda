@@ -11,7 +11,7 @@ interface Props {
   loading?: boolean
 }
 
-const ACCENT = C.gold
+const ACCENT = C.secondary
 
 export default function MonthlyProgramsSection({ cms, programs, loading }: Props) {
   const mobile = useMediaQuery('(max-width: 600px)')
@@ -115,7 +115,7 @@ export default function MonthlyProgramsSection({ cms, programs, loading }: Props
               width: 40,
               height: 40,
               border: `3px solid ${C.border}`,
-              borderTopColor: C.gold,
+              borderTopColor: C.secondary,
               borderRadius: '50%',
               animation: 'spin 0.8s linear infinite',
             }}

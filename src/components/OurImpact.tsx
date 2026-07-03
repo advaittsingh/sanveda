@@ -98,7 +98,7 @@ export default function OurImpact() {
         >
           <p
             style={{
-              color: C.gold,
+              color: C.secondary,
               fontWeight: 700,
               fontSize: mobile ? 12 : 18,
               lineHeight: 1,
@@ -180,7 +180,7 @@ export default function OurImpact() {
                       fontWeight: 800,
                       fontSize: mobile ? 28 : 40,
                       lineHeight: 1.1,
-                      color: i === 0 || i === 3 ? C.goldLight : '#FFFFFF',
+                      color: i === 0 || i === 3 ? C.secondaryLight : '#FFFFFF',
                       fontFamily: 'Red Hat Display, sans-serif',
                       margin: '0 0 10px',
                     }}
@@ -191,7 +191,7 @@ export default function OurImpact() {
                     fontWeight: 700,
                     fontSize: mobile ? 14 : 18,
                     lineHeight: 1.3,
-                    color: i === 0 || i === 3 ? C.gold : '#FFFFFF',
+                    color: i === 0 || i === 3 ? C.secondary : '#FFFFFF',
                     fontFamily: 'Red Hat Display, sans-serif',
                     margin: `0 0 ${stat.value ? 6 : 8}px`,
                   }}

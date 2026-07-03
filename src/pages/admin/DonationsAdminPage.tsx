@@ -30,7 +30,7 @@ export default function DonationsAdminPage() {
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <StatCard label="Total Raised" value={total} prefix="₹" />
         <StatCard label="Completed" value={completed.length} accent="green" />
-        <StatCard label="Pending" value={pending} accent="gold" />
+        <StatCard label="Pending" value={pending} accent="secondary" />
       </div>
 
       <DataTable

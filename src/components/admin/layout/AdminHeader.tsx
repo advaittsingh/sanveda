@@ -48,7 +48,7 @@ export default function AdminHeader() {
 
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
         <div className="hidden items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-sm font-semibold text-[#0B2C6B] md:flex">
-          <Wallet size={16} className="text-[#D4A73F]" />
+          <Wallet size={16} className="text-[#0E4FA8]" />
           <span>₹{raised.toLocaleString('en-IN')} Raised</span>
         </div>
 
@@ -60,7 +60,7 @@ export default function AdminHeader() {
         >
           <Bell size={18} />
           {notifications > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#D4A73F] px-1 text-[10px] font-bold text-white">
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0E4FA8] px-1 text-[10px] font-bold text-white">
               {notifications > 99 ? '99+' : notifications}
             </span>
           )}

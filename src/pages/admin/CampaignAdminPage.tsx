@@ -156,7 +156,7 @@ export default function CampaignAdminPage() {
                     <StatusBadge status={c.status} />
                   </div>
                   <div className="mb-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-full bg-[#D4A73F]" style={{ width: `${progress(c.raised, c.goal)}%` }} />
+                    <div className="h-full rounded-full bg-[#0E4FA8]" style={{ width: `${progress(c.raised, c.goal)}%` }} />
                   </div>
                   <p className="text-xs text-slate-500">
                     ₹{c.raised.toLocaleString('en-IN')} / ₹{c.goal.toLocaleString('en-IN')} · {progress(c.raised, c.goal)}%

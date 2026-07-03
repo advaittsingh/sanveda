@@ -48,7 +48,7 @@ export default function BlogDetailPage() {
 
       <article style={{ width: '94.44%', maxWidth: 960, margin: '0 auto', padding: mobile ? '16px 0' : '24px 0' }}>
         {date && (
-          <time dateTime={post.createdAt} style={{ fontSize: 14, fontWeight: 600, color: C.gold, display: 'block', marginBottom: 12 }}>
+          <time dateTime={post.createdAt} style={{ fontSize: 14, fontWeight: 600, color: C.secondary, display: 'block', marginBottom: 12 }}>
             {date}
           </time>
         )}

@@ -77,7 +77,7 @@ export default function ContactPage() {
             margin: '0 0 12px',
             fontSize: mobile ? 14 : 18,
             fontWeight: 600,
-            color: C.gold,
+            color: C.secondary,
             fontFamily: 'Nunito, sans-serif',
             textTransform: 'capitalize',
           }}

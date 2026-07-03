@@ -135,7 +135,7 @@ function VisionStatCard({
         justifyContent: 'center',
       }}
     >
-      <p style={{ fontWeight: 700, fontSize: mobile ? 16 : tablet ? 18 : 42, lineHeight: mobile ? '20px' : '42px', color: C.gold, margin: '0 0 16px' }}>
+      <p style={{ fontWeight: 700, fontSize: mobile ? 16 : tablet ? 18 : 42, lineHeight: mobile ? '20px' : '42px', color: C.secondary, margin: '0 0 16px' }}>
         {value}
       </p>
       <p style={{ fontWeight: 600, fontSize: mobile ? 12 : 18, lineHeight: mobile ? '20px' : '29px', color: C.textMuted, margin: 0 }}>
@@ -167,7 +167,7 @@ export default function AboutPage() {
         <section style={{ marginBottom: mobile ? 30 : md ? 40 : 82, paddingLeft: lg ? 16 : 0, paddingRight: lg ? 16 : 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 800, margin: '0 auto' }}>
             {!mobile && (
-              <h1 style={{ fontWeight: 600, color: C.gold, margin: '0 0 14px', fontSize: 18, lineHeight: 1.2, fontFamily: 'Nunito, sans-serif' }}>About Us</h1>
+              <h1 style={{ fontWeight: 600, color: C.secondary, margin: '0 0 14px', fontSize: 18, lineHeight: 1.2, fontFamily: 'Nunito, sans-serif' }}>About Us</h1>
             )}
             {cms.heroTitle && (
               <h2
@@ -432,7 +432,7 @@ export default function AboutPage() {
                     height: mobile ? 36 : 50,
                     borderRadius: 8,
                     overflow: 'hidden',
-                    backgroundColor: C.gold,
+                    backgroundColor: C.secondary,
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',

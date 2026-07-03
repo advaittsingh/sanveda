@@ -85,7 +85,7 @@ export default function FinanceAdminPage({ defaultTab = 'overview' }: Props) {
       {summary && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard label="Total Income" value={summary.totalIncome} prefix="₹" accent="green" />
-          <StatCard label="Total Expenses" value={summary.totalExpenses} prefix="₹" accent="gold" />
+          <StatCard label="Total Expenses" value={summary.totalExpenses} prefix="₹" accent="secondary" />
           <StatCard label="Net Balance" value={summary.netBalance} prefix="₹" />
           <StatCard label="Pending Payments" value={summary.pendingExpenses} prefix="₹" />
         </div>

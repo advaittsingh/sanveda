@@ -18,7 +18,7 @@ import {
 import type { ChartPoint } from '../../../lib/adminAnalytics'
 import ChartCard from '../ui/ChartCard'
 
-const COLORS = ['#0B2C6B', '#D4A73F', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B']
+const COLORS = ['#0B2C6B', '#0E4FA8', '#3B82F6', '#10B981', '#8B5CF6', '#5B9AE8']
 
 interface Props {
   donations: ChartPoint[]
@@ -59,7 +59,7 @@ export default function DashboardCharts({ donations, campaigns, volunteers, bene
             <Tooltip formatter={(v) => `₹${Number(v ?? 0).toLocaleString('en-IN')}`} />
             <Legend />
             <Bar dataKey="value" name="Raised" fill="#0B2C6B" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="value2" name="Goal" fill="#D4A73F" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="value2" name="Goal" fill="#0E4FA8" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>

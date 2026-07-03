@@ -104,7 +104,7 @@ export default function VolunteerAdminPage() {
     <AdminShell title="Volunteer Management" subtitle="Applications, approvals, assignments, and ID cards">
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Applications" value={stats.total} />
-        <StatCard label="Pending" value={stats.pending} accent="gold" />
+        <StatCard label="Pending" value={stats.pending} accent="secondary" />
         <StatCard label="Approved" value={stats.approved} accent="green" />
         <StatCard label="Rejected" value={stats.rejected} />
         <StatCard label="Active" value={stats.active} accent="blue" />

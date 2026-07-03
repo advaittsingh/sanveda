@@ -60,7 +60,7 @@ export default function MonthlyProgramCard({
               width: s.badgeW,
               height: s.badgeH,
               borderRadius: 4,
-              background: C.gold,
+              background: C.secondary,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

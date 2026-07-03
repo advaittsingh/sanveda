@@ -57,7 +57,7 @@ export default function DonorsAdminPage() {
     <AdminShell title="Donor Management" subtitle="Track donor relationships and lifetime giving">
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <StatCard label="Total Donors" value={donors.length} />
-        <StatCard label="Lifetime Giving" value={totalRaised} prefix="₹" accent="gold" />
+        <StatCard label="Lifetime Giving" value={totalRaised} prefix="₹" accent="secondary" />
         <StatCard label="Avg. per Donor" value={donors.length ? Math.round(totalRaised / donors.length) : 0} prefix="₹" />
       </div>
 

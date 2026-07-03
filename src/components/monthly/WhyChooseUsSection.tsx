@@ -9,7 +9,7 @@ interface Props {
   cms: CMSItem[]
 }
 
-const ACCENT = C.gold
+const ACCENT = C.secondary
 
 export default function WhyChooseUsSection({ cms }: Props) {
   const mobile = useMediaQuery('(max-width: 600px)')

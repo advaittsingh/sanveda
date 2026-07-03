@@ -270,7 +270,7 @@ function MobileDrawer({ open, onClose, activeLabel }: { open: boolean; onClose: 
 
 function NavLink({ to, active, children }: { to: string; active: boolean; children: string }) {
   const [hovered, setHovered] = useState(false)
-  const color = active ? C.secondary : hovered ? C.gold : C.primary
+  const color = active ? C.secondary : hovered ? C.secondary : C.primary
 
   return (
     <Link

@@ -101,6 +101,6 @@ export const ADMIN_NAV: AdminNavGroup[] = [
 ]
 
 export const ADMIN_PRIMARY = '#0B2C6B'
-export const ADMIN_SECONDARY = '#D4A73F'
+export const ADMIN_SECONDARY = '#0E4FA8'
 export const ADMIN_BG = '#F8FAFC'
 export const ADMIN_BORDER = '#E5E7EB'

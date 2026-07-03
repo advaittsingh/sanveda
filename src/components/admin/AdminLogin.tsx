@@ -40,7 +40,7 @@ export default function AdminLogin({ title, subtitle }: Props) {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0B2C6B] text-white shadow-lg">
             <Shield size={28} />
           </div>
-          <p className="text-xs font-bold uppercase tracking-widest text-[#D4A73F]">Sanveda NGO OS</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#5B9AE8]">Sanveda NGO OS</p>
           <h1 className="mt-2 text-2xl font-bold text-[#0B2C6B]">{title}</h1>
           <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         </div>

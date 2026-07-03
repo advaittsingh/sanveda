@@ -27,10 +27,10 @@ export default function PageHero({ label, title, subtitle, description, image, c
       }}
     >
       {label && (
-        <p style={{ fontFamily: 'Caveat', fontWeight: 700, fontSize: 18, color: C.goldLight, margin: '0 0 8px' }}>{label}</p>
+        <p style={{ fontFamily: 'Caveat', fontWeight: 700, fontSize: 18, color: C.secondaryLight, margin: '0 0 8px' }}>{label}</p>
       )}
       {subtitle && (
-        <p style={{ fontSize: 14, fontWeight: 600, color: C.goldLight, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{subtitle}</p>
+        <p style={{ fontSize: 14, fontWeight: 600, color: C.secondaryLight, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{subtitle}</p>
       )}
       <h1 style={{ fontWeight: 800, fontSize: compact ? 28 : 40, lineHeight: 1.2, margin: '0 0 16px', maxWidth: image ? 640 : 800, marginLeft: image ? 0 : 'auto', marginRight: image ? 0 : 'auto' }}>
         {title}

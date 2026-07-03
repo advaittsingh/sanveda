@@ -9,8 +9,7 @@ export const BRAND = {
   colors: {
     primary: '#041B4D',
     secondary: '#0E4FA8',
-    gold: '#0E4FA8',
-    goldLight: '#5B9AE8',
+    secondaryLight: '#5B9AE8',
     accent: '#0E4FA8',
     cream: '#F5F7FA',
     grayBg: '#F5F7FA',

@@ -48,7 +48,7 @@ export default function ValueToPartnersSection() {
                 fontSize: mobile ? 11 : 14,
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                color: C.gold,
+                color: C.secondary,
               }}
             >
               {ABOUT_PARTNERS_INTRO.label}

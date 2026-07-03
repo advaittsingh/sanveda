@@ -9,13 +9,13 @@ interface Props {
   suffix?: string
   sub?: string
   icon?: LucideIcon
-  accent?: 'primary' | 'gold' | 'green' | 'blue'
+  accent?: 'primary' | 'secondary' | 'green' | 'blue'
   delay?: number
 }
 
 const accents = {
   primary: 'bg-[#0B2C6B]/10 text-[#0B2C6B]',
-  gold: 'bg-[#D4A73F]/15 text-[#B8860B]',
+  secondary: 'bg-[#0E4FA8]/10 text-[#0E4FA8]',
   green: 'bg-emerald-50 text-emerald-700',
   blue: 'bg-sky-50 text-sky-700',
 }

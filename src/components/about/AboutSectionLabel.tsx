@@ -14,7 +14,7 @@ export default function AboutSectionLabel({
         fontWeight: 600,
         fontSize: 'inherit',
         lineHeight: 'inherit',
-        color: C.gold,
+        color: C.secondary,
         margin: 0,
         display: 'flex',
         alignItems: 'center',

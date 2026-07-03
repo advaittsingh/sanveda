@@ -3,7 +3,7 @@ import { C } from '../../constants/brand'
 export const CD = {
   primary: C.primary,
   secondary: C.secondary,
-  accent: C.gold,
+  accent: C.secondary,
   cream: C.cream,
   white: C.white,
   border: C.border,

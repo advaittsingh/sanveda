@@ -99,11 +99,11 @@ export default function AdminDashboardPage() {
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           <StatCard label="Total Donations" value={stats.donations.total} prefix="₹" sub={`${stats.donations.count} transactions`} icon={HandCoins} delay={0} />
-          <StatCard label="This Month" value={stats.donations.thisMonth} prefix="₹" icon={TrendingUp} accent="gold" delay={0.05} />
+          <StatCard label="This Month" value={stats.donations.thisMonth} prefix="₹" icon={TrendingUp} accent="secondary" delay={0.05} />
           <StatCard label="Active Campaigns" value={stats.campaigns.active} sub={`${stats.campaigns.total} total`} icon={Megaphone} accent="blue" delay={0.1} />
           <StatCard label="Volunteers" value={stats.volunteers.active} sub={`${stats.volunteers.pending} pending`} icon={Heart} accent="green" delay={0.15} />
           <StatCard label="Beneficiaries" value={beneficiaries} icon={Users} delay={0.2} />
-          <StatCard label="Members" value={memberStats.active} sub={`${memberStats.pending} pending`} icon={UserCheck} accent="gold" delay={0.25} />
+          <StatCard label="Members" value={memberStats.active} sub={`${memberStats.pending} pending`} icon={UserCheck} accent="secondary" delay={0.25} />
         </div>
 
         <DashboardCharts
