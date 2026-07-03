@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
 import { useAuth } from '../context/AuthContext'
 import { C } from '../constants/brand'
@@ -10,6 +10,12 @@ import { useMediaQuery } from '../hooks/useMediaQuery'
 export default function MembershipApplyPage() {
   const mobile = useMediaQuery('(max-width: 600px)')
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const tierParam = searchParams.get('tier')
+  const initialTier: MembershipTier =
+    tierParam === 'patron' || tierParam === 'founding' || tierParam === 'standard'
+      ? tierParam
+      : 'standard'
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -23,7 +29,7 @@ export default function MembershipApplyPage() {
     country: 'India',
     occupation: '',
     motivation: '',
-    tier: 'standard' as MembershipTier,
+    tier: initialTier,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
