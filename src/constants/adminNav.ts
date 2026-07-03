@@ -99,7 +99,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { label: 'Roles', to: '/admin/users?tab=roles', icon: Shield },
       { label: 'Departments', to: '/admin/users?tab=departments', icon: Building2 },
       { label: 'Permissions', to: '/admin/users?tab=permissions', icon: KeyRound },
-      { label: 'Audit Logs', to: '/admin/users?tab=audit', icon: ScrollText },
+      { label: 'Audit Logs', to: '/admin/audit', icon: ScrollText },
       { label: 'System Settings', to: '/admin/settings', icon: Settings },
     ],
   },
