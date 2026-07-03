@@ -10,8 +10,13 @@ import {
 } from '../../lib/volunteerStore'
 import { downloadAppointmentLetter, downloadVolunteerIdCard } from '../../lib/documentService'
 import { registerVerification } from '../../lib/verificationService'
-import { STATUS_LABELS, VOLUNTEER_ROLE_OPTIONS } from '../../constants/volunteerContent'
+import { VOLUNTEER_ROLE_OPTIONS } from '../../constants/volunteerContent'
 import type { VolunteerApplication, VolunteerStatus } from '../../types/volunteer'
+import StatCard from '../../components/admin/ui/StatCard'
+import DataTable from '../../components/admin/ui/DataTable'
+import StatusBadge from '../../components/admin/ui/StatusBadge'
+import DetailPanel from '../../components/admin/ui/DetailPanel'
+import { adminBtnPrimary, adminBtnSecondary, adminInputClass, adminLabelClass } from '../../components/admin/ui/adminStyles'
 
 function roleLabel(role: string) {
   return VOLUNTEER_ROLE_OPTIONS.find((r) => r.value === role)?.label ?? role
@@ -96,138 +101,98 @@ export default function VolunteerAdminPage() {
   }
 
   return (
-    <AdminShell title="Volunteer Management" subtitle="Sanveda Global Humanitarian Foundation">
-
-      <div className="volunteer-admin-stats">
-        <div><strong>{stats.total}</strong><span>Total Applications</span></div>
-        <div><strong>{stats.pending}</strong><span>Pending</span></div>
-        <div><strong>{stats.approved}</strong><span>Approved</span></div>
-        <div><strong>{stats.rejected}</strong><span>Rejected</span></div>
-        <div><strong>{stats.active}</strong><span>Active Volunteers</span></div>
+    <AdminShell title="Volunteer Management" subtitle="Applications, approvals, assignments, and ID cards">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <StatCard label="Applications" value={stats.total} />
+        <StatCard label="Pending" value={stats.pending} accent="gold" />
+        <StatCard label="Approved" value={stats.approved} accent="green" />
+        <StatCard label="Rejected" value={stats.rejected} />
+        <StatCard label="Active" value={stats.active} accent="blue" />
       </div>
 
-      <div className="volunteer-admin-layout">
-        <div className="volunteer-admin-table-wrap">
-          {loading ? <p className="volunteer-admin-empty">Loading…</p> : null}
-          <table className="volunteer-admin-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Applied</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {applications.map((app) => (
-                <tr key={app.id} data-selected={selected?.id === app.id}>
-                  <td>{app.fullName}</td>
-                  <td>{app.email}</td>
-                  <td>{app.preferredRoles.map(roleLabel).join(', ')}</td>
-                  <td>{app.city}, {app.state}</td>
-                  <td><span className={`volunteer-status-badge status-${app.status}`}>{STATUS_LABELS[app.status]}</span></td>
-                  <td>{new Date(app.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <button type="button" onClick={() => openProfile(app)}>View</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!loading && !applications.length && <p className="volunteer-admin-empty">No applications yet.</p>}
-        </div>
+      <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
+        <DataTable
+          loading={loading}
+          data={applications}
+          keyFn={(app) => app.id}
+          selectedKey={selected?.id}
+          onRowClick={openProfile}
+          columns={[
+            {
+              key: 'photo',
+              header: '',
+              render: (app) => (
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B2C6B]/10 text-sm font-bold text-[#0B2C6B]">
+                  {app.fullName.charAt(0)}
+                </span>
+              ),
+            },
+            { key: 'name', header: 'Name', render: (app) => <span className="font-medium">{app.fullName}</span> },
+            { key: 'role', header: 'Role', render: (app) => app.preferredRoles.map(roleLabel).join(', ') },
+            { key: 'location', header: 'Location', render: (app) => `${app.city}, ${app.state}` },
+            { key: 'team', header: 'Team', render: (app) => app.assignedTeam ?? '—' },
+            { key: 'status', header: 'Status', render: (app) => <StatusBadge status={app.status} /> },
+            {
+              key: 'actions',
+              header: 'Actions',
+              render: (app) => (
+                <button type="button" className={adminBtnSecondary} onClick={(e) => { e.stopPropagation(); openProfile(app) }}>
+                  View
+                </button>
+              ),
+            },
+          ]}
+        />
 
-        {selected && (
-          <aside className="volunteer-admin-profile">
-            <h2>{selected.fullName}</h2>
-            <p className="volunteer-admin-profile-id">{selected.id}</p>
-            {selected.volunteerId ? <p><strong>Volunteer ID:</strong> {selected.volunteerId}</p> : null}
-
-            <div className="volunteer-admin-profile-section">
-              <h3>Personal Information</h3>
-              <p>{selected.email} · {selected.phone}</p>
-              <p>{selected.address}</p>
-              <p>{selected.city}, {selected.state}, {selected.country}</p>
+        <DetailPanel open={!!selected} onClose={() => setSelected(null)} title={selected?.fullName ?? 'Volunteer'}>
+          {selected && (
+            <div className="space-y-5 text-sm text-slate-600">
+              <p className="text-xs text-slate-400">{selected.id}</p>
+              {selected.volunteerId ? <p><strong className="text-slate-800">Volunteer ID:</strong> {selected.volunteerId}</p> : null}
+              <div>
+                <h3 className="mb-1 font-semibold text-[#0B2C6B]">Contact</h3>
+                <p>{selected.email} · {selected.phone}</p>
+                <p>{selected.address}</p>
+                <p>{selected.city}, {selected.state}, {selected.country}</p>
+              </div>
+              <div>
+                <h3 className="mb-1 font-semibold text-[#0B2C6B]">Details</h3>
+                <p><strong>Roles:</strong> {selected.preferredRoles.map(roleLabel).join(', ')}</p>
+                <p><strong>Type:</strong> {selected.volunteerType}</p>
+                <p><strong>Hours/week:</strong> {selected.hoursPerWeek || '—'}</p>
+              </div>
+              <div>
+                <h3 className="mb-1 font-semibold text-[#0B2C6B]">Motivation</h3>
+                <p>{selected.motivation}</p>
+                <p>{selected.skills}</p>
+              </div>
+              <label className="block"><span className={adminLabelClass}>Assigned Team</span>
+                <input className={adminInputClass} value={team} onChange={(e) => setTeam(e.target.value)} />
+              </label>
+              <label className="block"><span className={adminLabelClass}>Interview Date</span>
+                <input type="datetime-local" className={adminInputClass} value={interviewDate} onChange={(e) => setInterviewDate(e.target.value)} />
+              </label>
+              <label className="block"><span className={adminLabelClass}>Notes</span>
+                <textarea className={adminInputClass} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className={adminBtnSecondary} onClick={() => setStatus(selected.id, 'screening')}>Screening</button>
+                <button type="button" className={adminBtnSecondary} onClick={() => applyPatch(selected.id, { status: 'interview', interviewDate: interviewDate || new Date().toISOString() })}>Interview</button>
+                <button type="button" className={adminBtnPrimary} onClick={() => setStatus(selected.id, 'approved')}>Approve</button>
+                <button type="button" className={adminBtnSecondary} onClick={() => setStatus(selected.id, 'rejected')}>Reject</button>
+                <button type="button" className={adminBtnPrimary} onClick={() => setStatus(selected.id, 'active')}>Activate</button>
+                {selected.volunteerId && selected.status !== 'rejected' ? (
+                  <>
+                    <button type="button" className={adminBtnSecondary} onClick={() => downloadVolunteerIdCard(selected)}>ID Card</button>
+                    <button type="button" className={adminBtnSecondary} onClick={() => downloadAppointmentLetter({ recipientName: selected.fullName, role: selected.preferredRoles[0] ?? 'Volunteer', department: selected.assignedTeam ?? 'Field Operations', startDate: new Date().toLocaleDateString('en-IN'), type: 'volunteer', referenceId: selected.volunteerId ?? selected.id })}>Appointment</button>
+                  </>
+                ) : null}
+                <button type="button" className={adminBtnSecondary} onClick={() => applyPatch(selected.id, { assignedTeam: team, adminNotes: notes, interviewDate: interviewDate || undefined })}>Save</button>
+                <button type="button" className={adminBtnSecondary} onClick={() => notifyVolunteerByEmail(selected, 'Sanveda Volunteer Update', `Dear ${selected.fullName},\n\nWe have an update regarding your volunteer application (${selected.id}).\n\nRegards,\nSanveda Team`)}>Email</button>
+              </div>
             </div>
-
-            <div className="volunteer-admin-profile-section">
-              <h3>Volunteer Details</h3>
-              <p><strong>Roles:</strong> {selected.preferredRoles.map(roleLabel).join(', ')}</p>
-              <p><strong>Type:</strong> {selected.volunteerType}</p>
-              <p><strong>Hours/week:</strong> {selected.hoursPerWeek || '—'}</p>
-            </div>
-
-            <div className="volunteer-admin-profile-section">
-              <h3>Skills & Motivation</h3>
-              <p>{selected.motivation}</p>
-              <p>{selected.skills}</p>
-            </div>
-
-            <div className="volunteer-admin-profile-section">
-              <h3>Documents</h3>
-              {selected.resumeDataUrl ? <a href={selected.resumeDataUrl} download={selected.resumeName} target="_blank" rel="noopener noreferrer">Download Resume</a> : <p>No resume</p>}
-              {selected.idProofDataUrl ? <a href={selected.idProofDataUrl} download={selected.idProofName} target="_blank" rel="noopener noreferrer">Download ID Proof</a> : null}
-              {selected.photoDataUrl ? <a href={selected.photoDataUrl} download={selected.photoName} target="_blank" rel="noopener noreferrer">Download Photo</a> : null}
-            </div>
-
-            <label className="volunteer-field">
-              <span>Assigned Team</span>
-              <input value={team} onChange={(e) => setTeam(e.target.value)} />
-            </label>
-            <label className="volunteer-field">
-              <span>Interview Date</span>
-              <input type="datetime-local" value={interviewDate} onChange={(e) => setInterviewDate(e.target.value)} />
-            </label>
-            <label className="volunteer-field">
-              <span>Performance Notes</span>
-              <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </label>
-
-            <div className="volunteer-admin-actions">
-              <button type="button" onClick={() => setStatus(selected.id, 'screening')}>Move to Screening</button>
-              <button type="button" onClick={() => applyPatch(selected.id, { status: 'interview', interviewDate: interviewDate || new Date().toISOString() })}>Schedule Interview</button>
-              <button type="button" onClick={() => setStatus(selected.id, 'approved')}>Approve</button>
-              <button type="button" onClick={() => setStatus(selected.id, 'rejected')}>Reject</button>
-              <button type="button" onClick={() => setStatus(selected.id, 'active')}>Mark Active</button>
-              {selected.volunteerId && selected.status !== 'rejected' ? (
-                <>
-                  <button type="button" onClick={() => downloadVolunteerIdCard(selected)}>Download ID Card</button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      downloadAppointmentLetter({
-                        recipientName: selected.fullName,
-                        role: selected.preferredRoles[0] ?? 'Volunteer',
-                        department: selected.assignedTeam ?? 'Field Operations',
-                        startDate: new Date().toLocaleDateString('en-IN'),
-                        type: 'volunteer',
-                        referenceId: selected.volunteerId ?? selected.id,
-                      })
-                    }
-                  >
-                    Appointment Letter
-                  </button>
-                </>
-              ) : null}
-              <button type="button" onClick={() => applyPatch(selected.id, { assignedTeam: team, adminNotes: notes, interviewDate: interviewDate || undefined })}>Save Notes</button>
-              <button
-                type="button"
-                onClick={() =>
-                  notifyVolunteerByEmail(
-                    selected,
-                    'Sanveda Volunteer Update',
-                    `Dear ${selected.fullName},\n\nWe have an update regarding your volunteer application (${selected.id}).\n\nRegards,\nSanveda Team`,
-                  )
-                }
-              >
-                Send Email
-              </button>
-            </div>
-          </aside>
-        )}
+          )}
+        </DetailPanel>
       </div>
     </AdminShell>
   )

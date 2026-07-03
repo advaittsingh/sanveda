@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import AdminLogin from '../../components/admin/AdminLogin'
 import AdminShell from '../../components/admin/AdminShell'
+import AdminCard from '../../components/admin/ui/AdminCard'
+import DataTable from '../../components/admin/ui/DataTable'
+import StatusBadge from '../../components/admin/ui/StatusBadge'
+import { adminBtnDanger, adminBtnPrimary, adminBtnSecondary, adminInputClass, adminLabelClass } from '../../components/admin/ui/adminStyles'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import {
   deleteCampaign,
@@ -25,6 +29,11 @@ const EMPTY: Partial<CampaignRecord> = {
   category: '["General"]',
   featureUrgent: 0,
   featureRecent: 0,
+}
+
+function progress(raised: number, goal: number) {
+  if (!goal) return 0
+  return Math.min(100, Math.round((raised / goal) * 100))
 }
 
 export default function CampaignAdminPage() {
@@ -55,7 +64,6 @@ export default function CampaignAdminPage() {
       setError('Title and slug are required')
       return
     }
-
     try {
       await saveCampaign({
         ...form,
@@ -86,52 +94,106 @@ export default function CampaignAdminPage() {
     }
   }
 
+  const setStatus = async (c: CampaignRecord, status: CampaignStatus) => {
+    await saveCampaign({ ...c, status })
+    await refresh()
+  }
+
   if (!authed) {
-    return <AdminLogin title="Campaign Admin" subtitle="Manage crowdfunding campaigns." />
+    return <AdminLogin title="Campaign Management" subtitle="Manage crowdfunding campaigns." />
   }
 
   return (
-    <AdminShell title="Campaign Management" subtitle="Create, edit, and publish campaigns">
-      <div className="volunteer-admin-layout">
-        <form className="volunteer-admin-profile admin-form-panel" onSubmit={handleSave}>
-          <h2>{editing ? 'Edit Campaign' : 'New Campaign'}</h2>
-          <label className="volunteer-field"><span>Title *</span><input value={form.title ?? ''} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
-          <label className="volunteer-field"><span>Slug *</span><input value={form.slug ?? ''} onChange={(e) => setForm({ ...form, slug: e.target.value })} required /></label>
-          <label className="volunteer-field"><span>Description</span><textarea rows={3} value={form.description ?? ''} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
-          <label className="volunteer-field"><span>Goal (₹)</span><input type="number" value={form.goal ?? 0} onChange={(e) => setForm({ ...form, goal: Number(e.target.value) })} /></label>
-          <label className="volunteer-field"><span>Status</span>
-            <select value={form.status ?? 'draft'} onChange={(e) => setForm({ ...form, status: e.target.value as CampaignStatus })}>
-              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </label>
-          <label className="volunteer-field"><span>Banner Image URL</span><input value={form.banner_image ?? ''} onChange={(e) => setForm({ ...form, banner_image: e.target.value })} /></label>
-          <div className="volunteer-admin-actions">
-            <button type="submit" className="volunteer-btn volunteer-btn-primary">{editing ? 'Update' : 'Create'}</button>
-            {editing ? <button type="button" onClick={() => { setEditing(null); setForm(EMPTY) }}>Cancel</button> : null}
-          </div>
-          {error ? <em>{error}</em> : null}
-        </form>
+    <AdminShell title="Campaign Management" subtitle="Create, publish, and monitor fundraising campaigns">
+      <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+        <AdminCard>
+          <h2 className="mb-4 text-base font-semibold text-[#0B2C6B]">{editing ? 'Edit Campaign' : 'New Campaign'}</h2>
+          <form onSubmit={handleSave} className="space-y-4">
+            <label className="block">
+              <span className={adminLabelClass}>Title *</span>
+              <input className={adminInputClass} value={form.title ?? ''} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+            </label>
+            <label className="block">
+              <span className={adminLabelClass}>Slug *</span>
+              <input className={adminInputClass} value={form.slug ?? ''} onChange={(e) => setForm({ ...form, slug: e.target.value })} required />
+            </label>
+            <label className="block">
+              <span className={adminLabelClass}>Description</span>
+              <textarea className={adminInputClass} rows={3} value={form.description ?? ''} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </label>
+            <label className="block">
+              <span className={adminLabelClass}>Goal (₹)</span>
+              <input type="number" className={adminInputClass} value={form.goal ?? 0} onChange={(e) => setForm({ ...form, goal: Number(e.target.value) })} />
+            </label>
+            <label className="block">
+              <span className={adminLabelClass}>Status</span>
+              <select className={adminInputClass} value={form.status ?? 'draft'} onChange={(e) => setForm({ ...form, status: e.target.value as CampaignStatus })}>
+                {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className={adminLabelClass}>Banner Image URL</span>
+              <input className={adminInputClass} value={form.banner_image ?? ''} onChange={(e) => setForm({ ...form, banner_image: e.target.value })} />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button type="submit" className={adminBtnPrimary}>{editing ? 'Update' : 'Create'}</button>
+              {editing ? (
+                <button type="button" className={adminBtnSecondary} onClick={() => { setEditing(null); setForm(EMPTY) }}>Cancel</button>
+              ) : null}
+            </div>
+            {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          </form>
+        </AdminCard>
 
-        <div className="volunteer-admin-table-wrap">
-          {loading ? <p className="volunteer-admin-empty">Loading…</p> : null}
-          <table className="volunteer-admin-table">
-            <thead><tr><th>Title</th><th>Slug</th><th>Goal</th><th>Raised</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody>
-              {campaigns.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.title}</td>
-                  <td>{c.slug}</td>
-                  <td>₹{c.goal.toLocaleString('en-IN')}</td>
-                  <td>₹{c.raised.toLocaleString('en-IN')}</td>
-                  <td><span className={`volunteer-status-badge status-${c.status}`}>{c.status}</span></td>
-                  <td>
-                    <button type="button" onClick={() => startEdit(c)}>Edit</button>
-                    <button type="button" onClick={() => handleDelete(c.id)}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {campaigns.map((c) => (
+              <AdminCard key={c.id} className="overflow-hidden p-0">
+                <img src={c.banner_image || c.thumbnail_image} alt="" className="h-32 w-full object-cover" />
+                <div className="p-4">
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-[#0B2C6B] line-clamp-2">{c.title}</h3>
+                    <StatusBadge status={c.status} />
+                  </div>
+                  <div className="mb-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-full rounded-full bg-[#D4A73F]" style={{ width: `${progress(c.raised, c.goal)}%` }} />
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    ₹{c.raised.toLocaleString('en-IN')} / ₹{c.goal.toLocaleString('en-IN')} · {progress(c.raised, c.goal)}%
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" className={adminBtnSecondary} onClick={() => startEdit(c)}>Edit</button>
+                    {c.status !== 'active' && (
+                      <button type="button" className={adminBtnPrimary} onClick={() => setStatus(c, 'active')}>Activate</button>
+                    )}
+                    {c.status === 'active' && (
+                      <button type="button" className={adminBtnSecondary} onClick={() => setStatus(c, 'closed')}>Pause</button>
+                    )}
+                    <button type="button" className={adminBtnDanger} onClick={() => handleDelete(c.id)}>Delete</button>
+                  </div>
+                </div>
+              </AdminCard>
+            ))}
+          </div>
+
+          <DataTable
+            loading={loading}
+            data={campaigns}
+            keyFn={(c) => String(c.id)}
+            columns={[
+              { key: 'title', header: 'Campaign', render: (c) => c.title },
+              { key: 'goal', header: 'Goal', render: (c) => `₹${c.goal.toLocaleString('en-IN')}` },
+              { key: 'raised', header: 'Raised', render: (c) => `₹${c.raised.toLocaleString('en-IN')}` },
+              { key: 'status', header: 'Status', render: (c) => <StatusBadge status={c.status} /> },
+              {
+                key: 'actions',
+                header: 'Actions',
+                render: (c) => (
+                  <button type="button" className={adminBtnSecondary} onClick={() => startEdit(c)}>Edit</button>
+                ),
+              },
+            ]}
+          />
         </div>
       </div>
     </AdminShell>

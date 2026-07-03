@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Shield } from 'lucide-react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import { isSupabaseConfigured } from '../../lib/supabase'
 
@@ -28,41 +30,63 @@ export default function AdminLogin({ title, subtitle }: Props) {
   }
 
   return (
-    <div className="volunteer-admin-login">
-      <form onSubmit={handleSubmit} className="volunteer-admin-login-card">
-        <h1>{title}</h1>
-        <p>{subtitle}</p>
+    <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-4 font-[family-name:var(--font-display)]">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0B2C6B] text-white shadow-lg">
+            <Shield size={28} />
+          </div>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#D4A73F]">Sanveda NGO OS</p>
+          <h1 className="mt-2 text-2xl font-bold text-[#0B2C6B]">{title}</h1>
+          <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+        </div>
 
-        {mode === 'supabase' && (
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Admin email"
-            required
-          />
-        )}
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+          {mode === 'supabase' && (
+            <label className="mb-4 block">
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">Admin email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm outline-none focus:border-[#0B2C6B]/30 focus:ring-2 focus:ring-[#0B2C6B]/10"
+              />
+            </label>
+          )}
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-        />
+          <label className="mb-4 block">
+            <span className="mb-1.5 block text-sm font-medium text-slate-700">Password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm outline-none focus:border-[#0B2C6B]/30 focus:ring-2 focus:ring-[#0B2C6B]/10"
+            />
+          </label>
 
-        {error ? <em>{error}</em> : null}
+          {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
 
-        {!isSupabaseConfigured && (
-          <small style={{ color: '#4A4A49', fontSize: 12 }}>
-            Using local admin password. Configure Supabase for production admin auth.
-          </small>
-        )}
+          {!isSupabaseConfigured && (
+            <p className="mb-4 text-xs text-slate-500">
+              Demo mode: using local admin password. Configure Supabase for production auth.
+            </p>
+          )}
 
-        <button type="submit" className="volunteer-btn volunteer-btn-primary" disabled={submitting}>
-          {submitting ? 'Signing in…' : 'Sign In'}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full rounded-xl bg-[#0B2C6B] py-3 text-sm font-semibold text-white transition hover:bg-[#0a2459] disabled:opacity-60"
+          >
+            {submitting ? 'Signing in…' : 'Sign In to Dashboard'}
+          </button>
+        </form>
+      </motion.div>
     </div>
   )
 }

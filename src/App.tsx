@@ -44,6 +44,21 @@ import EventAdminPage from './pages/admin/EventAdminPage'
 import GalleryAdminPage from './pages/admin/GalleryAdminPage'
 import UsersAdminPage from './pages/admin/UsersAdminPage'
 import AuditAdminPage from './pages/admin/AuditAdminPage'
+import ReportsAdminPage from './pages/admin/ReportsAdminPage'
+import SettingsAdminPage from './pages/admin/SettingsAdminPage'
+import DonorsAdminPage from './pages/admin/DonorsAdminPage'
+import RolesAdminPage from './pages/admin/RolesAdminPage'
+import {
+  IncomeAdminPage,
+  ExpensesAdminPage,
+  MonthlyGivingAdminPage,
+  TransactionsAdminPage,
+  TaxReceiptsAdminPage,
+  FocusAreasAdminPage,
+  DocumentsAdminPage,
+  CmsAdminPage,
+  TestimonialsAdminPage,
+} from './pages/admin/AdminAliasPages'
 import GalleryPage from './pages/GalleryPage'
 import VerifyPage from './pages/VerifyPage'
 import InternshipPage from './pages/InternshipPage'
@@ -124,6 +139,19 @@ function AppShell() {
           <Route path="/admin/gallery" element={<GalleryAdminPage />} />
           <Route path="/admin/users" element={<UsersAdminPage />} />
           <Route path="/admin/audit" element={<AuditAdminPage />} />
+          <Route path="/admin/reports" element={<ReportsAdminPage />} />
+          <Route path="/admin/settings" element={<SettingsAdminPage />} />
+          <Route path="/admin/donors" element={<DonorsAdminPage />} />
+          <Route path="/admin/roles" element={<RolesAdminPage />} />
+          <Route path="/admin/monthly-giving" element={<MonthlyGivingAdminPage />} />
+          <Route path="/admin/transactions" element={<TransactionsAdminPage />} />
+          <Route path="/admin/tax-receipts" element={<TaxReceiptsAdminPage />} />
+          <Route path="/admin/income" element={<IncomeAdminPage />} />
+          <Route path="/admin/expenses" element={<ExpensesAdminPage />} />
+          <Route path="/admin/focus-areas" element={<FocusAreasAdminPage />} />
+          <Route path="/admin/documents" element={<DocumentsAdminPage />} />
+          <Route path="/admin/cms" element={<CmsAdminPage />} />
+          <Route path="/admin/testimonials" element={<TestimonialsAdminPage />} />
           <Route path="/medical-campaigns" element={<CampaignsPage />} />
           <Route path="/urgent" element={<CampaignsPage />} />
           <Route path="/children" element={<CampaignsPage />} />
