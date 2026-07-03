@@ -1,28 +1,39 @@
-import { Link } from 'react-router-dom'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
-import SubPageBanner from '../components/ui/SubPageBanner'
-import { C } from '../constants/brand'
-import { useMediaQuery } from '../hooks/useMediaQuery'
+import InternshipAbout from '../components/internship/InternshipAbout'
+import InternshipBenefits from '../components/internship/InternshipBenefits'
+import InternshipCta from '../components/internship/InternshipCta'
+import InternshipDomains from '../components/internship/InternshipDomains'
+import InternshipDuration from '../components/internship/InternshipDuration'
+import InternshipEligibility from '../components/internship/InternshipEligibility'
+import InternshipFaq from '../components/internship/InternshipFaq'
+import InternshipFinalCta from '../components/internship/InternshipFinalCta'
+import InternshipHero from '../components/internship/InternshipHero'
+import InternshipProcess from '../components/internship/InternshipProcess'
+import InternshipStats from '../components/internship/InternshipStats'
+import InternshipTestimonials from '../components/internship/InternshipTestimonials'
+import AnimatedSection from '../components/ui/AnimatedSection'
+import { INTERNSHIP_PAGE } from '../constants/internshipContent'
 
 export default function InternshipPage() {
-  const mobile = useMediaQuery('(max-width: 600px)')
-
   return (
-    <div style={{ background: C.white, paddingBottom: mobile ? 40 : 80 }}>
-      <AboutBreadcrumb items={[{ label: 'Home', path: '/' }, { label: 'Internships', path: null }]} />
-      <div className="page-banner-wrap" data-mobile={mobile}>
-        <SubPageBanner title="Internship Programme" subtitle="Gain hands-on experience in humanitarian operations, programme management, and community development." />
-      </div>
-      <section style={{ width: '94.44%', maxWidth: 800, margin: '0 auto', padding: mobile ? '24px 16px' : '40px 0', textAlign: 'center' }}>
-        <p style={{ color: C.textMuted, lineHeight: 1.7, marginBottom: 32 }}>
-          Sanveda offers structured internships for students and young professionals passionate about social impact.
-          Interns work alongside our teams in healthcare, education, sports, and operations.
-        </p>
-        <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 12, justifyContent: 'center' }}>
-          <Link to="/internship/apply" className="btn-primary" style={{ padding: '14px 28px', borderRadius: 10, textDecoration: 'none', fontWeight: 700 }}>Apply Now</Link>
-          <Link to="/internship/status" className="btn-secondary" style={{ padding: '14px 28px', borderRadius: 10, textDecoration: 'none', fontWeight: 700 }}>Check Status</Link>
-        </div>
-      </section>
+    <div className="internship-page">
+      <AboutBreadcrumb
+        items={[{ label: 'Home', path: '/' }, { label: INTERNSHIP_PAGE.breadcrumb, path: null }]}
+      />
+      <InternshipHero />
+      <InternshipStats />
+      <AnimatedSection className="internship-section internship-post-hero-cta">
+        <InternshipCta />
+      </AnimatedSection>
+      <InternshipAbout />
+      <InternshipDomains />
+      <InternshipBenefits />
+      <InternshipEligibility />
+      <InternshipDuration />
+      <InternshipProcess />
+      <InternshipTestimonials />
+      <InternshipFaq />
+      <InternshipFinalCta />
     </div>
   )
 }

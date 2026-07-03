@@ -1,18 +1,23 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
 import { C } from '../constants/brand'
+import { INTERNSHIP_DOMAINS } from '../constants/internshipContent'
 import { submitInternshipApplication } from '../lib/internshipService'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 
 export default function InternshipApplyPage() {
   const mobile = useMediaQuery('(max-width: 600px)')
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const departmentParam = searchParams.get('department')
+  const matchedDomain = INTERNSHIP_DOMAINS.find((d) => d.id === departmentParam)
+  const initialDepartment = matchedDomain?.title ?? ''
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     fullName: '', email: '', phone: '', university: '', course: '', semester: '',
-    preferredDepartment: '', durationWeeks: 8, motivation: '', skills: '',
+    preferredDepartment: initialDepartment, durationWeeks: 8, motivation: '', skills: '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
