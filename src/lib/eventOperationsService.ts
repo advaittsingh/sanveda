@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap, readDevStorageList } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getAllCampaignsAdmin } from './campaignService'
 import { formatIndianCompact } from './formatIndian'
@@ -192,18 +193,13 @@ const DEFAULT_AGENDA: AgendaItem[] = [
 ]
 
 function readMetaMap(): Record<string, EventAdminMeta> {
-  try {
-    const raw = localStorage.getItem(EVENT_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, EventAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<EventAdminMeta>('sanveda_event_admin_meta')
 }
 
 export function updateEventMeta(id: string, patch: Partial<EventAdminMeta>) {
   const map = readMetaMap()
   map[id] = { ...map[id], ...patch }
-  localStorage.setItem(EVENT_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(EVENT_META_KEY, map)
 }
 
 function hashCode(str: string): number {
@@ -254,22 +250,14 @@ function inferDisplayStatus(stage: EventLifecycleStage, isUpcoming: boolean, isL
 
 function inferParticipantType(email: string): ParticipantType {
   const e = email.toLowerCase()
-  try {
-    const members = JSON.parse(localStorage.getItem('sanveda_memberships') ?? '[]') as { email?: string; status?: string }[]
-    if (members.some((m) => m.email?.toLowerCase() === e && m.status === 'active')) return 'member'
-  } catch { /* ignore */ }
-  try {
-    const volunteers = JSON.parse(localStorage.getItem('sanveda_volunteers') ?? '[]') as { email?: string; status?: string }[]
-    if (volunteers.some((v) => v.email?.toLowerCase() === e && v.status === 'active')) return 'volunteer'
-  } catch { /* ignore */ }
-  try {
-    const interns = JSON.parse(localStorage.getItem('sanveda_internships') ?? '[]') as { email?: string; status?: string }[]
-    if (interns.some((i) => i.email?.toLowerCase() === e)) return 'intern'
-  } catch { /* ignore */ }
-  try {
-    const donations = JSON.parse(localStorage.getItem('sanveda_donations') ?? '[]') as { donorEmail?: string }[]
-    if (donations.some((d) => d.donorEmail?.toLowerCase() === e)) return 'donor'
-  } catch { /* ignore */ }
+  const members = readDevStorageList<{ email?: string; status?: string }>('sanveda_memberships')
+  if (members.some((m) => m.email?.toLowerCase() === e && m.status === 'active')) return 'member'
+  const volunteers = readDevStorageList<{ email?: string; status?: string }>('sanveda_volunteers')
+  if (volunteers.some((v) => v.email?.toLowerCase() === e && v.status === 'active')) return 'volunteer'
+  const interns = readDevStorageList<{ email?: string; status?: string }>('sanveda_internships')
+  if (interns.some((i) => i.email?.toLowerCase() === e)) return 'intern'
+  const donations = readDevStorageList<{ donorEmail?: string }>('sanveda_donations')
+  if (donations.some((d) => d.donorEmail?.toLowerCase() === e)) return 'donor'
   return 'public'
 }
 
@@ -448,10 +436,7 @@ export async function getEventDashboardData(): Promise<EventDashboardData> {
   const projectMap = new Map(projects.map((p) => [p.id, p.title]))
   const metaMap = readMetaMap()
 
-  let allRegsList: EventRegistration[] = []
-  try {
-    allRegsList = JSON.parse(localStorage.getItem('sanveda_event_regs') ?? '[]') as EventRegistration[]
-  } catch { /* ignore */ }
+  let allRegsList: EventRegistration[] = readDevStorageList<EventRegistration>('sanveda_event_regs')
 
   const regsByEvent = new Map<string, EventRegistration[]>()
   for (const r of allRegsList) {

@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getAllAlbumsAdmin, type GalleryAlbum, type GalleryItem } from './galleryService'
 
@@ -159,18 +160,13 @@ const AI_TAG_POOL = [
 ]
 
 function readMetaMap(): Record<string, AlbumAdminMeta> {
-  try {
-    const raw = localStorage.getItem(GALLERY_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, AlbumAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<AlbumAdminMeta>('sanveda_gallery_admin_meta')
 }
 
 export function updateAlbumMeta(albumId: string, patch: Partial<AlbumAdminMeta>) {
   const map = readMetaMap()
   map[albumId] = { ...map[albumId], ...patch }
-  localStorage.setItem(GALLERY_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(GALLERY_META_KEY, map)
 }
 
 function hashCode(str: string): number {

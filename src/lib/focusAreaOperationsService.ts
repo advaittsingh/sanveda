@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getAllCampaignsAdmin } from './campaignService'
 import { campaignMatchesFocusArea, FOCUS_AREAS, type FocusArea } from '../constants/focusAreas'
@@ -125,18 +126,13 @@ export const STRATEGIC_FOCUS_AREAS: { slug: string; name: string; tabLabel: stri
 ]
 
 function readMetaMap(): Record<string, FocusAreaAdminMeta> {
-  try {
-    const raw = localStorage.getItem(FOCUS_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, FocusAreaAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<FocusAreaAdminMeta>('sanveda_focus_area_admin_meta')
 }
 
 export function updateFocusAreaMeta(slug: string, patch: Partial<FocusAreaAdminMeta>) {
   const map = readMetaMap()
   map[slug] = { ...map[slug], ...patch }
-  localStorage.setItem(FOCUS_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(FOCUS_META_KEY, map)
 }
 
 function hashCode(str: string): number {

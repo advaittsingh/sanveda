@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { downloadCsv } from './adminExport'
 
 export type CmsTab =
@@ -188,16 +189,11 @@ export const WORKFLOW_STEPS: PageStatus[] = ['draft', 'review', 'approved', 'sch
 const META_KEY = 'sanveda_cms_admin_meta'
 
 function readMeta(): Record<string, unknown> {
-  try {
-    const raw = localStorage.getItem(META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, unknown>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap(META_KEY) as Record<string, unknown>
 }
 
 function writeMeta(data: Record<string, unknown>) {
-  localStorage.setItem(META_KEY, JSON.stringify(data))
+  writePersistedMetaMap(META_KEY, data as Record<string, Record<string, unknown>>)
 }
 
 function buildPages(): WebsitePage[] {

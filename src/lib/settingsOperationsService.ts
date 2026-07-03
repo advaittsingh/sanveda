@@ -1,3 +1,5 @@
+import { writePersistedMeta, allowLocalStoragePersistence } from './persistMeta'
+import { withAudit } from './auditMiddleware'
 import { isSupabaseConfigured } from './supabase'
 
 export type SettingsTab =
@@ -350,6 +352,7 @@ function defaultData(): SettingsDashboardData {
 }
 
 function readStored(): Partial<SettingsDashboardData> | null {
+  if (!allowLocalStoragePersistence()) return null
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     return raw ? (JSON.parse(raw) as Partial<SettingsDashboardData>) : null
@@ -377,23 +380,31 @@ export async function getSettingsDashboardData(): Promise<SettingsDashboardData>
 }
 
 export function saveOrganizationSettings(org: OrganizationSettings): void {
-  const stored = readStored() ?? {}
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, organization: org }))
+  void withAudit('UPDATE', 'settings', 'organization', async () => {
+    const stored = readStored() ?? {}
+    writePersistedMeta(STORAGE_KEY, { ...stored, organization: org })
+  })
 }
 
 export function saveBrandingSettings(branding: BrandingSettings): void {
-  const stored = readStored() ?? {}
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, branding }))
+  void withAudit('UPDATE', 'settings', 'branding', async () => {
+    const stored = readStored() ?? {}
+    writePersistedMeta(STORAGE_KEY, { ...stored, branding })
+  })
 }
 
 export function saveDonationSettings(donations: DonationSettings): void {
-  const stored = readStored() ?? {}
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, donations }))
+  void withAudit('UPDATE', 'settings', 'donations', async () => {
+    const stored = readStored() ?? {}
+    writePersistedMeta(STORAGE_KEY, { ...stored, donations })
+  })
 }
 
 export function saveTaxSettings(tax: TaxComplianceSettings): void {
-  const stored = readStored() ?? {}
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stored, tax }))
+  void withAudit('UPDATE', 'settings', 'tax', async () => {
+    const stored = readStored() ?? {}
+    writePersistedMeta(STORAGE_KEY, { ...stored, tax })
+  })
 }
 
 export function formatReceiptNumber(prefix: string, year: string, seq: number): string {

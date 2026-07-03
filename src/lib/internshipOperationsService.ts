@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap, readDevStorageList } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getInternships, type Internship, type InternshipStatus } from './internshipService'
 
@@ -169,18 +170,13 @@ const DEFAULT_DELIVERABLES: Deliverable[] = [
 ]
 
 function readMetaMap(): Record<string, InternAdminMeta> {
-  try {
-    const raw = localStorage.getItem(INTERN_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, InternAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<InternAdminMeta>('sanveda_intern_admin_meta')
 }
 
 export function writeInternMeta(id: string, patch: Partial<InternAdminMeta>) {
   const map = readMetaMap()
   map[id] = { ...map[id], ...patch }
-  localStorage.setItem(INTERN_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(INTERN_META_KEY, map)
 }
 
 function hashCode(str: string): number {
@@ -250,18 +246,14 @@ function getUnifiedRoles(i: Internship): { role: string; detail: string }[] {
   const roles: { role: string; detail: string }[] = [{ role: 'Intern', detail: i.preferredDepartment ?? 'Internship programme' }]
   const email = i.email.toLowerCase()
 
-  try {
-    const volunteers = JSON.parse(localStorage.getItem('sanveda_volunteers') ?? '[]') as { email?: string; status?: string }[]
-    if (volunteers.some((v) => v.email?.toLowerCase() === email && v.status === 'active')) {
-      roles.push({ role: 'Volunteer', detail: 'Active volunteer' })
-    }
-  } catch { /* ignore */ }
+  const volunteers = readDevStorageList<{ email?: string; status?: string }>('sanveda_volunteers')
+  if (volunteers.some((v) => v.email?.toLowerCase() === email && v.status === 'active')) {
+    roles.push({ role: 'Volunteer', detail: 'Active volunteer' })
+  }
 
-  try {
-    const members = JSON.parse(localStorage.getItem('sanveda_memberships') ?? '[]') as { email?: string; tier?: string; status?: string }[]
-    const m = members.find((x) => x.email?.toLowerCase() === email)
-    if (m?.status === 'active') roles.push({ role: 'Member', detail: `${m.tier ?? 'Standard'} member` })
-  } catch { /* ignore */ }
+  const members = readDevStorageList<{ email?: string; tier?: string; status?: string }>('sanveda_memberships')
+  const m = members.find((x) => x.email?.toLowerCase() === email)
+  if (m?.status === 'active') roles.push({ role: 'Member', detail: `${m.tier ?? 'Standard'} member` })
 
   if (i.status === 'completed') {
     roles.push({ role: 'Alumni', detail: 'Internship completed' })

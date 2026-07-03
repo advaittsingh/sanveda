@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getAllCampaignsAdmin } from './campaignService'
 import { formatIndianCompact } from './formatIndian'
@@ -192,18 +193,13 @@ const DEFAULT_DOCUMENTS: ProjectDocument[] = [
 ]
 
 function readMetaMap(): Record<string, ProjectAdminMeta> {
-  try {
-    const raw = localStorage.getItem(PROJECT_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, ProjectAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<ProjectAdminMeta>('sanveda_project_admin_meta')
 }
 
 export function updateProjectMeta(id: string, patch: Partial<ProjectAdminMeta>) {
   const map = readMetaMap()
   map[id] = { ...map[id], ...patch }
-  localStorage.setItem(PROJECT_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(PROJECT_META_KEY, map)
 }
 
 function hashCode(str: string): number {

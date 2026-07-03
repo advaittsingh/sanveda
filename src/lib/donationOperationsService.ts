@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { getAllCampaignsAdmin } from './campaignService'
 import { parseCategory } from './campaignAdminService'
 import {
@@ -10,7 +11,7 @@ import {
 } from './donationService'
 import { formatTrend } from './formatIndian'
 
-const DONATION_META_KEY = 'sanveda_donation_admin_meta'
+import { withAudit } from './auditMiddleware'
 
 type DonationSource = 'Website' | 'UPI' | 'Razorpay' | 'Bank'
 type DonationGateway = 'Razorpay' | 'UPI' | 'Bank' | 'Manual'
@@ -97,17 +98,14 @@ export interface DonationDashboardData {
   activity: { id: string; time: string; title: string; subtitle?: string }[]
 }
 
+const DONATION_META_KEY = 'sanveda_donation_admin_meta'
+
 function readMetaMap(): Record<string, DonationAdminMeta> {
-  try {
-    const raw = localStorage.getItem(DONATION_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, DonationAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<DonationAdminMeta>(DONATION_META_KEY)
 }
 
 function writeMetaMap(map: Record<string, DonationAdminMeta>) {
-  localStorage.setItem(DONATION_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(DONATION_META_KEY, map)
 }
 
 function inferMeta(donation: Donation): DonationAdminMeta {
@@ -461,20 +459,24 @@ export async function getDonationDashboardData(range: DonationRange = '30d'): Pr
 }
 
 export async function approveDonation(id: string) {
-  const donation = await getDonationById(id)
-  if (!donation) return
-  if (donation.status === 'pending') {
-    await completeDonation(id, donation.razorpayPaymentId)
-  } else {
-    await updateDonation(id, { status: 'completed' })
-  }
-  mergeMeta(id, { verifiedAt: new Date().toISOString(), pendingDocuments: [] })
-  appendAudit(id, 'Approved donation', 'Marked as completed and verified')
+  return withAudit('APPROVE', 'donations', id, async () => {
+    const donation = await getDonationById(id)
+    if (!donation) return
+    if (donation.status === 'pending') {
+      await completeDonation(id, donation.razorpayPaymentId)
+    } else {
+      await updateDonation(id, { status: 'completed' })
+    }
+    mergeMeta(id, { verifiedAt: new Date().toISOString(), pendingDocuments: [] })
+    appendAudit(id, 'Approved donation', 'Marked as completed and verified')
+  }, { amount: (await getDonationById(id))?.amount })
 }
 
 export async function rejectDonation(id: string) {
-  await updateDonation(id, { status: 'failed' })
-  appendAudit(id, 'Rejected donation', 'Marked transaction as failed')
+  return withAudit('REJECT', 'donations', id, async () => {
+    await updateDonation(id, { status: 'failed' })
+    appendAudit(id, 'Rejected donation', 'Marked transaction as failed')
+  })
 }
 
 export async function requestDonationInfo(id: string) {

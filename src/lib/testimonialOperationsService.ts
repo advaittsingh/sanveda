@@ -1,3 +1,4 @@
+import { writeDevStorageList, allowLocalStoragePersistence } from './persistMeta'
 import { downloadCsv } from './adminExport'
 
 export type TestimonialTab =
@@ -142,6 +143,7 @@ export const PLACEMENT_LABELS: Record<WebsitePlacement, string> = {
 const CATEGORY_LABEL = Object.fromEntries(TESTIMONIAL_CATEGORIES.map((c) => [c.value, c.label])) as Record<TestimonialCategory, string>
 
 function readMeta(): TestimonialProfile[] | null {
+  if (!allowLocalStoragePersistence()) return null
   try {
     const raw = localStorage.getItem(META_KEY)
     return raw ? (JSON.parse(raw) as TestimonialProfile[]) : null
@@ -151,7 +153,7 @@ function readMeta(): TestimonialProfile[] | null {
 }
 
 function writeMeta(items: TestimonialProfile[]) {
-  localStorage.setItem(META_KEY, JSON.stringify(items))
+  writeDevStorageList(META_KEY, items)
 }
 
 function buildDemoTestimonials(): TestimonialProfile[] {

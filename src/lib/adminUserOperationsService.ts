@@ -1,3 +1,5 @@
+import { writeDevStorageList, allowLocalStoragePersistence } from './persistMeta'
+import { withAudit } from './auditMiddleware'
 import { downloadCsv } from './adminExport'
 import { getAdminUsers, updateAdminRole, type AdminRole } from './rbacService'
 
@@ -320,6 +322,7 @@ function buildDemoUsers(): AdminUserProfile[] {
 }
 
 function readMeta(): AdminUserProfile[] | null {
+  if (!allowLocalStoragePersistence()) return null
   try {
     const raw = localStorage.getItem(META_KEY)
     if (!raw) return null
@@ -335,10 +338,11 @@ function readMeta(): AdminUserProfile[] | null {
 }
 
 function writeMeta(users: AdminUserProfile[]) {
-  localStorage.setItem(META_KEY, JSON.stringify(users))
+  writeDevStorageList(META_KEY, users)
 }
 
 function readCustomDepartments(): Department[] | null {
+  if (!allowLocalStoragePersistence()) return null
   try {
     const raw = localStorage.getItem(DEPT_META_KEY)
     return raw ? (JSON.parse(raw) as Department[]) : null
@@ -348,6 +352,7 @@ function readCustomDepartments(): Department[] | null {
 }
 
 function readCustomRoles(): RoleDefinition[] | null {
+  if (!allowLocalStoragePersistence()) return null
   try {
     const raw = localStorage.getItem(ROLE_META_KEY)
     return raw ? (JSON.parse(raw) as RoleDefinition[]) : null
@@ -555,48 +560,52 @@ export function exportUsersCsv(users: AdminUserProfile[]) {
 }
 
 export async function saveAdminUser(input: Partial<AdminUserProfile> & { email: string; firstName: string; lastName: string }): Promise<AdminUserProfile> {
-  const all = readMeta() ?? buildDemoUsers()
-  const role = input.role ?? 'viewer'
-  const record: AdminUserProfile = {
-    id: input.id ?? crypto.randomUUID(),
-    userId: input.userId ?? `user-${Date.now()}`,
-    employeeId: input.employeeId ?? `SV-${String(all.length + 1).padStart(3, '0')}`,
-    firstName: input.firstName,
-    lastName: input.lastName,
-    name: `${input.firstName} ${input.lastName}`.trim(),
-    email: input.email,
-    phone: input.phone ?? '',
-    department: input.department ?? 'Administration',
-    designation: input.designation ?? '',
-    role,
-    roleLabel: ROLE_LABEL[role] ?? role,
-    accessLevel: input.accessLevel ?? (role === 'super_admin' || role === 'director' ? 'Full' : 'Limited'),
-    status: input.status ?? 'invited',
-    lastLogin: input.lastLogin ?? new Date().toISOString(),
-    reportingManager: input.reportingManager,
-    photo: input.photo,
-    createdAt: input.createdAt ?? new Date().toISOString(),
-    twoFactorEnabled: input.twoFactorEnabled ?? false,
-    security: input.security ?? defaultSecurity(input.twoFactorEnabled ?? false),
-  }
+  return withAudit(input.id ? 'UPDATE' : 'CREATE', 'admin_users', input.id, async () => {
+    const all = readMeta() ?? buildDemoUsers()
+    const role = input.role ?? 'viewer'
+    const record: AdminUserProfile = {
+      id: input.id ?? crypto.randomUUID(),
+      userId: input.userId ?? `user-${Date.now()}`,
+      employeeId: input.employeeId ?? `SV-${String(all.length + 1).padStart(3, '0')}`,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      name: `${input.firstName} ${input.lastName}`.trim(),
+      email: input.email,
+      phone: input.phone ?? '',
+      department: input.department ?? 'Administration',
+      designation: input.designation ?? '',
+      role,
+      roleLabel: ROLE_LABEL[role] ?? role,
+      accessLevel: input.accessLevel ?? (role === 'super_admin' || role === 'director' ? 'Full' : 'Limited'),
+      status: input.status ?? 'invited',
+      lastLogin: input.lastLogin ?? new Date().toISOString(),
+      reportingManager: input.reportingManager,
+      photo: input.photo,
+      createdAt: input.createdAt ?? new Date().toISOString(),
+      twoFactorEnabled: input.twoFactorEnabled ?? false,
+      security: input.security ?? defaultSecurity(input.twoFactorEnabled ?? false),
+    }
 
-  const index = all.findIndex((u) => u.id === record.id)
-  if (index >= 0) all[index] = { ...all[index], ...record }
-  else all.unshift(record)
-  writeMeta(all)
+    const index = all.findIndex((u) => u.id === record.id)
+    if (index >= 0) all[index] = { ...all[index], ...record }
+    else all.unshift(record)
+    writeMeta(all)
 
-  try {
-    await updateAdminRole(record.userId, mapToLegacyRole(role))
-  } catch {
-    // local-only mode
-  }
+    try {
+      await updateAdminRole(record.userId, mapToLegacyRole(role))
+    } catch {
+      // local-only mode
+    }
 
-  return record
+    return record
+  })
 }
 
 export async function deleteAdminUser(id: string): Promise<void> {
-  const all = readMeta() ?? buildDemoUsers()
-  writeMeta(all.filter((u) => u.id !== id))
+  return withAudit('DELETE', 'admin_users', id, async () => {
+    const all = readMeta() ?? buildDemoUsers()
+    writeMeta(all.filter((u) => u.id !== id))
+  })
 }
 
 export function saveDepartment(name: string): Department {
@@ -604,7 +613,7 @@ export function saveDepartment(name: string): Department {
     id: String(i + 1), name: n, headCount: 0,
   }))
   const dept: Department = { id: crypto.randomUUID(), name, headCount: 0 }
-  localStorage.setItem(DEPT_META_KEY, JSON.stringify([...existing, dept]))
+  writeDevStorageList(DEPT_META_KEY, [...existing, dept])
   return dept
 }
 
@@ -617,7 +626,7 @@ export function saveCustomRole(name: string, description: string): RoleDefinitio
     modules: ['Dashboard'],
     accessLevel: 'Limited',
   }
-  localStorage.setItem(ROLE_META_KEY, JSON.stringify([...existing, role]))
+  writeDevStorageList(ROLE_META_KEY, [...existing, role])
   return role
 }
 

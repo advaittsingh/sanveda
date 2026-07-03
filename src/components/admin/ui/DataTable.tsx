@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { adminBtnSecondary } from './adminStyles'
 
 interface Column<T> {
   key: string
@@ -15,6 +16,7 @@ interface Props<T> {
   selectedKey?: string
   emptyMessage?: string
   loading?: boolean
+  pageSize?: number
 }
 
 export default function DataTable<T>({
@@ -25,7 +27,19 @@ export default function DataTable<T>({
   selectedKey,
   emptyMessage = 'No records found.',
   loading,
+  pageSize = 25,
 }: Props<T>) {
+  const [page, setPage] = useState(0)
+
+  const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
+  const safePage = Math.min(page, totalPages - 1)
+
+  const pageData = useMemo(() => {
+    if (data.length <= pageSize) return data
+    const start = safePage * pageSize
+    return data.slice(start, start + pageSize)
+  }, [data, pageSize, safePage])
+
   if (loading) {
     return (
       <div className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
@@ -52,7 +66,7 @@ export default function DataTable<T>({
             </tr>
           </thead>
           <tbody>
-            {data.map((row) => {
+            {pageData.map((row) => {
               const key = keyFn(row)
               const selected = selectedKey === key
               return (
@@ -73,6 +87,21 @@ export default function DataTable<T>({
         </table>
       </div>
       {!data.length && <p className="p-8 text-center text-sm text-slate-500">{emptyMessage}</p>}
+      {data.length > pageSize ? (
+        <div className="flex items-center justify-between border-t border-[#E5E7EB] px-4 py-3 text-xs text-slate-500">
+          <span>
+            Showing {safePage * pageSize + 1}–{Math.min((safePage + 1) * pageSize, data.length)} of {data.length}
+          </span>
+          <div className="flex gap-2">
+            <button type="button" className={adminBtnSecondary} disabled={safePage === 0} onClick={() => setPage((p) => p - 1)}>
+              Previous
+            </button>
+            <button type="button" className={adminBtnSecondary} disabled={safePage >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+              Next
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

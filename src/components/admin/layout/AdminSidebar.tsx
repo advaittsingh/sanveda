@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, X } from 'lucide-react'
 import { ADMIN_NAV } from '../../../constants/adminNav'
 import { useAdminLayout } from '../../../context/AdminLayoutContext'
+import { useRbac } from '../../../context/RbacContext'
 
 interface Props {
   collapsed: boolean
@@ -12,6 +13,7 @@ interface Props {
 export default function AdminSidebar({ collapsed, onToggleCollapse }: Props) {
   const { pathname } = useLocation()
   const { sidebarOpen, setSidebarOpen } = useAdminLayout()
+  const { filterNav } = useRbac()
 
   const isActive = (to: string) =>
     to === '/admin' ? pathname === '/admin' : pathname === to || pathname.startsWith(`${to}/`)
@@ -50,7 +52,7 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: Props) {
               <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-white/40">{group.title}</p>
             ) : null}
             <ul className="space-y-0.5">
-              {group.items.map((item) => {
+              {filterNav(group.items).map((item) => {
                 const active = isActive(item.to)
                 const Icon = item.icon
                 return (

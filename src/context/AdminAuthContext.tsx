@@ -3,12 +3,16 @@ import {
   clearAdminSession,
   getAdminAuthMode,
   isAdminSessionActive,
+  setAdminSessionActive,
   type AdminAuthMode,
 } from '../lib/adminAuth'
-import { ADMIN_PASSWORD, isSupabaseConfigured, requireSupabase } from '../lib/supabase'
+import { isDevPasswordAuthAllowed } from '../lib/persistMeta'
+import { isSupabaseConfigured, requireSupabase } from '../lib/supabase'
+import { auditAction } from '../lib/auditMiddleware'
 
 interface AdminAuthContextValue {
   authed: boolean
+  loading: boolean
   error: string
   mode: AdminAuthMode
   loginWithPassword: (password: string) => boolean
@@ -19,18 +23,54 @@ interface AdminAuthContextValue {
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null)
 
+async function validateSupabaseAdminSession(): Promise<boolean> {
+  if (!isSupabaseConfigured) return false
+  const client = requireSupabase()
+  const { data: { session } } = await client.auth.getSession()
+  if (!session?.user) return false
+  const { data: adminRow } = await client
+    .from('admin_users')
+    .select('user_id')
+    .eq('user_id', session.user.id)
+    .maybeSingle()
+  return Boolean(adminRow)
+}
+
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [authed, setAuthed] = useState(isAdminSessionActive)
+  const [authed, setAuthed] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const mode = getAdminAuthMode()
 
   useEffect(() => {
-    setAuthed(isAdminSessionActive())
-  }, [])
+    let cancelled = false
+    ;(async () => {
+      try {
+        if (mode === 'supabase') {
+          const valid = await validateSupabaseAdminSession()
+          if (!cancelled) {
+            if (valid) setAdminSessionActive()
+            else clearAdminSession()
+            setAuthed(valid)
+          }
+        } else {
+          if (!cancelled) setAuthed(isAdminSessionActive())
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [mode])
 
   const loginWithPassword = useCallback((password: string): boolean => {
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('sanveda_admin_session', '1')
+    if (!isDevPasswordAuthAllowed()) {
+      setError('Password login is disabled when Supabase is configured. Use admin email sign-in.')
+      return false
+    }
+    const expected = import.meta.env.VITE_ADMIN_PASSWORD as string | undefined
+    if (expected && password === expected) {
+      setAdminSessionActive()
       setAuthed(true)
       setError('')
       return true
@@ -60,9 +100,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         throw new Error('This account does not have admin access')
       }
 
-      sessionStorage.setItem('sanveda_admin_session', '1')
+      setAdminSessionActive()
       setAuthed(true)
       setError('')
+      await auditAction('LOGIN', 'auth', userId, { email })
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Admin login failed')
@@ -71,6 +112,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signOut = useCallback(async () => {
+    await auditAction('LOGOUT', 'auth', undefined, {})
     clearAdminSession()
     setAuthed(false)
     if (mode === 'supabase' && isSupabaseConfigured) {
@@ -79,8 +121,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [mode])
 
   const value = useMemo(
-    () => ({ authed, error, mode, loginWithPassword, loginWithSupabase, signOut, setError }),
-    [authed, error, mode, loginWithPassword, loginWithSupabase, signOut],
+    () => ({ authed, loading, error, mode, loginWithPassword, loginWithSupabase, signOut, setError }),
+    [authed, loading, error, mode, loginWithPassword, loginWithSupabase, signOut],
   )
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>

@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap, readDevStorageList } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getBeneficiaries, type Beneficiary, type BeneficiaryStatus } from './beneficiaryService'
 import { formatIndianCompact } from './formatIndian'
@@ -186,16 +187,11 @@ const DEFAULT_OUTCOMES: OutcomeRecord[] = [
 ]
 
 function readMetaMap(): Record<string, BeneficiaryAdminMeta> {
-  try {
-    const raw = localStorage.getItem(BENEFICIARY_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, BeneficiaryAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<BeneficiaryAdminMeta>(BENEFICIARY_META_KEY)
 }
 
 function writeMetaMap(map: Record<string, BeneficiaryAdminMeta>) {
-  localStorage.setItem(BENEFICIARY_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(BENEFICIARY_META_KEY, map)
 }
 
 function hashCode(str: string): number {
@@ -323,30 +319,24 @@ function getUnifiedRoles(b: Beneficiary): UnifiedRole[] {
   const roles: UnifiedRole[] = [{ role: 'Beneficiary', detail: b.program ?? 'Program beneficiary' }]
   const email = b.email?.toLowerCase()
 
-  try {
-    const volunteers = JSON.parse(localStorage.getItem('sanveda_volunteers') ?? '[]') as { email?: string; fullName?: string; status?: string }[]
-    if (email && volunteers.some((v) => v.email?.toLowerCase() === email && v.status === 'active')) {
-      roles.push({ role: 'Volunteer', detail: 'Active volunteer' })
-    }
-  } catch { /* ignore */ }
+  const volunteers = readDevStorageList<{ email?: string; fullName?: string; status?: string }>('sanveda_volunteers')
+  if (email && volunteers.some((v) => v.email?.toLowerCase() === email && v.status === 'active')) {
+    roles.push({ role: 'Volunteer', detail: 'Active volunteer' })
+  }
 
-  try {
-    const members = JSON.parse(localStorage.getItem('sanveda_memberships') ?? '[]') as { email?: string; tier?: string; status?: string }[]
-    const member = members.find((m) => m.email?.toLowerCase() === email)
-    if (member?.status === 'active') {
-      roles.push({ role: 'Member', detail: `${member.tier ?? 'Standard'} member` })
-    }
-  } catch { /* ignore */ }
+  const members = readDevStorageList<{ email?: string; tier?: string; status?: string }>('sanveda_memberships')
+  const member = members.find((m) => m.email?.toLowerCase() === email)
+  if (member?.status === 'active') {
+    roles.push({ role: 'Member', detail: `${member.tier ?? 'Standard'} member` })
+  }
 
-  try {
-    const donations = JSON.parse(localStorage.getItem('sanveda_donations') ?? '[]') as { donorEmail?: string; amount?: number }[]
-    const donorTotal = donations
-      .filter((d) => d.donorEmail?.toLowerCase() === email)
-      .reduce((s, d) => s + (d.amount ?? 0), 0)
-    if (donorTotal > 0) {
-      roles.push({ role: 'Donor', detail: `${formatIndianCompact(donorTotal)} contributed` })
-    }
-  } catch { /* ignore */ }
+  const donations = readDevStorageList<{ donorEmail?: string; amount?: number }>('sanveda_donations')
+  const donorTotal = donations
+    .filter((d) => d.donorEmail?.toLowerCase() === email)
+    .reduce((s, d) => s + (d.amount ?? 0), 0)
+  if (donorTotal > 0) {
+    roles.push({ role: 'Donor', detail: `${formatIndianCompact(donorTotal)} contributed` })
+  }
 
   return roles
 }

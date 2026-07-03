@@ -39,7 +39,10 @@ import {
   getVolunteerGrowth,
 } from '../../lib/adminAnalytics'
 import { getOperationsDashboard, type OperationsDashboard } from '../../lib/operationsDashboardService'
+import { getCached, setCached } from '../../lib/persistMeta'
 import { formatIndianCompact } from '../../lib/formatIndian'
+
+const DASHBOARD_CACHE_KEY = 'admin_dashboard_v1'
 
 export default function AdminDashboardPage() {
   const { authed } = useAdminAuth()
@@ -59,6 +62,21 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     if (!authed) return
+    const cached = getCached<{
+      stats: DashboardAnalytics
+      ops: OperationsDashboard
+      beneficiaries: number
+      memberStats: { total: number; active: number; pending: number }
+      charts: typeof charts
+    }>(DASHBOARD_CACHE_KEY)
+    if (cached) {
+      setStats(cached.stats)
+      setOps(cached.ops)
+      setBeneficiaries(cached.beneficiaries)
+      setMemberStats(cached.memberStats)
+      setCharts(cached.charts)
+      setLoading(false)
+    }
     Promise.all([
       getDashboardAnalytics(),
       getOperationsDashboard(),
@@ -72,11 +90,19 @@ export default function AdminDashboardPage() {
       getDonationSourceBreakdown(),
     ])
       .then(([analytics, operations, benCount, members, donations, campaigns, volunteers, beneficiaryGrowth, finance, sources]) => {
+        const nextCharts = { donations, campaigns, volunteers, beneficiaryGrowth, finance, sources }
         setStats(analytics)
         setOps(operations)
         setBeneficiaries(benCount)
         setMemberStats(members)
-        setCharts({ donations, campaigns, volunteers, beneficiaryGrowth, finance, sources })
+        setCharts(nextCharts)
+        setCached(DASHBOARD_CACHE_KEY, {
+          stats: analytics,
+          ops: operations,
+          beneficiaries: benCount,
+          memberStats: members,
+          charts: nextCharts,
+        })
       })
       .finally(() => setLoading(false))
   }, [authed])

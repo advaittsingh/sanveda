@@ -1,3 +1,5 @@
+import { readDevStorageList, writeDevStorageList } from './persistMeta'
+import { withAudit } from './auditMiddleware'
 import { downloadCsv, printHtmlReport, renderMetricSection, renderTableSection } from './adminExport'
 import { getAllCampaignsAdmin } from './campaignService'
 import { getAllDonations } from './donationService'
@@ -84,16 +86,11 @@ const GATEWAYS: TransactionGateway[] = ['Razorpay', 'UPI', 'Bank']
 const FAILURE_REASONS = ['Bank timeout', 'Insufficient funds', 'Card declined', 'UPI mandate expired']
 
 function readLedger(): TransactionRecord[] {
-  try {
-    const raw = localStorage.getItem(TRANSACTION_LEDGER_KEY)
-    return raw ? (JSON.parse(raw) as TransactionRecord[]) : []
-  } catch {
-    return []
-  }
+  return readDevStorageList<TransactionRecord>(TRANSACTION_LEDGER_KEY)
 }
 
 function writeLedger(records: TransactionRecord[]) {
-  localStorage.setItem(TRANSACTION_LEDGER_KEY, JSON.stringify(records))
+  writeDevStorageList(TRANSACTION_LEDGER_KEY, records)
 }
 
 function buildAudit(title: string, detail: string, at = new Date().toISOString()): TransactionAuditLog {
@@ -381,26 +378,30 @@ export async function requestTransactionRefund(id: string, reason: string) {
 }
 
 export async function approveRefundRequest(id: string) {
-  await ensureLedger()
-  updateLedger([id], (record) => ({
-    ...record,
-    status: 'refunded',
-    refundStatus: 'processed',
-    settlementStatus: 'pending',
-    auditLog: [...record.auditLog, buildAudit('Refund processed', 'Refund approved and sent to the payment gateway.')],
-  }))
+  return withAudit('APPROVE', 'transactions', id, async () => {
+    await ensureLedger()
+    updateLedger([id], (record) => ({
+      ...record,
+      status: 'refunded',
+      refundStatus: 'processed',
+      settlementStatus: 'pending',
+      auditLog: [...record.auditLog, buildAudit('Refund processed', 'Refund approved and sent to the payment gateway.')],
+    }))
+  })
 }
 
 export async function rejectRefundRequest(id: string) {
-  await ensureLedger()
-  updateLedger([id], (record) => ({
-    ...record,
-    refundStatus: 'none',
-    refundReason: undefined,
-    refundRequestedAt: undefined,
-    refundRisk: undefined,
-    auditLog: [...record.auditLog, buildAudit('Refund rejected', 'Refund request declined after review.')],
-  }))
+  return withAudit('REJECT', 'transactions', id, async () => {
+    await ensureLedger()
+    updateLedger([id], (record) => ({
+      ...record,
+      refundStatus: 'none',
+      refundReason: undefined,
+      refundRequestedAt: undefined,
+      refundRisk: undefined,
+      auditLog: [...record.auditLog, buildAudit('Refund rejected', 'Refund request declined after review.')],
+    }))
+  })
 }
 
 export async function contactDonor(id: string) {

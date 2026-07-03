@@ -11,9 +11,9 @@ export interface AdminUser {
 
 const ROLE_PERMISSIONS: Record<AdminRole, string[]> = {
   super_admin: ['*'],
-  admin: ['campaigns', 'blogs', 'donations', 'memberships', 'volunteers', 'enquiries', 'beneficiaries', 'finance', 'internships', 'projects', 'events', 'gallery', 'users', 'audit'],
+  admin: ['campaigns', 'blogs', 'donations', 'memberships', 'volunteers', 'enquiries', 'beneficiaries', 'finance', 'internships', 'projects', 'events', 'gallery', 'documents', 'content', 'users', 'audit', 'settings', 'focus_areas'],
   finance: ['donations', 'finance', 'beneficiaries', 'audit'],
-  content: ['campaigns', 'blogs', 'gallery', 'events'],
+  content: ['campaigns', 'blogs', 'gallery', 'events', 'content'],
   volunteer: ['volunteers', 'internships', 'enquiries'],
 }
 

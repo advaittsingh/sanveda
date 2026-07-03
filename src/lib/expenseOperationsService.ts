@@ -1,3 +1,5 @@
+import { readPersistedMetaMap, writePersistedMetaMap, writeDevStorageList } from './persistMeta'
+import { withAudit } from './auditMiddleware'
 import { downloadCsv } from './adminExport'
 import { getExpenses, saveExpense, updateExpenseStatus, type Expense, type ExpenseStatus } from './expenseService'
 
@@ -195,18 +197,13 @@ const DEMO_EXPENSES: Partial<Expense>[] = [
 ]
 
 function readMetaMap(): Record<string, ExpenseAdminMeta> {
-  try {
-    const raw = localStorage.getItem(EXPENSE_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, ExpenseAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<ExpenseAdminMeta>('sanveda_expense_admin_meta')
 }
 
 export function updateExpenseMeta(id: string, patch: Partial<ExpenseAdminMeta>) {
   const map = readMetaMap()
   map[id] = { ...map[id], ...patch }
-  localStorage.setItem(EXPENSE_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(EXPENSE_META_KEY, map)
 }
 
 function hashCode(str: string): number {
@@ -289,7 +286,7 @@ async function seedDemoIfEmpty(): Promise<Expense[]> {
       createdAt: now,
       updatedAt: now,
     }))
-    localStorage.setItem('sanveda_expenses', JSON.stringify(expenses))
+    writeDevStorageList('sanveda_expenses', expenses)
   }
   return expenses
 }
@@ -438,18 +435,24 @@ export function exportExpensesCsv(expenses: ExpenseProfile[]) {
 }
 
 export async function approveExpense(id: string) {
-  await updateExpenseStatus(id, 'approved')
-  updateExpenseMeta(id, { workflowStage: 'finance_approval', approvedBy: 'Admin' })
+  return withAudit('APPROVE', 'expenses', id, async () => {
+    await updateExpenseStatus(id, 'approved')
+    updateExpenseMeta(id, { workflowStage: 'finance_approval', approvedBy: 'Admin' })
+  })
 }
 
 export async function rejectExpense(id: string) {
-  await updateExpenseStatus(id, 'rejected')
-  updateExpenseMeta(id, { workflowStage: 'created' })
+  return withAudit('REJECT', 'expenses', id, async () => {
+    await updateExpenseStatus(id, 'rejected')
+    updateExpenseMeta(id, { workflowStage: 'created' })
+  })
 }
 
 export async function markExpensePaid(id: string) {
-  await updateExpenseStatus(id, 'paid')
-  updateExpenseMeta(id, { workflowStage: 'paid', paymentStatus: 'paid' })
+  return withAudit('UPDATE', 'expenses', id, async () => {
+    await updateExpenseStatus(id, 'paid')
+    updateExpenseMeta(id, { workflowStage: 'paid', paymentStatus: 'paid' })
+  })
 }
 
 export { saveExpense }

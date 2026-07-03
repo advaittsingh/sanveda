@@ -1,3 +1,4 @@
+import { writeDevStorageList } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { formatIndianCompact } from './formatIndian'
 import { getExpenses, type Expense } from './expenseService'
@@ -282,7 +283,7 @@ async function seedDemoData(): Promise<{ income: IncomeRecord[]; expenses: Expen
       createdAt: now,
       updatedAt: now,
     }))
-    localStorage.setItem('sanveda_income', JSON.stringify(income))
+    writeDevStorageList('sanveda_income', income)
   }
 
   return { income, expenses }

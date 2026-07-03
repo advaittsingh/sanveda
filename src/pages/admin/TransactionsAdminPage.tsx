@@ -41,6 +41,7 @@ import {
   type TransactionRecord,
   type TransactionsDashboardData,
 } from '../../lib/transactionOperationsService'
+import { reconcileDonationsWithLedger, type ReconciliationResult } from '../../lib/financeLedgerService'
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
@@ -85,6 +86,8 @@ export default function TransactionsAdminPage() {
   const [activeTransactionId, setActiveTransactionId] = useState('')
   const [openMenuId, setOpenMenuId] = useState('')
   const [showReconciliation, setShowReconciliation] = useState(false)
+  const [ledgerReconcile, setLedgerReconcile] = useState<ReconciliationResult | null>(null)
+  const [reconciling, setReconciling] = useState(false)
   const [showAllActivity, setShowAllActivity] = useState(false)
   const reconciliationRef = useRef<HTMLDivElement>(null)
 
@@ -305,6 +308,30 @@ export default function TransactionsAdminPage() {
               <p className={`text-sm font-semibold ${reconciliationRequired ? 'text-amber-700' : 'text-emerald-700'}`}>
                 {reconciliationRequired ? '⚠ Reconciliation required' : '✓ Reconciled'}
               </p>
+              <button
+                type="button"
+                className={adminBtnPrimary}
+                disabled={reconciling}
+                onClick={async () => {
+                  setReconciling(true)
+                  try {
+                    setLedgerReconcile(await reconcileDonationsWithLedger())
+                    await refresh()
+                  } finally {
+                    setReconciling(false)
+                  }
+                }}
+              >
+                {reconciling ? 'Reconciling…' : 'Run donation ledger reconcile'}
+              </button>
+              {ledgerReconcile ? (
+                <div className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-3 text-xs text-slate-600">
+                  <p>Matched: {ledgerReconcile.matched}</p>
+                  <p>Orphan donations: {ledgerReconcile.orphanedDonations.length}</p>
+                  <p>Orphan ledger entries: {ledgerReconcile.orphanedTransactions.length}</p>
+                  <p>Amount mismatches: {ledgerReconcile.amountMismatch.length}</p>
+                </div>
+              ) : null}
             </div>
           </ExpandablePanel>
         </div>

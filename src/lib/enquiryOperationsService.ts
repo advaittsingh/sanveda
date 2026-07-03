@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap, writeDevStorageList } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getEnquiries, updateEnquiry, type Enquiry, type EnquiryStatus } from './enquiryService'
 
@@ -218,18 +219,13 @@ const DEMO_ENQUIRIES: Partial<Enquiry & EnquiryAdminMeta>[] = [
 ]
 
 function readMetaMap(): Record<string, EnquiryAdminMeta> {
-  try {
-    const raw = localStorage.getItem(ENQUIRY_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, EnquiryAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<EnquiryAdminMeta>('sanveda_enquiry_admin_meta')
 }
 
 export function updateEnquiryMeta(id: string, patch: Partial<EnquiryAdminMeta>) {
   const map = readMetaMap()
   map[id] = { ...map[id], ...patch }
-  localStorage.setItem(ENQUIRY_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(ENQUIRY_META_KEY, map)
 }
 
 function hashCode(str: string): number {
@@ -430,8 +426,8 @@ async function seedDemoIfEmpty(): Promise<Enquiry[]> {
         internalNotes: demo.internalNotes,
       }
     }
-    localStorage.setItem('sanveda_enquiries', JSON.stringify(enquiries))
-    localStorage.setItem(ENQUIRY_META_KEY, JSON.stringify(metaMap))
+    writeDevStorageList('sanveda_enquiries', enquiries)
+    writePersistedMetaMap(ENQUIRY_META_KEY, metaMap)
   }
   return enquiries
 }

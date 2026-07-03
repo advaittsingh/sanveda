@@ -1,3 +1,4 @@
+import { writePersistedMeta, readPersistedMetaMap, writePersistedMetaMap, allowLocalStoragePersistence } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { MEMBERSHIP_TIERS } from '../constants/membershipContent'
 import { getMemberships, type Membership, type MembershipStatus, type MembershipTier } from './membershipService'
@@ -124,16 +125,11 @@ const DEFAULT_PARTICIPATION = [
 ]
 
 function readMetaMap(): Record<string, MemberAdminMeta> {
-  try {
-    const raw = localStorage.getItem(MEMBER_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, MemberAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<MemberAdminMeta>(MEMBER_META_KEY)
 }
 
 function writeMetaMap(map: Record<string, MemberAdminMeta>) {
-  localStorage.setItem(MEMBER_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(MEMBER_META_KEY, map)
 }
 
 function hashCode(str: string): number {
@@ -143,11 +139,13 @@ function hashCode(str: string): number {
 }
 
 export function getTierConfigs(): MembershipTierConfig[] {
-  try {
-    const raw = localStorage.getItem(TIER_CONFIG_KEY)
-    if (raw) return JSON.parse(raw) as MembershipTierConfig[]
-  } catch {
-    /* fall through */
+  if (allowLocalStoragePersistence()) {
+    try {
+      const raw = localStorage.getItem(TIER_CONFIG_KEY)
+      if (raw) return JSON.parse(raw) as MembershipTierConfig[]
+    } catch {
+      /* fall through */
+    }
   }
   return MEMBERSHIP_TIERS.map((t) => ({
     id: t.id,
@@ -161,7 +159,7 @@ export function getTierConfigs(): MembershipTierConfig[] {
 }
 
 export function saveTierConfigs(tiers: MembershipTierConfig[]) {
-  localStorage.setItem(TIER_CONFIG_KEY, JSON.stringify(tiers))
+  writePersistedMeta(TIER_CONFIG_KEY, tiers)
 }
 
 function getTierConfig(tiers: MembershipTierConfig[], id: MembershipTier): MembershipTierConfig {

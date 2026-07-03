@@ -1,3 +1,5 @@
+import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
+import { withAudit } from './auditMiddleware'
 import { downloadCsv } from './adminExport'
 import { deleteBlog, getAllBlogsAdmin, saveBlog, type BlogRecord, type BlogStatus } from './blogService'
 
@@ -167,16 +169,11 @@ interface ArticleMeta {
 }
 
 function readMeta(): Record<string, ArticleMeta> {
-  try {
-    const raw = localStorage.getItem(META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, ArticleMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<ArticleMeta>(META_KEY)
 }
 
 function writeMeta(map: Record<string, ArticleMeta>) {
-  localStorage.setItem(META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(META_KEY, map)
 }
 
 function hashNum(seed: string, min: number, max: number): number {
@@ -406,54 +403,58 @@ export function exportArticlesCsv(articles: BlogArticleProfile[]) {
 }
 
 export async function saveArticleProfile(article: Partial<BlogArticleProfile> & { title: string }): Promise<BlogArticleProfile> {
-  const metaMap = readMeta()
-  const blogStatus: BlogStatus =
-    article.workflowStatus === 'published' ? 'published'
-      : article.workflowStatus === 'archived' ? 'archived'
-        : 'draft'
+  return withAudit(article.id ? 'UPDATE' : 'CREATE', 'blogs', String(article.id ?? 'new'), async () => {
+    const metaMap = readMeta()
+    const blogStatus: BlogStatus =
+      article.workflowStatus === 'published' ? 'published'
+        : article.workflowStatus === 'archived' ? 'archived'
+          : 'draft'
 
-  const saved = await saveBlog({
-    id: article.id,
-    title: article.title,
-    slug: article.slug,
-    description: article.description,
-    bannerImage: article.bannerImage,
-    category: article.category,
-    status: blogStatus,
-    publishedAt: article.publishedAt,
-    content: article.content ?? [{ id: article.id ?? Date.now(), description: article.bodyHtml ?? article.description ?? '' }],
+    const saved = await saveBlog({
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      description: article.description,
+      bannerImage: article.bannerImage,
+      category: article.category,
+      status: blogStatus,
+      publishedAt: article.publishedAt,
+      content: article.content ?? [{ id: article.id ?? Date.now(), description: article.bodyHtml ?? article.description ?? '' }],
+    })
+
+    metaMap[String(saved.id)] = {
+      contentType: article.contentType,
+      workflowStatus: article.workflowStatus,
+      authorId: article.authorId,
+      authorName: article.authorName,
+      focusArea: article.focusArea,
+      project: article.project,
+      campaign: article.campaign,
+      tags: article.tags,
+      bodyHtml: article.bodyHtml,
+      isFeatured: article.isFeatured,
+      scheduledAt: article.scheduledAt,
+      reviewer: article.reviewer,
+      expiryDate: article.expiryDate,
+      seo: article.seo,
+      analytics: article.analytics,
+      beneficiaryStory: article.beneficiaryStory,
+      relatedSlugs: article.relatedSlugs,
+    }
+    writeMeta(metaMap)
+
+    const data = await getBlogDashboardData()
+    return data.articles.find((a) => a.id === saved.id)!
   })
-
-  metaMap[String(saved.id)] = {
-    contentType: article.contentType,
-    workflowStatus: article.workflowStatus,
-    authorId: article.authorId,
-    authorName: article.authorName,
-    focusArea: article.focusArea,
-    project: article.project,
-    campaign: article.campaign,
-    tags: article.tags,
-    bodyHtml: article.bodyHtml,
-    isFeatured: article.isFeatured,
-    scheduledAt: article.scheduledAt,
-    reviewer: article.reviewer,
-    expiryDate: article.expiryDate,
-    seo: article.seo,
-    analytics: article.analytics,
-    beneficiaryStory: article.beneficiaryStory,
-    relatedSlugs: article.relatedSlugs,
-  }
-  writeMeta(metaMap)
-
-  const data = await getBlogDashboardData()
-  return data.articles.find((a) => a.id === saved.id)!
 }
 
 export async function deleteArticle(id: number): Promise<void> {
-  await deleteBlog(id)
-  const metaMap = readMeta()
-  delete metaMap[String(id)]
-  writeMeta(metaMap)
+  return withAudit('DELETE', 'blogs', String(id), async () => {
+    await deleteBlog(id)
+    const metaMap = readMeta()
+    delete metaMap[String(id)]
+    writeMeta(metaMap)
+  })
 }
 
 export function updateArticleMeta(id: number, patch: Partial<ArticleMeta>) {

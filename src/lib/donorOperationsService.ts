@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap, readDevStorageList } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getAllDonations, type Donation } from './donationService'
 import { formatIndianCompact, formatTrend } from './formatIndian'
@@ -87,29 +88,18 @@ export interface DonorDashboardData {
 }
 
 function readMetaMap(): Record<string, DonorAdminMeta> {
-  try {
-    const raw = localStorage.getItem(DONOR_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, DonorAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<DonorAdminMeta>(DONOR_META_KEY)
 }
 
 function writeMetaMap(map: Record<string, DonorAdminMeta>) {
-  localStorage.setItem(DONOR_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(DONOR_META_KEY, map)
 }
 
 function readMonthlyEmails(): Set<string> {
-  try {
-    const raw = localStorage.getItem('sanveda_monthly_giving_subscribers')
-    if (!raw) return new Set()
-    const subs = JSON.parse(raw) as { donorEmail?: string; status?: string }[]
-    return new Set(
-      subs.filter((s) => s.status === 'active' && s.donorEmail).map((s) => s.donorEmail!.toLowerCase()),
-    )
-  } catch {
-    return new Set()
-  }
+  const subs = readDevStorageList<{ donorEmail?: string; status?: string }>('sanveda_monthly_giving_subscribers')
+  return new Set(
+    subs.filter((s) => s.status === 'active' && s.donorEmail).map((s) => s.donorEmail!.toLowerCase()),
+  )
 }
 
 function inferDonorType(name: string, email: string, meta?: DonorAdminMeta): DonorType {

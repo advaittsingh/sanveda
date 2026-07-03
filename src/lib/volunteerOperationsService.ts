@@ -1,3 +1,4 @@
+import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { VOLUNTEER_ROLE_OPTIONS } from '../constants/volunteerContent'
 import { getVolunteerApplications } from './volunteerStore'
@@ -126,16 +127,11 @@ const DEFAULT_EVENTS = [
 ]
 
 function readMetaMap(): Record<string, VolunteerAdminMeta> {
-  try {
-    const raw = localStorage.getItem(VOLUNTEER_META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, VolunteerAdminMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<VolunteerAdminMeta>(VOLUNTEER_META_KEY)
 }
 
 function writeMetaMap(map: Record<string, VolunteerAdminMeta>) {
-  localStorage.setItem(VOLUNTEER_META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(VOLUNTEER_META_KEY, map)
 }
 
 function roleLabel(role: VolunteerRole): string {

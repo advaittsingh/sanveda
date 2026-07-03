@@ -3,6 +3,8 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import FloatingWhatsApp from './components/FloatingWhatsApp'
 import { AdminAuthProvider } from './context/AdminAuthContext'
+import { RbacProvider } from './context/RbacContext'
+import AdminRoutes from './routes/AdminRoutes'
 import HomePage from './pages/HomePage'
 import CampaignsPage from './pages/CampaignsPage'
 import CampaignDetailPage from './pages/CampaignDetailPage'
@@ -29,36 +31,6 @@ import VolunteerStatusPage from './pages/VolunteerStatusPage'
 import MembershipPage from './pages/MembershipPage'
 import MembershipApplyPage from './pages/MembershipApplyPage'
 import MemberStatusPage from './pages/MemberStatusPage'
-import AdminDashboardPage from './pages/admin/AdminDashboardPage'
-import CampaignAdminPage from './pages/admin/CampaignAdminPage'
-import BlogAdminPage from './pages/admin/BlogAdminPage'
-import DonationsAdminPage from './pages/admin/DonationsAdminPage'
-import MembershipAdminPage from './pages/admin/MembershipAdminPage'
-import BeneficiaryAdminPage from './pages/admin/BeneficiaryAdminPage'
-import FinanceAdminPage from './pages/admin/FinanceAdminPage'
-import MonthlyGivingAdminPage from './pages/admin/MonthlyGivingAdminPage'
-import TransactionsAdminPage from './pages/admin/TransactionsAdminPage'
-import VolunteerAdminPage from './pages/admin/VolunteerAdminPage'
-import EnquiriesAdminPage from './pages/admin/EnquiriesAdminPage'
-import InternshipAdminPage from './pages/admin/InternshipAdminPage'
-import ProjectAdminPage from './pages/admin/ProjectAdminPage'
-import EventAdminPage from './pages/admin/EventAdminPage'
-import GalleryAdminPage from './pages/admin/GalleryAdminPage'
-import UsersAdminPage from './pages/admin/UsersAdminPage'
-import AuditAdminPage from './pages/admin/AuditAdminPage'
-import ReportsAdminPage from './pages/admin/ReportsAdminPage'
-import SettingsAdminPage from './pages/admin/SettingsAdminPage'
-import DonorsAdminPage from './pages/admin/DonorsAdminPage'
-import RolesAdminPage from './pages/admin/RolesAdminPage'
-import ExpensesAdminPage from './pages/admin/ExpensesAdminPage'
-import TaxReceiptsAdminPage from './pages/admin/TaxReceiptsAdminPage'
-import CmsAdminPage from './pages/admin/CmsAdminPage'
-import TestimonialsAdminPage from './pages/admin/TestimonialsAdminPage'
-import {
-  IncomeAdminPage,
-} from './pages/admin/AdminAliasPages'
-import DocumentsAdminPage from './pages/admin/DocumentsAdminPage'
-import FocusAreasAdminPage from './pages/admin/FocusAreasAdminPage'
 import GalleryPage from './pages/GalleryPage'
 import VerifyPage from './pages/VerifyPage'
 import InternshipPage from './pages/InternshipPage'
@@ -125,34 +97,7 @@ function AppShell() {
           <Route path="/internship/apply" element={<InternshipApplyPage />} />
           <Route path="/internship/status" element={<InternshipStatusPage />} />
           <Route path="/events" element={<EventsPage />} />
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/admin/campaigns" element={<CampaignAdminPage />} />
-          <Route path="/admin/blogs" element={<BlogAdminPage />} />
-          <Route path="/admin/donations" element={<DonationsAdminPage />} />
-          <Route path="/admin/memberships" element={<MembershipAdminPage />} />
-          <Route path="/admin/beneficiaries" element={<BeneficiaryAdminPage />} />
-          <Route path="/admin/finance" element={<FinanceAdminPage />} />
-          <Route path="/admin/volunteers" element={<VolunteerAdminPage />} />
-          <Route path="/admin/enquiries" element={<EnquiriesAdminPage />} />
-          <Route path="/admin/internships" element={<InternshipAdminPage />} />
-          <Route path="/admin/projects" element={<ProjectAdminPage />} />
-          <Route path="/admin/events" element={<EventAdminPage />} />
-          <Route path="/admin/gallery" element={<GalleryAdminPage />} />
-          <Route path="/admin/users" element={<UsersAdminPage />} />
-          <Route path="/admin/audit" element={<AuditAdminPage />} />
-          <Route path="/admin/reports" element={<ReportsAdminPage />} />
-          <Route path="/admin/settings" element={<SettingsAdminPage />} />
-          <Route path="/admin/donors" element={<DonorsAdminPage />} />
-          <Route path="/admin/roles" element={<RolesAdminPage />} />
-          <Route path="/admin/monthly-giving" element={<MonthlyGivingAdminPage />} />
-          <Route path="/admin/transactions" element={<TransactionsAdminPage />} />
-          <Route path="/admin/tax-receipts" element={<TaxReceiptsAdminPage />} />
-          <Route path="/admin/income" element={<IncomeAdminPage />} />
-          <Route path="/admin/expenses" element={<ExpensesAdminPage />} />
-          <Route path="/admin/focus-areas" element={<FocusAreasAdminPage />} />
-          <Route path="/admin/documents" element={<DocumentsAdminPage />} />
-          <Route path="/admin/cms" element={<CmsAdminPage />} />
-          <Route path="/admin/testimonials" element={<TestimonialsAdminPage />} />
+          <Route path="/admin/*" element={<AdminRoutes />} />
           <Route path="/medical-campaigns" element={<CampaignsPage />} />
           <Route path="/urgent" element={<CampaignsPage />} />
           <Route path="/children" element={<CampaignsPage />} />
@@ -179,7 +124,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AdminAuthProvider>
-        <AppShell />
+        <RbacProvider>
+          <AppShell />
+        </RbacProvider>
       </AdminAuthProvider>
     </BrowserRouter>
   )

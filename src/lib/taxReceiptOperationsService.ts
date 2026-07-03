@@ -1,4 +1,7 @@
+import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { downloadCsv, printHtmlReport } from './adminExport'
+import { finalizeReceipt, assertReceiptMutable } from './financeLedgerService'
+import { withAudit } from './auditMiddleware'
 import { getAllDonations, type Donation } from './donationService'
 import { registerVerification, verifyCode } from './verificationService'
 
@@ -156,16 +159,11 @@ interface ReceiptMeta {
 }
 
 function readMeta(): Record<string, ReceiptMeta> {
-  try {
-    const raw = localStorage.getItem(META_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, ReceiptMeta>) : {}
-  } catch {
-    return {}
-  }
+  return readPersistedMetaMap<ReceiptMeta>(META_KEY)
 }
 
 function writeMeta(map: Record<string, ReceiptMeta>) {
-  localStorage.setItem(META_KEY, JSON.stringify(map))
+  writePersistedMetaMap(META_KEY, map)
 }
 
 function financialYear(date: Date): string {
@@ -429,13 +427,19 @@ export function printReceiptPdf(receipt: TaxReceiptProfile) {
 }
 
 export async function generateReceipt(receiptId: string): Promise<void> {
-  const meta = readMeta()
-  meta[receiptId] = {
-    ...meta[receiptId],
-    status: 'generated',
-    issueDate: new Date().toISOString(),
-  }
-  writeMeta(meta)
+  return withAudit('GENERATE', 'tax_receipts', receiptId, async () => {
+    const data = await getTaxReceiptDashboardData()
+    const receipt = data.receipts.find((r) => r.id === receiptId)
+    if (receipt) await assertReceiptMutable(receipt.receiptNumber)
+    const meta = readMeta()
+    meta[receiptId] = {
+      ...meta[receiptId],
+      status: 'generated',
+      issueDate: new Date().toISOString(),
+    }
+    writeMeta(meta)
+    if (receipt) finalizeReceipt(receipt.receiptNumber)
+  })
 }
 
 export async function sendReceiptEmail(receiptId: string): Promise<void> {
