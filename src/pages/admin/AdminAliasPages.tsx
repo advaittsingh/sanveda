@@ -22,10 +22,6 @@ export function IncomeAdminPage() {
   return <FinanceAdminPage defaultTab="income" />
 }
 
-export function TaxReceiptsAdminPage() {
-  return <FinanceAdminPage defaultTab="tax_receipts" />
-}
-
 export function CmsAdminPage() {
   return <PlaceholderAdminPage title="CMS" subtitle="Content management for homepage sections and banners." />
 }

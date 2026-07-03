@@ -7,10 +7,10 @@ export default function FinanceTaxReceiptsPanel() {
     <AdminCard>
       <h3 className="mb-2 text-base font-semibold text-[#0B2C6B]">Tax Receipts (80G)</h3>
       <p className="mb-4 text-sm text-slate-500">
-        Tax receipt generation and donor 80G certificates are managed in the Donations module with full reconciliation.
+        Full donation receipt and tax compliance system — 80G certificates, bulk generation, email automation, and verification.
       </p>
-      <Link to="/admin/donations" className={adminBtnPrimary}>
-        Open Donations & Tax Receipts
+      <Link to="/admin/tax-receipts" className={adminBtnPrimary}>
+        Open Tax Receipts Center
       </Link>
     </AdminCard>
   )

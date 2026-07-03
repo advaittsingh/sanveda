@@ -51,9 +51,9 @@ import SettingsAdminPage from './pages/admin/SettingsAdminPage'
 import DonorsAdminPage from './pages/admin/DonorsAdminPage'
 import RolesAdminPage from './pages/admin/RolesAdminPage'
 import ExpensesAdminPage from './pages/admin/ExpensesAdminPage'
+import TaxReceiptsAdminPage from './pages/admin/TaxReceiptsAdminPage'
 import {
   IncomeAdminPage,
-  TaxReceiptsAdminPage,
   CmsAdminPage,
   TestimonialsAdminPage,
 } from './pages/admin/AdminAliasPages'
@@ -120,6 +120,7 @@ function AppShell() {
           <Route path="/membership/status" element={<MemberStatusPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/verify" element={<VerifyPage />} />
+          <Route path="/verify/:code" element={<VerifyPage />} />
           <Route path="/internship" element={<InternshipPage />} />
           <Route path="/internship/apply" element={<InternshipApplyPage />} />
           <Route path="/internship/status" element={<InternshipStatusPage />} />
