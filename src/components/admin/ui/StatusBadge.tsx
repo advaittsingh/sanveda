@@ -20,6 +20,7 @@ const styles: Record<string, string> = {
   sent: 'bg-emerald-50 text-emerald-700',
   downloaded: 'bg-violet-50 text-violet-700',
   expired: 'bg-slate-100 text-slate-500',
+  planning: 'bg-slate-100 text-slate-600',
   on_hold: 'bg-amber-50 text-amber-700',
   archived: 'bg-slate-100 text-slate-500',
   cancelled: 'bg-red-50 text-red-600',
