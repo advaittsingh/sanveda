@@ -52,9 +52,9 @@ import DonorsAdminPage from './pages/admin/DonorsAdminPage'
 import RolesAdminPage from './pages/admin/RolesAdminPage'
 import ExpensesAdminPage from './pages/admin/ExpensesAdminPage'
 import TaxReceiptsAdminPage from './pages/admin/TaxReceiptsAdminPage'
+import CmsAdminPage from './pages/admin/CmsAdminPage'
 import {
   IncomeAdminPage,
-  CmsAdminPage,
   TestimonialsAdminPage,
 } from './pages/admin/AdminAliasPages'
 import DocumentsAdminPage from './pages/admin/DocumentsAdminPage'

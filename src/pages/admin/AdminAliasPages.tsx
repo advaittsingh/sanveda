@@ -22,10 +22,6 @@ export function IncomeAdminPage() {
   return <FinanceAdminPage defaultTab="income" />
 }
 
-export function CmsAdminPage() {
-  return <PlaceholderAdminPage title="CMS" subtitle="Content management for homepage sections and banners." />
-}
-
 export function TestimonialsAdminPage() {
   return <PlaceholderAdminPage title="Testimonials" subtitle="Manage donor testimonials displayed on the website." />
 }
