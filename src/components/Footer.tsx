@@ -6,25 +6,23 @@ import { BRAND, C } from '../constants/brand'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 
 const quickLinks = [
-  { name: 'Explore Campaigns', path: '/campaigns' },
-  { name: 'Monthly Donation', path: '/monthly-donation' },
   { name: 'Blogs', path: '/blogs' },
   { name: 'Contact Us', path: '/contact' },
+  { name: 'Explore Campaigns', path: '/campaigns' },
+  { name: 'Monthly Donation', path: '/monthly-donation' },
 ]
 
 const infoLinks = [
   { name: 'About Us', path: '/about' },
-  { name: 'Volunteer', path: '/volunteer' },
+  { name: 'Documents', path: '/documents' },
+  { name: "FAQ's", path: '/faq-page' },
   { name: 'Internship', path: '/internship' },
-  { name: 'Events', path: '/events' },
-  { name: 'Gallery', path: '/gallery' },
-  { name: 'Verify Document', path: '/verify' },
   { name: 'Privacy Policy', path: '/privacy-policy' },
-  { name: 'Terms & Conditions', path: '/terms-conditions' },
   { name: 'Refund and Cancellation Policy', path: '/refund-cancellation' },
   { name: 'Return Policy', path: '/return-policy' },
-  { name: "FAQ's", path: '/faq-page' },
-  { name: 'Documents', path: '/documents' },
+  { name: 'Terms & Conditions', path: '/terms-conditions' },
+  { name: 'Verify Document', path: '/verify' },
+  { name: 'Volunteer', path: '/volunteer' },
 ]
 
 const payments = [

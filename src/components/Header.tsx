@@ -10,16 +10,14 @@ import { useBreakpoints } from '../hooks/useMediaQuery'
 
 const navLinks = [
   { label: 'Home', path: '/' },
-  { label: 'Explore Campaigns', path: '/campaigns' },
-  { label: 'Monthly Donation', path: '/monthly-donation' },
-  { label: 'Blogs', path: '/blogs' },
-  { label: 'Volunteer', path: '/volunteer' },
-  { label: 'Internship', path: '/internship' },
-  { label: 'Events', path: '/events' },
-  { label: 'Gallery', path: '/gallery' },
-  { label: 'Membership', path: '/membership' },
-  { label: 'Contact Us', path: '/contact' },
   { label: 'About Us', path: '/about' },
+  { label: 'Blogs', path: '/blogs' },
+  { label: 'Contact Us', path: '/contact' },
+  { label: 'Explore Campaigns', path: '/campaigns' },
+  { label: 'Internship', path: '/internship' },
+  { label: 'Membership', path: '/membership' },
+  { label: 'Monthly Donation', path: '/monthly-donation' },
+  { label: 'Volunteer', path: '/volunteer' },
 ]
 
 function SearchField({
