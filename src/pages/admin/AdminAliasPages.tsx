@@ -27,14 +27,6 @@ export function ExpensesAdminPage() {
   return <FinanceAdminPage defaultTab="expenses" />
 }
 
-export function MonthlyGivingAdminPage() {
-  return <Navigate to="/admin/donations" replace />
-}
-
-export function TransactionsAdminPage() {
-  return <Navigate to="/admin/donations" replace />
-}
-
 export function TaxReceiptsAdminPage() {
   return <Navigate to="/admin/donations" replace />
 }

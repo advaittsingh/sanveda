@@ -6,6 +6,7 @@ const styles: Record<string, string> = {
   screening: 'bg-sky-50 text-sky-700',
   interview: 'bg-violet-50 text-violet-700',
   active: 'bg-emerald-50 text-emerald-700',
+  success: 'bg-emerald-50 text-emerald-700',
   approved: 'bg-emerald-50 text-emerald-700',
   published: 'bg-emerald-50 text-emerald-700',
   completed: 'bg-blue-50 text-blue-700',
@@ -21,6 +22,7 @@ const styles: Record<string, string> = {
   on_hold: 'bg-amber-50 text-amber-700',
   archived: 'bg-slate-100 text-slate-500',
   cancelled: 'bg-red-50 text-red-600',
+  paused: 'bg-violet-50 text-violet-700',
 }
 
 export default function StatusBadge({ status }: { status: string }) {

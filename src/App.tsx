@@ -36,6 +36,8 @@ import DonationsAdminPage from './pages/admin/DonationsAdminPage'
 import MembershipAdminPage from './pages/admin/MembershipAdminPage'
 import BeneficiaryAdminPage from './pages/admin/BeneficiaryAdminPage'
 import FinanceAdminPage from './pages/admin/FinanceAdminPage'
+import MonthlyGivingAdminPage from './pages/admin/MonthlyGivingAdminPage'
+import TransactionsAdminPage from './pages/admin/TransactionsAdminPage'
 import VolunteerAdminPage from './pages/admin/VolunteerAdminPage'
 import EnquiriesAdminPage from './pages/admin/EnquiriesAdminPage'
 import InternshipAdminPage from './pages/admin/InternshipAdminPage'
@@ -51,8 +53,6 @@ import RolesAdminPage from './pages/admin/RolesAdminPage'
 import {
   IncomeAdminPage,
   ExpensesAdminPage,
-  MonthlyGivingAdminPage,
-  TransactionsAdminPage,
   TaxReceiptsAdminPage,
   FocusAreasAdminPage,
   DocumentsAdminPage,
