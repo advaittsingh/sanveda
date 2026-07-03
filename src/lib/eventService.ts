@@ -167,3 +167,13 @@ export async function getEventRegistrations(eventId: string): Promise<EventRegis
   }
   return (JSON.parse(localStorage.getItem(REGS_KEY) ?? '[]') as EventRegistration[]).filter((r) => r.eventId === eventId)
 }
+
+export async function deleteEvent(id: string): Promise<void> {
+  if (isSupabaseConfigured) {
+    await requireSupabase().from('events').delete().eq('id', id)
+    return
+  }
+  writeEvents(readEvents().filter((e) => e.id !== id))
+  const regs = (JSON.parse(localStorage.getItem(REGS_KEY) ?? '[]') as EventRegistration[]).filter((r) => r.eventId !== id)
+  localStorage.setItem(REGS_KEY, JSON.stringify(regs))
+}

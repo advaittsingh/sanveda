@@ -1,68 +1,280 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Eye } from 'lucide-react'
 import AdminLogin from '../../components/admin/AdminLogin'
 import AdminShell from '../../components/admin/AdminShell'
+import EventAddModal, { type EventFormData } from '../../components/admin/events/EventAddModal'
+import EventAiInsights from '../../components/admin/events/EventAiInsights'
+import EventAnalytics from '../../components/admin/events/EventAnalytics'
+import EventFiltersPanel from '../../components/admin/events/EventFiltersPanel'
+import EventKpiCards from '../../components/admin/events/EventKpiCards'
+import EventPipeline from '../../components/admin/events/EventPipeline'
+import EventProfileDrawer from '../../components/admin/events/EventProfileDrawer'
+import EventToolbar, { EventEmptyState } from '../../components/admin/events/EventToolbar'
+import AdminCard from '../../components/admin/ui/AdminCard'
+import DataTable from '../../components/admin/ui/DataTable'
+import { adminBtnSecondary } from '../../components/admin/ui/adminStyles'
 import { useAdminAuth } from '../../context/AdminAuthContext'
-import { getEvents, getEventRegistrations, saveEvent, type Event, type EventRegistration } from '../../lib/eventService'
+import {
+  exportEventsCsv,
+  filterEvents,
+  getEventDashboardData,
+  updateEventMeta,
+  type EventDashboardData,
+  type EventFilters,
+  type EventProfile,
+} from '../../lib/eventOperationsService'
+import { deleteEvent, saveEvent, type EventStatus } from '../../lib/eventService'
+
+const defaultFilters: EventFilters = {
+  search: '',
+  category: 'all',
+  status: 'all',
+  lifecycle: 'all',
+  location: 'all',
+}
 
 export default function EventAdminPage() {
   const { authed } = useAdminAuth()
-  const [events, setEvents] = useState<Event[]>([])
-  const [regs, setRegs] = useState<EventRegistration[]>([])
-  const [selected, setSelected] = useState<Event | null>(null)
-  const [form, setForm] = useState<Partial<Event>>({ title: '', slug: '', eventDate: '', status: 'draft' })
+  const [dashboard, setDashboard] = useState<EventDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<EventFilters>(defaultFilters)
+  const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<'table' | 'pipeline'>('table')
+  const [activeEvent, setActiveEvent] = useState<EventProfile | null>(null)
+  const [notes, setNotes] = useState('')
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
-  const refresh = async () => setEvents(await getEvents())
-  useEffect(() => { if (authed) refresh() }, [authed])
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    try {
+      setDashboard(await getEventDashboardData())
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  const viewRegs = async (event: Event) => {
-    setSelected(event)
-    setRegs(await getEventRegistrations(event.id))
+  useEffect(() => {
+    if (authed) refresh()
+  }, [authed, refresh])
+
+  const filteredEvents = useMemo(() => {
+    if (!dashboard) return []
+    return filterEvents(dashboard.events, filters)
+  }, [dashboard, filters])
+
+  const openProfile = (event: EventProfile) => {
+    setActiveEvent(event)
+    setNotes('')
   }
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.title || !form.slug || !form.eventDate) return
-    await saveEvent({ ...form, title: form.title, slug: form.slug, eventDate: form.eventDate })
-    setForm({ title: '', slug: '', eventDate: '', status: 'draft' })
+  const setStatus = async (id: string, status: EventStatus) => {
+    const ev = activeEvent ?? dashboard?.events.find((e) => e.id === id)
+    if (!ev) return
+    await saveEvent({ id, title: ev.title, slug: ev.slug, eventDate: ev.eventDate, status })
+    await refresh()
+    const refreshed = (await getEventDashboardData()).events.find((e) => e.id === id)
+    if (refreshed) setActiveEvent(refreshed)
+  }
+
+  const handleSaveNotes = async (id: string, adminNotes: string) => {
+    updateEventMeta(id, { adminNotes })
     await refresh()
   }
 
-  if (!authed) return <AdminLogin title="Event Admin" subtitle="Manage events and registrations." />
+  const handleDelete = async (id: string) => {
+    await deleteEvent(id)
+    setActiveEvent(null)
+    await refresh()
+  }
+
+  const handleSaveEvent = async (data: EventFormData) => {
+    if (!data.title.trim() || !data.slug.trim() || !data.eventDate) return
+    const saved = await saveEvent({
+      id: editingId ?? undefined,
+      title: data.title.trim(),
+      slug: data.slug.trim(),
+      description: data.description || undefined,
+      location: data.location || undefined,
+      eventDate: data.eventDate,
+      endDate: data.endDate || undefined,
+      capacity: data.capacity || undefined,
+      status: data.status,
+    })
+    if (data.category) updateEventMeta(saved.id, { category: data.category as EventProfile['category'] })
+    setShowAddModal(false)
+    setEditingId(null)
+    await refresh()
+  }
+
+  const handleDuplicate = () => {
+    const ev = activeEvent ?? filteredEvents[0]
+    if (!ev) {
+      window.alert('Select an event to duplicate.')
+      return
+    }
+    setEditingId(null)
+    setShowAddModal(true)
+    window.alert(`Duplicate "${ev.title}" — edit the form and save as a new event.`)
+  }
+
+  const handleImport = () => {
+    window.alert('CSV import coming soon. Use Export to download the current format.')
+  }
+
+  if (!authed) {
+    return <AdminLogin title="Event Admin" subtitle="Manage events and registrations." />
+  }
+
+  if (loading || !dashboard) {
+    return (
+      <AdminShell title="Event Management" subtitle="Event operations and engagement">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />
+          ))}
+        </div>
+      </AdminShell>
+    )
+  }
+
+  const patchFilters = (patch: Partial<EventFilters>) => setFilters((prev) => ({ ...prev, ...patch }))
+
+  const editingForm: EventFormData | null = editingId
+    ? (() => {
+        const e = dashboard.events.find((x) => x.id === editingId)
+        if (!e) return null
+        return {
+          title: e.title,
+          slug: e.slug,
+          description: e.description ?? '',
+          location: e.location ?? '',
+          eventDate: e.eventDate,
+          endDate: e.endDate ?? '',
+          capacity: e.capacity ?? 500,
+          category: e.category,
+          status: e.status,
+        }
+      })()
+    : null
 
   return (
-    <AdminShell title="Event Management" subtitle="Create events and view attendees">
-      <form className="admin-form-panel" onSubmit={handleSave} style={{ marginBottom: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-        <input placeholder="Title" value={form.title ?? ''} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-        <input placeholder="Slug" value={form.slug ?? ''} onChange={(e) => setForm({ ...form, slug: e.target.value })} required />
-        <input type="datetime-local" value={form.eventDate?.slice(0, 16) ?? ''} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} required />
-        <input placeholder="Location" value={form.location ?? ''} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-        <select value={form.status ?? 'draft'} onChange={(e) => setForm({ ...form, status: e.target.value as Event['status'] })}>
-          <option value="draft">draft</option><option value="published">published</option><option value="cancelled">cancelled</option>
-        </select>
-        <button type="submit" className="volunteer-btn volunteer-btn-primary">Create Event</button>
-      </form>
+    <AdminShell title="Event Management" subtitle="Event operations, registration, volunteers, and fundraising">
+      <div className="space-y-6">
+        <EventKpiCards kpis={dashboard.kpis} />
 
-      <div className="volunteer-admin-layout">
-        <div className="volunteer-admin-table-wrap">
-          <table className="volunteer-admin-table">
-            <thead><tr><th>Title</th><th>Date</th><th>Registered</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody>
-              {events.map((ev) => (
-                <tr key={ev.id}><td>{ev.title}</td><td>{new Date(ev.eventDate).toLocaleDateString()}</td>
-                  <td>{ev.registeredCount}{ev.capacity ? `/${ev.capacity}` : ''}</td><td>{ev.status}</td>
-                  <td><button type="button" onClick={() => viewRegs(ev)}>Attendees</button></td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {selected && (
-          <aside className="volunteer-admin-profile">
-            <h2>{selected.title} — Attendees</h2>
-            {regs.map((r) => <p key={r.id}>{r.fullName} · {r.email}</p>)}
-            {!regs.length && <p>No registrations yet.</p>}
-          </aside>
-        )}
+        <EventToolbar
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onCreateEvent={() => { setEditingId(null); setShowAddModal(true) }}
+          onImport={handleImport}
+          onDuplicate={handleDuplicate}
+          onExport={() => exportEventsCsv(filteredEvents)}
+          onGenerateReport={() => exportEventsCsv(filteredEvents)}
+          search={filters.search}
+          onSearchChange={(search) => patchFilters({ search })}
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters((v) => !v)}
+        />
+
+        {showFilters ? (
+          <EventFiltersPanel filters={filters} onChange={patchFilters} locationOptions={dashboard.locationOptions} />
+        ) : null}
+
+        <AdminCard>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-[#0B2C6B]">Event Directory</h3>
+            <p className="text-sm text-slate-500">{filteredEvents.length} events</p>
+          </div>
+
+          {!filteredEvents.length ? (
+            <EventEmptyState onCreateEvent={() => setShowAddModal(true)} />
+          ) : viewMode === 'pipeline' ? (
+            <EventPipeline pipeline={dashboard.pipeline} onSelect={openProfile} />
+          ) : (
+            <DataTable
+              data={filteredEvents}
+              keyFn={(e) => e.id}
+              onRowClick={openProfile}
+              selectedKey={activeEvent?.id}
+              columns={[
+                {
+                  key: 'event',
+                  header: 'Event',
+                  render: (e) => (
+                    <div>
+                      <p className="font-semibold text-[#0B2C6B]">{e.title}</p>
+                      <p className="text-xs text-slate-400">{e.eventCode}</p>
+                    </div>
+                  ),
+                },
+                { key: 'category', header: 'Category', render: (e) => e.category },
+                { key: 'date', header: 'Date', render: (e) => e.dateLabel },
+                { key: 'location', header: 'Location', render: (e) => e.location ?? '—' },
+                { key: 'capacity', header: 'Capacity', render: (e) => e.capacity ?? '—' },
+                { key: 'registered', header: 'Registered', render: (e) => e.registeredCount },
+                { key: 'volunteers', header: 'Volunteers', render: (e) => e.volunteersAssigned },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  render: (e) => (
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      e.isLive ? 'bg-emerald-50 text-emerald-700' : e.isUpcoming ? 'bg-sky-50 text-sky-700' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {e.displayStatus}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'actions',
+                  header: 'Actions',
+                  render: (e) => (
+                    <button
+                      type="button"
+                      className={`${adminBtnSecondary} !px-3 !py-1.5 text-xs`}
+                      onClick={(ev) => { ev.stopPropagation(); openProfile(e) }}
+                    >
+                      <Eye size={13} className="mr-1" />
+                      View
+                    </button>
+                  ),
+                },
+              ]}
+            />
+          )}
+        </AdminCard>
+
+        <EventAnalytics
+          eventsByCategory={dashboard.eventsByCategory}
+          attendanceTrends={dashboard.attendanceTrends}
+          registrationSources={dashboard.registrationSources}
+        />
+
+        <EventAiInsights insights={dashboard.aiInsights} />
       </div>
+
+      <EventProfileDrawer
+        event={activeEvent}
+        notes={notes}
+        onNotesChange={setNotes}
+        onClose={() => setActiveEvent(null)}
+        onStatusChange={setStatus}
+        onSaveNotes={handleSaveNotes}
+        onEdit={() => {
+          if (activeEvent) {
+            setEditingId(activeEvent.id)
+            setShowAddModal(true)
+          }
+        }}
+        onDelete={handleDelete}
+      />
+
+      <EventAddModal
+        open={showAddModal}
+        editing={editingForm}
+        onClose={() => { setShowAddModal(false); setEditingId(null) }}
+        onSave={handleSaveEvent}
+      />
     </AdminShell>
   )
 }

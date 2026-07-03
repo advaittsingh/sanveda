@@ -139,3 +139,54 @@ export function downloadBeneficiaryIdCard(beneficiary: {
 export function downloadAppointmentLetter(params: Parameters<typeof generateAppointmentLetterHtml>[0]): void {
   downloadHtmlDocument(generateAppointmentLetterHtml(params), `${params.referenceId}-appointment-letter.html`)
 }
+
+export function generateEventPassHtml(params: {
+  eventTitle: string
+  attendeeName: string
+  registrationId: string
+  seat?: string
+}): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>${cardStyle}
+  .qr { width: 72px; height: 72px; margin: 12px auto 0; border: 2px dashed #0E4FA8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #0E4FA8; text-align: center; }
+  </style></head><body>
+  <div class="card">
+    <div class="header"><h1>SANVEDA</h1><h2>Event Pass</h2></div>
+    <div class="body">
+      <p class="role">${params.eventTitle}</p>
+      <p class="name">${params.attendeeName}</p>
+      <div class="row"><span>Registration ID</span><span>${params.registrationId}</span></div>
+      <div class="row"><span>Seat</span><span>${params.seat ?? 'General'}</span></div>
+      <div class="qr">QR<br/>CHECK-IN</div>
+    </div>
+    <div class="footer">${BRAND.name}</div>
+  </div></body></html>`
+}
+
+export function generateEventParticipationCertificateHtml(params: {
+  attendeeName: string
+  eventTitle: string
+  year?: number
+}): string {
+  const year = params.year ?? new Date().getFullYear()
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/>
+  <style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:48px;border:4px double #041B4D;text-align:center}
+  h1{color:#041B4D;font-size:18px;letter-spacing:0.1em}h2{font-size:28px;color:#041B4D;margin:24px 0}</style></head><body>
+  <p style="font-size:13px;letter-spacing:0.1em">SANVEDA GLOBAL HUMANITARIAN FOUNDATION</p>
+  <h1>CERTIFICATE OF PARTICIPATION</h1>
+  <p>This certifies that</p>
+  <h2>${params.attendeeName}</h2>
+  <p>participated in the<br/><strong>${params.eventTitle}</strong><br/>organized by Sanveda Global Humanitarian Foundation</p>
+  <p style="margin-top:32px;font-size:13px">${year}</p>
+  </body></html>`
+}
+
+export function downloadEventPass(params: Parameters<typeof generateEventPassHtml>[0]): void {
+  downloadHtmlDocument(generateEventPassHtml(params), `${params.registrationId}-event-pass.html`)
+}
+
+export function downloadEventParticipationCertificate(params: Parameters<typeof generateEventParticipationCertificateHtml>[0]): void {
+  downloadHtmlDocument(
+    generateEventParticipationCertificateHtml(params),
+    `${params.attendeeName.replace(/\s+/g, '-')}-participation-cert.html`,
+  )
+}
