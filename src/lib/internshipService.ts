@@ -196,15 +196,54 @@ export async function updateInternship(id: string, patch: Partial<Internship>): 
 }
 
 export function generateInternshipCertificateHtml(internship: Internship): string {
+  const duration = internship.durationWeeks
+    ? internship.durationWeeks >= 20 ? '6-month' : internship.durationWeeks >= 10 ? '3-month' : `${internship.durationWeeks}-week`
+    : 'internship'
+  const start = internship.startDate
+    ? new Date(internship.startDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+    : '—'
+  const end = internship.endDate
+    ? new Date(internship.endDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+    : new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+  const verifyUrl = `https://sanveda.vercel.app/verify?id=${internship.certificateNumber ?? internship.applicationId}`
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8"/>
-  <style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:40px;border:3px solid #041B4D;text-align:center}
-  h1{color:#041B4D}p{line-height:1.7}</style></head><body>
-  <h1>Internship Completion Certificate</h1>
+  <style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:48px;border:4px double #041B4D;text-align:center;color:#1B1B1B}
+  h1{color:#041B4D;font-size:18px;letter-spacing:0.12em;margin:0}h2{font-size:28px;margin:24px 0 8px;color:#041B4D}
+  p{line-height:1.8;margin:12px 0}.dept{font-size:16px;color:#0E4FA8}.sig{margin-top:48px;font-size:13px}
+  .qr{display:inline-block;margin-top:24px;padding:12px;border:2px dashed #0E4FA8;font-size:10px;color:#0E4FA8}
+  .meta{font-size:12px;color:#666;margin-top:16px}</style></head><body>
+  <p style="font-size:13px;letter-spacing:0.1em">SANVEDA GLOBAL HUMANITARIAN FOUNDATION</p>
+  <h1>CERTIFICATE OF INTERNSHIP</h1>
   <p>This certifies that</p>
   <h2>${internship.fullName}</h2>
-  <p>successfully completed an internship with Sanveda Global Humanitarian Foundation
-  ${internship.preferredDepartment ? ` in <strong>${internship.preferredDepartment}</strong>` : ''}.</p>
-  <p><strong>Certificate No:</strong> ${internship.certificateNumber ?? '—'}</p>
+  <p>has successfully completed a<br/><strong>${duration} internship</strong> at<br/>
+  Sanveda Global Humanitarian Foundation</p>
+  ${internship.preferredDepartment ? `<p class="dept">Department: <strong>${internship.preferredDepartment}</strong></p>` : ''}
+  <p>Duration: <strong>${start} – ${end}</strong></p>
+  <p class="meta">Certificate No: ${internship.certificateNumber ?? '—'}</p>
+  <div class="qr">QR VERIFICATION<br/>${verifyUrl}</div>
+  <div class="sig"><p>Authorized Signatory<br/><strong>Sanveda Global Humanitarian Foundation</strong></p></div>
+  </body></html>`
+}
+
+export function generateInternshipLorHtml(internship: Internship): string {
+  const date = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+  const dept = internship.preferredDepartment ?? 'General'
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/>
+  <style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:48px;color:#1B1B1B;line-height:1.8}
+  h1{font-size:16px;color:#041B4D;margin-bottom:32px}.sig{margin-top:48px}</style></head><body>
+  <p style="text-align:right">${date}</p>
+  <h1>To Whomsoever It May Concern,</h1>
+  <p>This is to certify that <strong>${internship.fullName}</strong> worked as a <strong>${dept} Intern</strong> at
+  Sanveda Global Humanitarian Foundation from ${internship.startDate ?? 'the commencement date'} to ${internship.endDate ?? 'the completion date'}.</p>
+  <p>During this period, ${internship.fullName.split(' ')[0]} demonstrated strong communication skills, initiative, and dedication
+  to our humanitarian mission. ${internship.fullName.split(' ')[0]} contributed meaningfully to ${dept.toLowerCase()} projects
+  and collaborated effectively with our team.</p>
+  <p>We recommend ${internship.fullName} without reservation for future academic and professional opportunities.</p>
+  <div class="sig">
+    <p>Authorized Signatory<br/><strong>Sanveda Global Humanitarian Foundation</strong></p>
+  </div>
   </body></html>`
 }
 
@@ -215,6 +254,17 @@ export function downloadInternshipCertificate(internship: Internship): void {
   const a = document.createElement('a')
   a.href = url
   a.download = `${internship.certificateNumber ?? internship.id}-certificate.html`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+export function downloadInternshipLor(internship: Internship): void {
+  const html = generateInternshipLorHtml(internship)
+  const blob = new Blob([html], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${internship.applicationId}-lor.html`
   a.click()
   URL.revokeObjectURL(url)
 }
