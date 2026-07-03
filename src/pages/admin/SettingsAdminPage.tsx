@@ -1,59 +1,158 @@
+import { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import AdminLogin from '../../components/admin/AdminLogin'
 import AdminShell from '../../components/admin/AdminShell'
+import SettingsAiInsights from '../../components/admin/settings/SettingsAiInsights'
+import SettingsAnalyticsCards from '../../components/admin/settings/SettingsAnalyticsCards'
+import SettingsNav from '../../components/admin/settings/SettingsNav'
+import {
+  SettingsAiPanel,
+  SettingsAuditConfigPanel,
+  SettingsBackupPanel,
+  SettingsBrandingPanel,
+  SettingsCertificatesPanel,
+  SettingsCommunicationsPanel,
+  SettingsDashboardOverview,
+  SettingsDonationsPanel,
+  SettingsFinancePanel,
+  SettingsIntegrationsPanel,
+  SettingsNotificationsPanel,
+  SettingsOrganizationPanel,
+  SettingsSecurityPanel,
+  SettingsSystemPanel,
+  SettingsTaxPanel,
+  SettingsWorkflowsPanel,
+} from '../../components/admin/settings/SettingsSupportPanels'
 import AdminCard from '../../components/admin/ui/AdminCard'
-import { adminInputClass, adminLabelClass, adminBtnPrimary } from '../../components/admin/ui/adminStyles'
 import { useAdminAuth } from '../../context/AdminAuthContext'
-import { isSupabaseConfigured } from '../../lib/supabase'
+import {
+  getSettingsDashboardData,
+  parseSettingsTab,
+  saveDonationSettings,
+  saveOrganizationSettings,
+  saveTaxSettings,
+  type DonationSettings,
+  type OrganizationSettings,
+  type SettingsDashboardData,
+  type SettingsTab,
+  type TaxComplianceSettings,
+} from '../../lib/settingsOperationsService'
 
 export default function SettingsAdminPage() {
   const { authed } = useAdminAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [dashboard, setDashboard] = useState<SettingsDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState<SettingsTab>(() => parseSettingsTab(searchParams.get('tab')))
+  const [org, setOrg] = useState<OrganizationSettings | null>(null)
+  const [donations, setDonations] = useState<DonationSettings | null>(null)
+  const [tax, setTax] = useState<TaxComplianceSettings | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await getSettingsDashboardData()
+      setDashboard(data)
+      setOrg(data.organization)
+      setDonations(data.donations)
+      setTax(data.tax)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (authed) refresh()
+  }, [authed, refresh])
+
+  useEffect(() => {
+    setTab(parseSettingsTab(searchParams.get('tab')))
+  }, [searchParams])
+
+  const setTabAndUrl = (t: SettingsTab) => {
+    setTab(t)
+    setSearchParams(t === 'dashboard' ? {} : { tab: t }, { replace: true })
+  }
+
+  const notify = (message: string) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 3500)
+  }
 
   if (!authed) {
-    return <AdminLogin title="Settings" subtitle="Configure platform settings." />
+    return (
+      <AdminLogin
+        title="Platform Settings"
+        subtitle="Configure the entire NGO ecosystem — the control center of Sanveda NGO OS."
+      />
+    )
   }
 
   return (
-    <AdminShell title="Platform Settings" subtitle="Organization profile and system configuration">
-      <div className="grid gap-6 lg:grid-cols-2">
-        <AdminCard>
-          <h3 className="mb-4 font-semibold text-[#0B2C6B]">Organization</h3>
-          <div className="space-y-4">
-            <label className="block">
-              <span className={adminLabelClass}>Foundation Name</span>
-              <input className={adminInputClass} defaultValue="Sanveda Global Humanitarian Foundation" />
-            </label>
-            <label className="block">
-              <span className={adminLabelClass}>Support Email</span>
-              <input className={adminInputClass} type="email" defaultValue="info@sanveda.org" />
-            </label>
-            <label className="block">
-              <span className={adminLabelClass}>80G Registration</span>
-              <input className={adminInputClass} placeholder="Registration number" />
-            </label>
-            <button type="button" className={adminBtnPrimary}>Save Organization</button>
-          </div>
-        </AdminCard>
+    <AdminShell
+      title="Platform Settings"
+      subtitle="Control Center of the NGO OS — organization, finance, donations, compliance, integrations, and system configuration"
+    >
+      {toast ? (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-[#0B2C6B] px-4 py-3 text-sm font-medium text-white shadow-lg">
+          {toast}
+        </div>
+      ) : null}
 
-        <AdminCard>
-          <h3 className="mb-4 font-semibold text-[#0B2C6B]">Integrations</h3>
-          <ul className="space-y-3 text-sm text-slate-600">
-            <li className="flex items-center justify-between rounded-xl border border-[#E5E7EB] px-4 py-3">
-              <span>Supabase</span>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${isSupabaseConfigured ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
-                {isSupabaseConfigured ? 'Connected' : 'Demo mode'}
-              </span>
-            </li>
-            <li className="flex items-center justify-between rounded-xl border border-[#E5E7EB] px-4 py-3">
-              <span>Razorpay Payments</span>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">Configure in Vercel</span>
-            </li>
-            <li className="flex items-center justify-between rounded-xl border border-[#E5E7EB] px-4 py-3">
-              <span>Email (Resend)</span>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">Edge functions</span>
-            </li>
-          </ul>
-        </AdminCard>
-      </div>
+      {loading && !dashboard ? (
+        <AdminCard><p className="text-sm text-slate-500">Loading platform settings…</p></AdminCard>
+      ) : dashboard && org && donations && tax ? (
+        <div className="space-y-6">
+          <SettingsNav active={tab} onChange={setTabAndUrl} />
+
+          {tab === 'dashboard' ? (
+            <>
+              <SettingsDashboardOverview data={dashboard} />
+              <SettingsAnalyticsCards analytics={dashboard.analytics} />
+            </>
+          ) : null}
+
+          {tab === 'organization' ? (
+            <SettingsOrganizationPanel
+              org={org}
+              onChange={setOrg}
+              onSave={() => { saveOrganizationSettings(org); notify('Organization settings saved.') }}
+            />
+          ) : null}
+
+          {tab === 'branding' ? <SettingsBrandingPanel branding={dashboard.branding} /> : null}
+          {tab === 'finance' ? <SettingsFinancePanel finance={dashboard.finance} /> : null}
+          {tab === 'donations' ? (
+            <SettingsDonationsPanel
+              donations={donations}
+              gateways={dashboard.paymentGateways}
+              onChange={setDonations}
+              onSave={() => { saveDonationSettings(donations); notify('Donation settings saved.') }}
+            />
+          ) : null}
+          {tab === 'tax' ? (
+            <SettingsTaxPanel
+              tax={tax}
+              onChange={setTax}
+              onSave={() => { saveTaxSettings(tax); notify('Tax & compliance settings saved.') }}
+            />
+          ) : null}
+          {tab === 'certificates' ? <SettingsCertificatesPanel certificates={dashboard.certificates} /> : null}
+          {tab === 'communications' ? <SettingsCommunicationsPanel comms={dashboard.communications} /> : null}
+          {tab === 'notifications' ? <SettingsNotificationsPanel notifications={dashboard.notifications} /> : null}
+          {tab === 'integrations' ? <SettingsIntegrationsPanel integrations={dashboard.integrations} /> : null}
+          {tab === 'security' ? <SettingsSecurityPanel security={dashboard.security} /> : null}
+          {tab === 'workflows' ? <SettingsWorkflowsPanel workflows={dashboard.workflows} /> : null}
+          {tab === 'ai' ? <SettingsAiPanel ai={dashboard.ai} automation={dashboard.automation} /> : null}
+          {tab === 'backup' ? <SettingsBackupPanel backup={dashboard.backup} /> : null}
+          {tab === 'audit' ? <SettingsAuditConfigPanel audit={dashboard.auditConfig} /> : null}
+          {tab === 'analytics' ? <SettingsAnalyticsCards analytics={dashboard.analytics} /> : null}
+          {tab === 'system' ? <SettingsSystemPanel system={dashboard.system} /> : null}
+
+          <SettingsAiInsights insights={dashboard.aiInsights} />
+        </div>
+      ) : null}
     </AdminShell>
   )
 }
