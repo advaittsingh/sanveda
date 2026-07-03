@@ -9,6 +9,7 @@ import { creamSectionStyle } from '../constants/sectionStyles'
 import CarouselNavButtons from './ui/CarouselNavButtons'
 import ViewAllButton from './ui/ViewAllButton'
 import { useBreakpoints } from '../hooks/useMediaQuery'
+import { CAMPAIGN_CAROUSEL_GAP, campaignCarouselItemStyle, getCampaignCarouselStep } from '../lib/carousel'
 
 export default function FeaturedCampaigns() {
   const navigate = useNavigate()
@@ -19,8 +20,6 @@ export default function FeaturedCampaigns() {
   const [loading, setLoading] = useState(true)
   const [canLeft, setCanLeft] = useState(false)
   const [canRight, setCanRight] = useState(false)
-
-  const cardStep = mobile ? 306 : md ? 360 : 441
 
   useEffect(() => {
     fetchCMS().then((cms) => {
@@ -36,8 +35,8 @@ export default function FeaturedCampaigns() {
   const updateScroll = () => {
     const el = scrollRef.current
     if (!el) return
-    setCanLeft(el.scrollLeft > 0)
-    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10)
+    setCanLeft(el.scrollLeft > 2)
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2)
   }
 
   useEffect(() => {
@@ -50,8 +49,11 @@ export default function FeaturedCampaigns() {
   }, [campaigns, loading, mobile])
 
   const scroll = (dir: number) => {
-    scrollRef.current?.scrollBy({ left: dir * cardStep, behavior: 'smooth' })
-    setTimeout(updateScroll, 300)
+    const el = scrollRef.current
+    if (!el) return
+    const step = getCampaignCarouselStep(el, mobile, md)
+    el.scrollBy({ left: dir * step, behavior: 'smooth' })
+    setTimeout(updateScroll, 350)
   }
 
   return (
@@ -92,7 +94,7 @@ export default function FeaturedCampaigns() {
               display: 'flex',
               width: '100%',
               justifyContent: 'flex-start',
-              gap: mobile ? '16px' : '24px',
+              gap: mobile ? `${CAMPAIGN_CAROUSEL_GAP.mobile}px` : `${CAMPAIGN_CAROUSEL_GAP.desktop}px`,
               overflowX: 'auto',
               alignItems: 'flex-start',
               scrollSnapType: mobile || md ? 'x mandatory' : undefined,
@@ -104,20 +106,15 @@ export default function FeaturedCampaigns() {
                   <div
                     key={i}
                     style={{
-                      width: mobile ? 290 : 417,
+                      ...campaignCarouselItemStyle(mobile, md),
                       minHeight: 480,
                       background: '#e8e8e8',
-                      borderRadius: 16,
-                      flexShrink: 0,
-                      scrollSnapAlign: mobile ? 'start' : undefined,
+                      borderRadius: mobile ? 12 : 16,
                     }}
                   />
                 ))
               : campaigns.map((c) => (
-                  <div
-                    key={c.id}
-                    style={{ flexShrink: 0, scrollSnapAlign: mobile ? 'start' : undefined }}
-                  >
+                  <div key={c.id} style={campaignCarouselItemStyle(mobile, md)}>
                     <CampaignCard campaign={c} mobile={mobile} />
                   </div>
                 ))}

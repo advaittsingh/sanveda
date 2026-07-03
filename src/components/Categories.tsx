@@ -10,6 +10,7 @@ import { C } from '../constants/brand'
 import { sectionShellStyle } from '../constants/sectionStyles'
 import ViewAllButton from './ui/ViewAllButton'
 import { useBreakpoints } from '../hooks/useMediaQuery'
+import { CAMPAIGN_CAROUSEL_GAP, campaignCarouselItemStyle, getCampaignCarouselStep } from '../lib/carousel'
 
 export default function Categories() {
   const navigate = useNavigate()
@@ -22,7 +23,6 @@ export default function Categories() {
   const [canLeft, setCanLeft] = useState(false)
   const [canRight, setCanRight] = useState(false)
 
-  const cardStep = mobile ? 306 : md ? 360 : 441
   const tabScroll = mobile || md
 
   const activeArea = FOCUS_AREAS.find((a) => a.slug === activeSlug) ?? FOCUS_AREAS[0]
@@ -46,8 +46,8 @@ export default function Categories() {
   const updateScroll = () => {
     const el = scrollRef.current
     if (!el) return
-    setCanLeft(el.scrollLeft > 0)
-    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10)
+    setCanLeft(el.scrollLeft > 2)
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2)
   }
 
   useEffect(() => {
@@ -60,8 +60,11 @@ export default function Categories() {
   }, [filtered, loading, mobile, activeSlug])
 
   const scroll = (dir: number) => {
-    scrollRef.current?.scrollBy({ left: dir * cardStep, behavior: 'smooth' })
-    setTimeout(updateScroll, 300)
+    const el = scrollRef.current
+    if (!el) return
+    const step = getCampaignCarouselStep(el, mobile, md)
+    el.scrollBy({ left: dir * step, behavior: 'smooth' })
+    setTimeout(updateScroll, 350)
   }
 
   return (
@@ -160,18 +163,27 @@ export default function Categories() {
             style={{
               display: 'flex',
               width: '100%',
-              gap: mobile ? '16px' : '24px',
+              gap: mobile ? `${CAMPAIGN_CAROUSEL_GAP.mobile}px` : `${CAMPAIGN_CAROUSEL_GAP.desktop}px`,
               overflowX: 'auto',
-              scrollSnapType: mobile ? 'x mandatory' : undefined,
+              scrollSnapType: mobile || md ? 'x mandatory' : undefined,
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             {loading
               ? Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} style={{ width: '300px', height: '320px', background: '#e8e8e8', borderRadius: '12px', flexShrink: 0 }} />
+                  <div
+                    key={i}
+                    style={{
+                      ...campaignCarouselItemStyle(mobile, md),
+                      height: 320,
+                      background: '#e8e8e8',
+                      borderRadius: 12,
+                    }}
+                  />
                 ))
               : filtered.length
                 ? filtered.map((c) => (
-                    <div key={c.id} style={{ flexShrink: 0, scrollSnapAlign: mobile ? 'start' : undefined }}>
+                    <div key={c.id} style={campaignCarouselItemStyle(mobile, md)}>
                       <CampaignCard campaign={c} mobile={mobile} />
                     </div>
                   ))
