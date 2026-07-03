@@ -8,28 +8,19 @@ import SectionTitle from './ui/SectionTitle'
 import { creamSectionStyle } from '../constants/sectionStyles'
 import CarouselNavButtons from './ui/CarouselNavButtons'
 import ViewAllButton from './ui/ViewAllButton'
+import { useBreakpoints } from '../hooks/useMediaQuery'
 
 export default function FeaturedCampaigns() {
   const navigate = useNavigate()
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [mobile, setMobile] = useState(false)
+  const { mobile, md } = useBreakpoints()
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [title, setTitle] = useState('Featured Campaign That Urgently Need Your Support')
   const [loading, setLoading] = useState(true)
   const [canLeft, setCanLeft] = useState(false)
   const [canRight, setCanRight] = useState(false)
 
-  const cardStep = mobile ? 306 : 441
-
-  useEffect(() => {
-    const check = () => {
-      const w = window.innerWidth
-      setMobile(w < 600)
-    }
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+  const cardStep = mobile ? 306 : md ? 360 : 441
 
   useEffect(() => {
     fetchCMS().then((cms) => {
@@ -104,7 +95,8 @@ export default function FeaturedCampaigns() {
               gap: mobile ? '16px' : '24px',
               overflowX: 'auto',
               alignItems: 'flex-start',
-              scrollSnapType: mobile ? 'x mandatory' : undefined,
+              scrollSnapType: mobile || md ? 'x mandatory' : undefined,
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             {loading

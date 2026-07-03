@@ -4,7 +4,7 @@ export const BRAND = {
   tagline: 'Turning compassion into global humanitarian action.',
   email: 'Sanvedacharityfoundation@gmail.com',
   phone: '+91 8657860021',
-  address: '201 AALAP CHS. LTD., SHEETAL NAGAR, MTNL ROAD, Mira Road, Thane, Thane-401107, Maharashtra',
+  address: '201 Aalap Chs. Ltd., Sheetal Nagar, Mtnl Road, Mira Road, Thane, Thane-401107, Maharashtra',
   logo: '/assets/sanveda-logo.png',
   colors: {
     primary: '#041B4D',

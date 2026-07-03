@@ -4,6 +4,7 @@ import { Search, Menu, X } from 'lucide-react'
 import { ASSETS } from '../constants/assets'
 import { BRAND, C } from '../constants/brand'
 import { NAV_ICONS } from '../constants/navIcons'
+import { useAuth } from '../context/AuthContext'
 import { fetchCMS, getCMSSection } from '../api'
 import { useBreakpoints } from '../hooks/useMediaQuery'
 
@@ -12,6 +13,11 @@ const navLinks = [
   { label: 'Explore Campaigns', path: '/campaigns' },
   { label: 'Monthly Donation', path: '/monthly-donation' },
   { label: 'Blogs', path: '/blogs' },
+  { label: 'Volunteer', path: '/volunteer' },
+  { label: 'Internship', path: '/internship' },
+  { label: 'Events', path: '/events' },
+  { label: 'Gallery', path: '/gallery' },
+  { label: 'Membership', path: '/membership' },
   { label: 'Contact Us', path: '/contact' },
   { label: 'About Us', path: '/about' },
 ]
@@ -22,12 +28,14 @@ function SearchField({
   onClear,
   onSubmit,
   mobile,
+  compact,
 }: {
   value: string
   onChange: (v: string) => void
   onClear: () => void
   onSubmit: () => void
   mobile?: boolean
+  compact?: boolean
 }) {
   const iconColor = '#666'
   const textColor = C.text
@@ -58,7 +66,7 @@ function SearchField({
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 12px', minWidth: 318, maxWidth: 400 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 12px', minWidth: compact ? 0 : 318, flex: compact ? 1 : undefined, maxWidth: compact ? '100%' : 400, width: compact ? '100%' : undefined }}>
       <Search size={18} color="#666" style={{ flexShrink: 0 }} />
       <input
         type="search"
@@ -84,7 +92,8 @@ function SearchField({
 function TopBar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { md } = useBreakpoints()
+  const { md, wide } = useBreakpoints()
+  const { user, signOut } = useAuth()
   const [bannerText, setBannerText] = useState<string>(BRAND.tagline)
   const [donateLink, setDonateLink] = useState<string | null>(null)
   const [search, setSearch] = useState('')
@@ -161,15 +170,35 @@ function TopBar() {
             <SearchField value={search} onChange={setSearch} onClear={clearSearch} onSubmit={submitSearch} mobile />
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginLeft: 'auto' }}>
-            <SearchField value={search} onChange={setSearch} onClear={clearSearch} onSubmit={submitSearch} />
-            <Link
-              to="/login"
-              className="btn-secondary"
-              style={{ borderRadius: 8, padding: '14px 24px', fontWeight: 600, fontSize: 14, lineHeight: '14px', textDecoration: 'none', textTransform: 'capitalize', whiteSpace: 'nowrap', fontFamily: 'Red Hat Display' }}
-            >
-              Login/Signup
-            </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginLeft: 'auto', flex: 1, minWidth: 0, justifyContent: 'flex-end' }}>
+            <SearchField value={search} onChange={setSearch} onClear={clearSearch} onSubmit={submitSearch} compact={!wide} />
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="btn-secondary"
+                  style={{ borderRadius: 8, padding: '14px 20px', fontWeight: 600, fontSize: 14, textDecoration: 'none', whiteSpace: 'nowrap', fontFamily: 'Red Hat Display' }}
+                >
+                  Dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  className="btn-secondary"
+                  style={{ borderRadius: 8, padding: '14px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'Red Hat Display' }}
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="btn-secondary"
+                style={{ borderRadius: 8, padding: '14px 24px', fontWeight: 600, fontSize: 14, lineHeight: '14px', textDecoration: 'none', textTransform: 'capitalize', whiteSpace: 'nowrap', fontFamily: 'Red Hat Display' }}
+              >
+                Login/Signup
+              </Link>
+            )}
           </div>
         )}
       </div>
@@ -197,7 +226,7 @@ function MobileDrawer({ open, onClose, activeLabel }: { open: boolean; onClose: 
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100 }} />
-      <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 270, background: C.white, zIndex: 1101, padding: 10, borderTopLeftRadius: 20, display: 'flex', flexDirection: 'column', boxShadow: '-4px 0 20px rgba(0,0,0,0.15)' }}>
+      <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 270, background: C.white, zIndex: 1101, padding: '10px 10px calc(10px + env(safe-area-inset-bottom, 0))', paddingTop: 'calc(10px + env(safe-area-inset-top, 0))', borderTopLeftRadius: 20, display: 'flex', flexDirection: 'column', boxShadow: '-4px 0 20px rgba(0,0,0,0.15)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 8, marginBottom: 8 }}>
           <Link to="/" onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
             <img src={ASSETS.logo} alt={BRAND.name} style={{ width: 40, height: 40, objectFit: 'contain' }} />
@@ -273,12 +302,12 @@ export default function Header() {
 
   return (
     <header style={{ background: C.white, position: 'static', zIndex: 100 }}>
-      <div style={{ width: '94.44%', maxWidth: 1440, margin: '0 auto' }}>
-        <div style={{ margin: '20px auto' }}>
+      <div style={{ width: md ? '100%' : '94.44%', maxWidth: 1440, margin: '0 auto', padding: md ? '0 16px' : 0, boxSizing: 'border-box' }}>
+        <div style={{ margin: md ? '12px auto' : '20px auto' }}>
           <TopBar />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0 16px', marginBottom: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: md ? '8px 0 12px' : '12px 0 16px', marginBottom: 0 }}>
           <Link to="/" style={{ textDecoration: 'none', display: 'block', flexShrink: 0 }}>
             <LogoMark size={md ? 44 : 52} />
           </Link>

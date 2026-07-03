@@ -14,6 +14,11 @@ const quickLinks = [
 
 const infoLinks = [
   { name: 'About Us', path: '/about' },
+  { name: 'Volunteer', path: '/volunteer' },
+  { name: 'Internship', path: '/internship' },
+  { name: 'Events', path: '/events' },
+  { name: 'Gallery', path: '/gallery' },
+  { name: 'Verify Document', path: '/verify' },
   { name: 'Privacy Policy', path: '/privacy-policy' },
   { name: 'Terms & Conditions', path: '/terms-conditions' },
   { name: 'Refund and Cancellation Policy', path: '/refund-cancellation' },

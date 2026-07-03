@@ -4,6 +4,7 @@ import { ASSETS } from '../constants/assets'
 import { C } from '../constants/brand'
 import { sectionShellStyle } from '../constants/sectionStyles'
 import CarouselNavButtons from './ui/CarouselNavButtons'
+import { useBreakpoints } from '../hooks/useMediaQuery'
 
 interface Testimonial {
   id: number
@@ -14,20 +15,11 @@ interface Testimonial {
 
 export default function Testimonials() {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [mobile, setMobile] = useState(false)
+  const { mobile } = useBreakpoints()
   const [title, setTitle] = useState('How do donors describe their experience with our NGO?')
   const [items, setItems] = useState<Testimonial[]>([])
   const [canLeft, setCanLeft] = useState(false)
   const [canRight, setCanRight] = useState(true)
-
-  useEffect(() => {
-    const check = () => {
-      setMobile(window.innerWidth < 600)
-    }
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
 
   useEffect(() => {
     fetchCMS().then((cms) => {
@@ -46,7 +38,7 @@ export default function Testimonials() {
     }).catch(() => {})
   }, [])
 
-  const cardWidth = mobile ? 280 : 360
+  const cardWidth = mobile ? 'min(280px, calc(100vw - 64px))' : 360
 
   const updateScroll = () => {
     const el = scrollRef.current
@@ -56,7 +48,8 @@ export default function Testimonials() {
   }
 
   const scroll = (dir: number) => {
-    scrollRef.current?.scrollBy({ left: dir * cardWidth, behavior: 'smooth' })
+    const step = typeof cardWidth === 'number' ? cardWidth : 296
+    scrollRef.current?.scrollBy({ left: dir * step, behavior: 'smooth' })
     setTimeout(updateScroll, 300)
   }
 
@@ -118,6 +111,7 @@ export default function Testimonials() {
               width: '100%',
               padding: '10px 0',
               scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             {items.map((t) => (

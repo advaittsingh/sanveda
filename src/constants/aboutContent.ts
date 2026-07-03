@@ -153,7 +153,7 @@ export const ABOUT_ACTIONS = [
     title: 'Become A Volunteer',
     description: 'Become a volunteer and help create lasting impact in communities.',
     cta: 'Register',
-    path: '/contact',
+    path: '/volunteer',
   },
 ]
 

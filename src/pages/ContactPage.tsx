@@ -3,6 +3,7 @@ import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
 import GetInTouchSection from '../components/contact/GetInTouchSection'
 import { C } from '../constants/brand'
 import { CONTACT_PAGE } from '../constants/contactContent'
+import { submitEnquiry } from '../lib/enquiryService'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 
 const inputStyle: React.CSSProperties = {
@@ -30,10 +31,32 @@ export default function ContactPage() {
   const tablet = useMediaQuery('(max-width: 900px)')
   const formRef = useRef<HTMLDivElement>(null)
   const [formSent, setFormSent] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
 
-  const submitForm = (e: React.FormEvent) => {
+  const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setFormSent(true)
+    setSubmitting(true)
+    setFormError('')
+
+    const form = e.currentTarget
+    const data = new FormData(form)
+
+    try {
+      await submitEnquiry({
+        name: String(data.get('name') ?? ''),
+        phone: String(data.get('phone') ?? ''),
+        email: String(data.get('email') ?? ''),
+        subject: String(data.get('subject') ?? ''),
+        message: String(data.get('message') ?? ''),
+      })
+      setFormSent(true)
+      form.reset()
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Could not submit enquiry')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -166,6 +189,7 @@ export default function ContactPage() {
             <button
               type="submit"
               className="btn-primary"
+              disabled={submitting}
               style={{
                 marginTop: 4,
                 padding: '14px 24px',
@@ -173,12 +197,15 @@ export default function ContactPage() {
                 borderRadius: 10,
                 fontWeight: 700,
                 fontSize: 15,
-                cursor: 'pointer',
+                cursor: submitting ? 'wait' : 'pointer',
                 fontFamily: 'Red Hat Display, sans-serif',
               }}
             >
-              Submit
+              {submitting ? 'Submitting…' : 'Submit'}
             </button>
+            {formError && (
+              <p style={{ color: '#c0392b', fontSize: 14, margin: 0, fontWeight: 600 }}>{formError}</p>
+            )}
             {formSent && (
               <p style={{ color: C.secondary, fontSize: 14, margin: 0, fontWeight: 600 }}>
                 Thank you! We will get back to you soon.

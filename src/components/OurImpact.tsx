@@ -36,7 +36,7 @@ const IMPACT_STATS = [
 ]
 
 export default function OurImpact() {
-  const { mobile } = useBreakpoints()
+  const { mobile, md } = useBreakpoints()
   const [section, setSection] = useState<CMSItem | null>(null)
   const statsRef = useRef<HTMLDivElement>(null)
   const [statsVisible, setStatsVisible] = useState(false)
@@ -81,16 +81,16 @@ export default function OurImpact() {
         style={{
           borderRadius: mobile ? 20 : 34,
           backgroundColor: C.primary,
-          minHeight: mobile ? 'auto' : 610,
+          minHeight: md ? 'auto' : 610,
           display: 'flex',
-          flexDirection: mobile ? 'column' : 'row',
+          flexDirection: md ? 'column' : 'row',
           overflow: 'hidden',
         }}
       >
         <div
           style={{
-            width: mobile ? '100%' : '50%',
-            padding: mobile ? '40px 24px' : '56px 48px 56px 56px',
+            width: md ? '100%' : '50%',
+            padding: mobile ? '40px 24px' : md ? '40px 32px' : '56px 48px 56px 56px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -219,8 +219,8 @@ export default function OurImpact() {
 
         <div
           style={{
-            width: mobile ? '100%' : '50%',
-            minHeight: mobile ? 280 : 610,
+            width: md ? '100%' : '50%',
+            minHeight: mobile ? 280 : md ? 320 : 610,
             position: 'relative',
             flexShrink: 0,
           }}

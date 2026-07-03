@@ -9,11 +9,12 @@ import CarouselNavButtons from './ui/CarouselNavButtons'
 import { C } from '../constants/brand'
 import { sectionShellStyle } from '../constants/sectionStyles'
 import ViewAllButton from './ui/ViewAllButton'
+import { useBreakpoints } from '../hooks/useMediaQuery'
 
 export default function Categories() {
   const navigate = useNavigate()
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [mobile, setMobile] = useState(false)
+  const { mobile, md } = useBreakpoints()
   const [title, setTitle] = useState('Behind every category lies a different story of suffering.')
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [activeSlug, setActiveSlug] = useState(FOCUS_AREAS[0].slug)
@@ -21,18 +22,10 @@ export default function Categories() {
   const [canLeft, setCanLeft] = useState(false)
   const [canRight, setCanRight] = useState(false)
 
-  const cardStep = mobile ? 306 : 441
+  const cardStep = mobile ? 306 : md ? 360 : 441
+  const tabScroll = mobile || md
 
   const activeArea = FOCUS_AREAS.find((a) => a.slug === activeSlug) ?? FOCUS_AREAS[0]
-
-  useEffect(() => {
-    const check = () => {
-      setMobile(window.innerWidth < 600)
-    }
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
 
   useEffect(() => {
     fetchCMS().then((cms) => {
@@ -101,13 +94,14 @@ export default function Categories() {
         }}
       >
         <div
-          className={mobile ? 'hide-scrollbar' : undefined}
+          className={tabScroll ? 'hide-scrollbar' : undefined}
           style={{
             display: 'flex',
-            overflowX: mobile ? 'auto' : 'hidden',
+            overflowX: tabScroll ? 'auto' : 'hidden',
             width: '100%',
-            padding: mobile ? '16px' : '8px',
-            gap: mobile ? 0 : 4,
+            padding: tabScroll ? '12px 16px' : '8px',
+            gap: tabScroll ? 8 : 4,
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {FOCUS_AREAS.map((area) => {
@@ -118,12 +112,12 @@ export default function Categories() {
                 type="button"
                 onClick={() => setActiveSlug(area.slug)}
                 style={{
-                  flex: mobile ? '0 0 auto' : 1,
+                  flex: tabScroll ? '0 0 auto' : 1,
                   backgroundColor: selected ? C.secondary : 'transparent',
                   color: selected ? 'white' : '#4A4A49',
-                  padding: mobile ? '12px 16px' : '16px 12px',
+                  padding: tabScroll ? '10px 14px' : '16px 12px',
                   borderRadius: selected ? '10px' : '0',
-                  fontSize: mobile ? '12px' : '14px',
+                  fontSize: tabScroll ? '12px' : '14px',
                   fontWeight: 600,
                   whiteSpace: 'nowrap',
                   border: 'none',
@@ -131,8 +125,8 @@ export default function Categories() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: mobile ? '6px' : '8px',
-                  minWidth: mobile ? undefined : 0,
+                  gap: tabScroll ? '6px' : '8px',
+                  minWidth: tabScroll ? undefined : 0,
                   fontFamily: 'Red Hat Display',
                 }}
               >

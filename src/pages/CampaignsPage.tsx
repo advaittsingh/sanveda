@@ -6,6 +6,7 @@ import CampaignCard, { parseCategory } from '../components/CampaignCard'
 import SectionLabel from '../components/ui/SectionLabel'
 import SectionTitle from '../components/ui/SectionTitle'
 import { C } from '../constants/brand'
+import { useBreakpoints } from '../hooks/useMediaQuery'
 
 const PATH_CATEGORIES: Record<string, string> = {
   '/urgent': 'Urgent',
@@ -30,16 +31,9 @@ export default function CampaignsPage() {
   const category = PATH_CATEGORIES[location.pathname]
   const isSearch = location.pathname === '/search'
 
+  const { mobile } = useBreakpoints()
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
-  const [mobile, setMobile] = useState(false)
-
-  useEffect(() => {
-    const check = () => setMobile(window.innerWidth < 600)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -63,7 +57,7 @@ export default function CampaignsPage() {
 
   return (
     <div style={{ padding: mobile ? '24px 0' : '40px 0', background: C.white }}>
-      <div style={{ width: '94.44%', maxWidth: '1440px', margin: '0 auto', padding: mobile ? '0 16px' : 0 }}>
+      <div className="site-shell" style={{ padding: mobile ? '0 16px' : 0 }}>
         <SectionLabel mobile={mobile}>Campaigns</SectionLabel>
         <div style={{ margin: '12px 0 32px' }}>
           <SectionTitle mobile={mobile} maxWidth="100%">{pageTitle}</SectionTitle>
@@ -73,12 +67,12 @@ export default function CampaignsPage() {
           <p style={{ textAlign: 'center', color: C.textMuted, padding: '40px 0' }}>No campaigns found.</p>
         )}
 
-        <div className="hide-scrollbar" style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: mobile ? 'center' : 'flex-start' }}>
+        <div className="campaigns-grid">
           {loading
             ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} style={{ width: 300, height: 320, background: C.grayBg, borderRadius: 12 }} />
+                <div key={i} style={{ width: '100%', height: 320, background: C.grayBg, borderRadius: 12 }} />
               ))
-            : campaigns.map((c) => <CampaignCard key={c.id} campaign={c} mobile={mobile} />)}
+            : campaigns.map((c) => <CampaignCard key={c.id} campaign={c} mobile={mobile} fluid />)}
         </div>
       </div>
     </div>

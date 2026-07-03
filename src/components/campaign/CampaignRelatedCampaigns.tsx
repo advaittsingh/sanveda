@@ -53,7 +53,7 @@ export default function CampaignRelatedCampaigns({ currentId, mobile, onViewAll 
           </div>
         ))}
       </div>
-      <div style={{ textAlign: 'center', marginTop: 28 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
         <ViewAllButton text="View All Campaigns" mobile={mobile} onClick={onViewAll} />
       </div>
     </div>

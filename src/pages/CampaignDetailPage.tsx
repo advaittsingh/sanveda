@@ -46,8 +46,14 @@ export default function CampaignDetailPage() {
   }, [campaign])
 
   const handleDonate = () => {
-    // Payment flow placeholder — matches True Hope donate-once navigation pattern
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (!campaign) return
+    const slug = campaign.redirects?.[0]?.primary_url ?? `campaign-${campaign.id}`
+    const params = new URLSearchParams({
+      slug,
+      title: campaign.title,
+      amount: String(amount),
+    })
+    navigate(`/donate/checkout?${params.toString()}`)
   }
 
   if (loading) {
@@ -98,12 +104,16 @@ export default function CampaignDetailPage() {
         </section>
       )}
       <CampaignCommentsSection mobile={mobile} />
-      <CampaignDonorsSection mobile={mobile} />
+      <CampaignDonorsSection
+        mobile={mobile}
+        campaignSlug={campaign.redirects?.[0]?.primary_url ?? slug}
+        campaignId={campaign.id}
+      />
     </>
   )
 
   return (
-    <div className="campaign-detail-page" style={{ background: C.white, paddingBottom: mobile ? 120 : 0 }}>
+    <div className="campaign-detail-page" style={{ background: C.white, paddingBottom: mobile ? 130 : 100 }}>
       <AboutBreadcrumb
         items={[
           { label: 'Home', path: '/' },
@@ -178,7 +188,6 @@ export default function CampaignDetailPage() {
         amount={amount}
         onAmountChange={setAmount}
         onDonate={handleDonate}
-        mobile={mobile}
       />
     </div>
   )

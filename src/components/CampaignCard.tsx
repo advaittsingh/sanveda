@@ -8,6 +8,7 @@ import type { Campaign } from '../types'
 interface Props {
   campaign: Campaign
   mobile?: boolean
+  fluid?: boolean
 }
 
 function getProgress(raised: number, goal: number): number {
@@ -102,7 +103,7 @@ function Divider({ mobile }: { mobile?: boolean }) {
   return <div style={{ width: 1, height: mobile ? 32 : 38, background: '#E8E8E8', flexShrink: 0 }} />
 }
 
-export default function CampaignCard({ campaign, mobile }: Props) {
+export default function CampaignCard({ campaign, mobile, fluid }: Props) {
   const navigate = useNavigate()
   const progress = getProgress(campaign.raised, campaign.goal)
   const image = campaign.thumbnail_image || campaign.banner_image || ASSETS.fallBackCard
@@ -135,7 +136,7 @@ export default function CampaignCard({ campaign, mobile }: Props) {
       tabIndex={0}
       className="card-interactive"
       style={{
-        width: mobile ? '100%' : '417px',
+        width: mobile || fluid ? '100%' : '417px',
         minWidth: mobile ? 290 : undefined,
         maxWidth: '100%',
         background: '#FFFFFF',

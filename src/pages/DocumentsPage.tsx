@@ -1,50 +1,138 @@
 import { useEffect, useState } from 'react'
-import { fetchCMS, getCMSSection } from '../api'
-import { C } from '../constants/brand'
-import PageHero from '../components/ui/PageHero'
-import PageShell from '../components/ui/PageShell'
-import { FileText, ExternalLink } from 'lucide-react'
+import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
+import DocumentCard from '../components/documents/DocumentCard'
+import SubPageBanner from '../components/ui/SubPageBanner'
+import { fetchCMS, getCMSSectionById } from '../api'
+import {
+  DOCUMENTS_CMS_ID,
+  DOCUMENTS_PAGE,
+  downloadDocument,
+  type DocumentItem,
+} from '../constants/documentsContent'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 
 export default function DocumentsPage() {
-  const [docs, setDocs] = useState<{ title: string; image?: string | null; link?: string | null }[]>([])
-  const [description, setDescription] = useState('')
+  const mobile = useMediaQuery('(max-width: 767.95px)')
+  const heroMobile = useMediaQuery('(max-width: 600px)')
+  const [loading, setLoading] = useState(true)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [pageTitle, setPageTitle] = useState(DOCUMENTS_PAGE.title)
+  const [pageDescription, setPageDescription] = useState(DOCUMENTS_PAGE.description)
+  const [documents, setDocuments] = useState<DocumentItem[]>([])
 
   useEffect(() => {
-    fetchCMS().then((cms) => {
-      const section = getCMSSection(cms, 'Documents Section')
-      if (section?.description) setDescription(section.description)
-      setDocs(
-        (section?.relatedCMS ?? [])
-          .filter((s) => s.status === 1 || s.status === true)
-          .map((s) => ({ title: s.title ?? '', image: s.image, link: s.link })),
-      )
-    }).catch(() => {})
+    fetchCMS()
+      .then((cms) => {
+        const section = getCMSSectionById(cms, DOCUMENTS_CMS_ID) ?? cms.find((s) => s.section === 'Documents Section')
+        if (!section) return
+
+        const title = (section.title ?? '').trim()
+        const description = (section.description ?? '').trim()
+        if (title) setPageTitle(title)
+        if (description) setPageDescription(description)
+
+        const items = (section.relatedCMS ?? [])
+          .filter((item) => item && (item.status === 1 || item.status === true))
+          .map((item) => ({
+            id: item.id,
+            label: (item.title ?? '').trim(),
+            image: (item.image ?? '').trim(),
+          }))
+          .filter((item) => item.image)
+
+        setDocuments(items)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    if (!preview) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPreview(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [preview])
+
+  const handleDownload = async (image: string, label: string) => {
+    try {
+      await downloadDocument(image, label, mobile)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not download this document.')
+    }
+  }
+
   return (
-    <>
-      <div style={{ padding: '24px 0 0' }}>
-        <PageHero label="Documents" title="Verified Documents" description={description || 'Access essential documents ensuring full transparency and trust.'} compact />
+    <div className="documents-page">
+      <AboutBreadcrumb
+        items={[{ label: 'Home', path: '/' }, { label: DOCUMENTS_PAGE.breadcrumb, path: null }]}
+      />
+
+      <div className="page-banner-wrap" data-mobile={heroMobile}>
+        <SubPageBanner title={pageTitle} subtitle={pageDescription} />
       </div>
-      <PageShell bg={C.cream}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20, marginTop: 32 }}>
-          {docs.map((doc, i) => (
-            <div key={i} style={{ background: C.white, borderRadius: 16, padding: 24, border: `1px solid ${C.border}`, textAlign: 'center' }}>
-              {doc.image ? (
-                <img src={doc.image} alt={doc.title} style={{ width: '100%', maxHeight: 160, objectFit: 'contain', marginBottom: 16 }} />
+
+      <div className="documents-shell">
+        <div className="documents-panel" data-mobile={mobile}>
+          <div className="documents-panel-header">
+            <p className="documents-eyebrow">{DOCUMENTS_PAGE.label}</p>
+            <h2 className="documents-panel-title" data-mobile={mobile}>
+              {pageTitle}
+            </h2>
+          </div>
+
+          {loading ? (
+            <div className="documents-loading">
+              <div className="documents-spinner" aria-label="Loading documents" />
+            </div>
+          ) : (
+            <div className="documents-grid" data-mobile={mobile}>
+              {!loading && documents.length === 0 ? (
+                <p className="documents-empty">No documents available.</p>
               ) : (
-                <FileText size={48} color={C.gold} style={{ marginBottom: 16 }} />
-              )}
-              <h3 style={{ fontWeight: 700, fontSize: 15, color: C.primary, margin: '0 0 12px' }}>{doc.title}</h3>
-              {doc.link && doc.link !== 'Optional' && (
-                <a href={doc.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: C.secondary, fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
-                  View <ExternalLink size={14} />
-                </a>
+                documents.map((doc) => (
+                  <DocumentCard
+                    key={doc.id}
+                    label={doc.label}
+                    image={doc.image}
+                    mobile={mobile}
+                    onPreview={() => setPreview(doc.image)}
+                    onDownload={() => handleDownload(doc.image, doc.label)}
+                  />
+                ))
               )}
             </div>
-          ))}
+          )}
         </div>
-      </PageShell>
-    </>
+      </div>
+
+      {preview && (
+        <button
+          type="button"
+          className="documents-lightbox"
+          onClick={() => setPreview(null)}
+          aria-label="Close document preview"
+        >
+          <img
+            src={preview}
+            alt="Document preview"
+            className="documents-lightbox-image"
+            onClick={(event) => event.stopPropagation()}
+          />
+        </button>
+      )}
+
+      {error && (
+        <div className="documents-toast" role="status">
+          <p>{error}</p>
+          <button type="button" onClick={() => setError(null)} aria-label="Dismiss">
+            ×
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import FloatingWhatsApp from './components/FloatingWhatsApp'
+import { AdminAuthProvider } from './context/AdminAuthContext'
 import HomePage from './pages/HomePage'
 import CampaignsPage from './pages/CampaignsPage'
 import CampaignDetailPage from './pages/CampaignDetailPage'
@@ -11,20 +12,58 @@ import BlogsPage from './pages/BlogsPage'
 import BlogDetailPage from './pages/BlogDetailPage'
 import MonthlyDonationPage from './pages/MonthlyDonationPage'
 import LoginPage from './pages/LoginPage'
+import DonorDashboardPage from './pages/DonorDashboardPage'
+import DonateCheckoutPage from './pages/DonateCheckoutPage'
+import DonationSuccessPage from './pages/DonationSuccessPage'
 import FaqPage from './pages/FaqPage'
 import DocumentsPage from './pages/DocumentsPage'
-import LegalPage from './pages/LegalPage'
+import ReturnPolicyPage from './pages/ReturnPolicyPage'
+import RefundPolicyPage from './pages/RefundPolicyPage'
+import TermsPage from './pages/TermsPage'
+import PrivacyPage from './pages/PrivacyPage'
 import FocusAreaPage from './pages/FocusAreaPage'
+import VolunteerPage from './pages/VolunteerPage'
+import VolunteerApplyPage from './pages/VolunteerApplyPage'
+import VolunteerThankYouPage from './pages/VolunteerThankYouPage'
+import VolunteerStatusPage from './pages/VolunteerStatusPage'
+import MembershipPage from './pages/MembershipPage'
+import MembershipApplyPage from './pages/MembershipApplyPage'
+import MemberStatusPage from './pages/MemberStatusPage'
+import AdminDashboardPage from './pages/admin/AdminDashboardPage'
+import CampaignAdminPage from './pages/admin/CampaignAdminPage'
+import BlogAdminPage from './pages/admin/BlogAdminPage'
+import DonationsAdminPage from './pages/admin/DonationsAdminPage'
+import MembershipAdminPage from './pages/admin/MembershipAdminPage'
+import BeneficiaryAdminPage from './pages/admin/BeneficiaryAdminPage'
+import FinanceAdminPage from './pages/admin/FinanceAdminPage'
+import VolunteerAdminPage from './pages/admin/VolunteerAdminPage'
+import EnquiriesAdminPage from './pages/admin/EnquiriesAdminPage'
+import InternshipAdminPage from './pages/admin/InternshipAdminPage'
+import ProjectAdminPage from './pages/admin/ProjectAdminPage'
+import EventAdminPage from './pages/admin/EventAdminPage'
+import GalleryAdminPage from './pages/admin/GalleryAdminPage'
+import UsersAdminPage from './pages/admin/UsersAdminPage'
+import AuditAdminPage from './pages/admin/AuditAdminPage'
+import GalleryPage from './pages/GalleryPage'
+import VerifyPage from './pages/VerifyPage'
+import InternshipPage from './pages/InternshipPage'
+import InternshipApplyPage from './pages/InternshipApplyPage'
+import InternshipStatusPage from './pages/InternshipStatusPage'
+import EventsPage from './pages/EventsPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 const AUTH_PAGES = ['/login', '/register', '/forgot-password', '/verification', '/reset-password']
 const HIDE_WHATSAPP = AUTH_PAGES
 
+function isAdminRoute(pathname: string) {
+  return pathname.startsWith('/admin')
+}
+
 function AppShell() {
   const { pathname } = useLocation()
   const showWhatsApp = !HIDE_WHATSAPP.includes(pathname)
-  const showHeader = !AUTH_PAGES.includes(pathname)
-  const showFooter = !AUTH_PAGES.includes(pathname)
+  const showHeader = !HIDE_WHATSAPP.includes(pathname) && !isAdminRoute(pathname)
+  const showFooter = !HIDE_WHATSAPP.includes(pathname) && !isAdminRoute(pathname)
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'Red Hat Display, sans-serif' }}>
@@ -37,6 +76,9 @@ function AppShell() {
           <Route path="/campaign/:slug" element={<CampaignDetailPage />} />
           <Route path="/monthly-donation" element={<MonthlyDonationPage />} />
           <Route path="/donate-monthly" element={<MonthlyDonationPage />} />
+          <Route path="/donate/checkout" element={<DonateCheckoutPage />} />
+          <Route path="/donation/success" element={<DonationSuccessPage />} />
+          <Route path="/dashboard" element={<DonorDashboardPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/blogs" element={<BlogsPage />} />
           <Route path="/blogs/:id" element={<BlogDetailPage />} />
@@ -45,15 +87,43 @@ function AppShell() {
           <Route path="/search" element={<CampaignsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<LoginPage />} />
-          <Route path="/privacy-policy" element={<LegalPage sectionName="privacy policy" pageTitle="Privacy Policy" />} />
-          <Route path="/terms-conditions" element={<LegalPage sectionName="Terms & conditions" pageTitle="Terms & Conditions" />} />
-          <Route path="/terms&Conditions" element={<LegalPage sectionName="Terms & conditions" pageTitle="Terms & Conditions" />} />
-          <Route path="/refund-cancellation" element={<LegalPage sectionName="Refund policy" pageTitle="Refund Policy" />} />
-          <Route path="/refund&cancellation" element={<LegalPage sectionName="Refund policy" pageTitle="Refund Policy" />} />
-          <Route path="/return-policy" element={<LegalPage sectionName="return policy" pageTitle="Return Policy" />} />
+          <Route path="/privacy-policy" element={<PrivacyPage />} />
+          <Route path="/terms-conditions" element={<TermsPage />} />
+          <Route path="/terms&Conditions" element={<TermsPage />} />
+          <Route path="/refund-cancellation" element={<RefundPolicyPage />} />
+          <Route path="/refund&cancellation" element={<RefundPolicyPage />} />
+          <Route path="/return-policy" element={<ReturnPolicyPage />} />
           <Route path="/faq-page" element={<FaqPage />} />
           <Route path="/Faq-page" element={<FaqPage />} />
           <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/volunteer" element={<VolunteerPage />} />
+          <Route path="/volunteer/apply" element={<VolunteerApplyPage />} />
+          <Route path="/volunteer/thank-you" element={<VolunteerThankYouPage />} />
+          <Route path="/volunteer/status" element={<VolunteerStatusPage />} />
+          <Route path="/membership" element={<MembershipPage />} />
+          <Route path="/membership/apply" element={<MembershipApplyPage />} />
+          <Route path="/membership/status" element={<MemberStatusPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/verify" element={<VerifyPage />} />
+          <Route path="/internship" element={<InternshipPage />} />
+          <Route path="/internship/apply" element={<InternshipApplyPage />} />
+          <Route path="/internship/status" element={<InternshipStatusPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/campaigns" element={<CampaignAdminPage />} />
+          <Route path="/admin/blogs" element={<BlogAdminPage />} />
+          <Route path="/admin/donations" element={<DonationsAdminPage />} />
+          <Route path="/admin/memberships" element={<MembershipAdminPage />} />
+          <Route path="/admin/beneficiaries" element={<BeneficiaryAdminPage />} />
+          <Route path="/admin/finance" element={<FinanceAdminPage />} />
+          <Route path="/admin/volunteers" element={<VolunteerAdminPage />} />
+          <Route path="/admin/enquiries" element={<EnquiriesAdminPage />} />
+          <Route path="/admin/internships" element={<InternshipAdminPage />} />
+          <Route path="/admin/projects" element={<ProjectAdminPage />} />
+          <Route path="/admin/events" element={<EventAdminPage />} />
+          <Route path="/admin/gallery" element={<GalleryAdminPage />} />
+          <Route path="/admin/users" element={<UsersAdminPage />} />
+          <Route path="/admin/audit" element={<AuditAdminPage />} />
           <Route path="/medical-campaigns" element={<CampaignsPage />} />
           <Route path="/urgent" element={<CampaignsPage />} />
           <Route path="/children" element={<CampaignsPage />} />
@@ -79,7 +149,9 @@ function AppShell() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppShell />
+      <AdminAuthProvider>
+        <AppShell />
+      </AdminAuthProvider>
     </BrowserRouter>
   )
 }

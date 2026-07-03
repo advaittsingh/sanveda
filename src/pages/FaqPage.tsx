@@ -1,38 +1,67 @@
-import { useEffect, useState } from 'react'
-import { fetchCMS, getCMSSection } from '../api'
-import type { CMSItem } from '../types'
-import { C } from '../constants/brand'
-import PageHero from '../components/ui/PageHero'
-import PageShell from '../components/ui/PageShell'
-import FaqList from '../components/ui/FaqList'
+import { useMemo, useState } from 'react'
+import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
+import FaqAccordion from '../components/faq/FaqAccordion'
+import FaqTabs from '../components/faq/FaqTabs'
+import SubPageBanner from '../components/ui/SubPageBanner'
+import { ASSETS } from '../constants/assets'
+import { FAQ_PAGE, SANVEDA_FAQS, type FaqTabKey } from '../constants/faqContent'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 
 export default function FaqPage() {
-  const [faqs, setFaqs] = useState<CMSItem[]>([])
-  const [title, setTitle] = useState('Frequently Asked Questions')
+  const mobile = useMediaQuery('(max-width: 600px)')
+  const tablet = useMediaQuery('(max-width: 899px)')
+  const compact = useMediaQuery('(max-width: 1300px)')
+  const [activeTab, setActiveTab] = useState<FaqTabKey>('donors')
 
-  useEffect(() => {
-    fetchCMS().then((cms) => {
-      const general = getCMSSection(cms, 'campaign faq')
-      const life = getCMSSection(cms, 'Life donation faq')
-      if (general?.title) setTitle(general.title)
-      const items = [
-        ...(general?.relatedCMS ?? []),
-        ...(life?.relatedCMS ?? []),
-      ].filter((s) => s.status === 1 || s.status === true)
-      setFaqs(items)
-    }).catch(() => {})
-  }, [])
+  const activeItems = useMemo(() => SANVEDA_FAQS[activeTab], [activeTab])
 
   return (
-    <>
-      <div style={{ padding: '24px 0 0' }}>
-        <PageHero label="FAQ" title={title} description="Find answers to common questions about donating, campaigns, and monthly giving." compact />
+    <div className="faq-page" data-mobile={mobile}>
+      <AboutBreadcrumb items={[{ label: 'Home', path: '/' }, { label: 'FAQ', path: null }]} />
+
+      <div className="page-banner-wrap" data-mobile={mobile}>
+        <SubPageBanner title={FAQ_PAGE.bannerTitle} subtitle={FAQ_PAGE.description} />
       </div>
-      <PageShell bg={C.white}>
-        <div style={{ maxWidth: 800, margin: '32px auto 0' }}>
-          <FaqList items={faqs} />
+
+      <div className="faq-shell" data-mobile={mobile} data-tablet={tablet} data-compact={compact}>
+        {!tablet && (
+          <aside className="faq-sidebar" data-compact={compact}>
+            <div>
+              <p className="faq-eyebrow" data-compact={compact}>
+                {FAQ_PAGE.eyebrow}
+              </p>
+              <h2 className="faq-title" data-compact={compact}>
+                {FAQ_PAGE.title}{' '}
+                <span className="faq-title-accent">{FAQ_PAGE.titleAccent}</span>
+              </h2>
+              <p className="faq-description" data-compact={compact}>
+                {FAQ_PAGE.sidebarDescription}
+              </p>
+            </div>
+            <img src={ASSETS.ourImpact} alt="Sanveda humanitarian impact" className="faq-illustration" />
+          </aside>
+        )}
+
+        <div className="faq-main">
+          {tablet && (
+            <div className="faq-mobile-intro">
+              <p className="faq-eyebrow" data-compact={compact}>
+                {FAQ_PAGE.eyebrow}
+              </p>
+              <h2 className="faq-title" data-compact={compact} data-mobile={mobile}>
+                {FAQ_PAGE.title}{' '}
+                <span className="faq-title-accent">{FAQ_PAGE.titleAccent}</span>
+              </h2>
+              <p className="faq-description" data-compact={compact} data-mobile={mobile}>
+                {FAQ_PAGE.sidebarDescription}
+              </p>
+            </div>
+          )}
+
+          <FaqTabs active={activeTab} onChange={setActiveTab} />
+          <FaqAccordion items={activeItems} />
         </div>
-      </PageShell>
-    </>
+      </div>
+    </div>
   )
 }

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { BlogPost, Campaign, CMSItem, MonthlyDonation } from '../types'
-import { DEMO_BLOGS } from '../constants/blogs'
-import { filterSanvedaCampaigns, SANVEDA_CAMPAIGNS } from '../constants/campaignContent'
+import { fetchPublishedBlogs } from '../lib/blogService'
+import { loadCampaigns, filterCampaigns } from '../lib/campaignService'
 
 const api = axios.create({
   baseURL: '/api',
@@ -53,12 +53,12 @@ export function getCMSByPage(sections: CMSItem[], page: string): CMSItem | undef
 }
 
 async function loadSanvedaCampaigns(): Promise<Campaign[]> {
-  return SANVEDA_CAMPAIGNS
+  return loadCampaigns()
 }
 
 export async function fetchCampaigns(params?: Record<string, string | number>): Promise<Campaign[]> {
   const campaigns = await loadSanvedaCampaigns()
-  return filterSanvedaCampaigns(campaigns, params)
+  return filterCampaigns(campaigns, params)
 }
 
 export async function fetchCampaignBySlug(slug: string): Promise<Campaign | null> {
@@ -76,6 +76,13 @@ export async function fetchRecentCampaigns(): Promise<Campaign[]> {
 
 export async function fetchBlogs(): Promise<BlogPost[]> {
   try {
+    const blogs = await fetchPublishedBlogs()
+    if (blogs.length) return blogs
+  } catch {
+    /* fall through */
+  }
+
+  try {
     const res = await fetch('/blogs-fallback.json')
     const data = await res.json()
     const local = Array.isArray(data) ? data : data.data ?? []
@@ -83,6 +90,8 @@ export async function fetchBlogs(): Promise<BlogPost[]> {
   } catch {
     /* fall through */
   }
+
+  const { DEMO_BLOGS } = await import('../constants/blogs')
   return DEMO_BLOGS
 }
 

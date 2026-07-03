@@ -208,7 +208,7 @@ export default function DonateMonthly() {
       style={{
         ...creamSectionStyle(mobile, {
           margin: mobile ? '48px auto' : '72px auto',
-          padding: mobile ? '26px 16px' : '60px 50px',
+          padding: mobile ? '26px 16px' : md ? '40px 24px' : '60px 50px',
         }),
       }}
     >
