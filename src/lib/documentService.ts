@@ -92,6 +92,50 @@ export function downloadMemberIdCard(member: Membership): void {
   downloadHtmlDocument(generateMemberIdCardHtml(member), `${member.memberId ?? member.id}-id-card.html`)
 }
 
+export function generateBeneficiaryIdCardHtml(beneficiary: {
+  fullName: string
+  beneficiaryId: string
+  programLabel: string
+  categoryLabel: string
+  status: string
+}): string {
+  const validTill = new Date(new Date().getFullYear() + 1, 11, 31).toLocaleDateString('en-IN', {
+    month: 'short',
+    year: 'numeric',
+  })
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>${cardStyle}
+  .qr { width: 64px; height: 64px; margin: 12px auto 0; border: 2px dashed #0E4FA8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #0E4FA8; text-align: center; }
+  </style></head><body>
+  <div class="card">
+    <div class="header"><h1>SANVEDA</h1><h2>Beneficiary Card</h2></div>
+    <div class="body">
+      <div class="photo">${beneficiary.fullName.charAt(0)}</div>
+      <p class="name">${beneficiary.fullName}</p>
+      <p class="role">${beneficiary.programLabel}</p>
+      <div class="row"><span>Beneficiary ID</span><span>${beneficiary.beneficiaryId}</span></div>
+      <div class="row"><span>Program</span><span>${beneficiary.categoryLabel}</span></div>
+      <div class="row"><span>Status</span><span>${beneficiary.status}</span></div>
+      <div class="row"><span>Valid Till</span><span>${validTill}</span></div>
+      <div class="qr">QR<br/>VERIFY</div>
+    </div>
+    <div class="footer">${BRAND.name}</div>
+  </div></body></html>`
+}
+
+export function downloadBeneficiaryIdCard(beneficiary: {
+  fullName: string
+  beneficiaryId: string
+  programLabel: string
+  categoryLabel: string
+  status: string
+  id: string
+}): void {
+  downloadHtmlDocument(
+    generateBeneficiaryIdCardHtml(beneficiary),
+    `${beneficiary.beneficiaryId}-beneficiary-card.html`,
+  )
+}
+
 export function downloadAppointmentLetter(params: Parameters<typeof generateAppointmentLetterHtml>[0]): void {
   downloadHtmlDocument(generateAppointmentLetterHtml(params), `${params.referenceId}-appointment-letter.html`)
 }

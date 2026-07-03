@@ -1,94 +1,293 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Eye } from 'lucide-react'
 import AdminLogin from '../../components/admin/AdminLogin'
 import AdminShell from '../../components/admin/AdminShell'
+import BeneficiaryAddModal, { type BeneficiaryFormData } from '../../components/admin/beneficiaries/BeneficiaryAddModal'
+import BeneficiaryAiInsights from '../../components/admin/beneficiaries/BeneficiaryAiInsights'
+import BeneficiaryAnalytics from '../../components/admin/beneficiaries/BeneficiaryAnalytics'
+import BeneficiaryFiltersPanel from '../../components/admin/beneficiaries/BeneficiaryFiltersPanel'
+import BeneficiaryGeographicPanel from '../../components/admin/beneficiaries/BeneficiaryGeographicPanel'
+import BeneficiaryKpiCards from '../../components/admin/beneficiaries/BeneficiaryKpiCards'
+import BeneficiaryPipeline from '../../components/admin/beneficiaries/BeneficiaryPipeline'
+import BeneficiaryProfileDrawer from '../../components/admin/beneficiaries/BeneficiaryProfileDrawer'
+import BeneficiaryToolbar, { BeneficiaryEmptyState } from '../../components/admin/beneficiaries/BeneficiaryToolbar'
+import AdminCard from '../../components/admin/ui/AdminCard'
+import DataTable from '../../components/admin/ui/DataTable'
+import StatusBadge from '../../components/admin/ui/StatusBadge'
+import { adminBtnSecondary } from '../../components/admin/ui/adminStyles'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import {
   deleteBeneficiary,
-  getBeneficiaries,
   saveBeneficiary,
-  type Beneficiary,
   type BeneficiaryStatus,
 } from '../../lib/beneficiaryService'
+import {
+  exportBeneficiariesCsv,
+  filterBeneficiaries,
+  getBeneficiaryDashboardData,
+  updateBeneficiaryMeta,
+  type BeneficiaryDashboardData,
+  type BeneficiaryFilters,
+  type BeneficiaryProfile,
+} from '../../lib/beneficiaryOperationsService'
 
-const STATUSES: BeneficiaryStatus[] = ['active', 'completed', 'on_hold', 'archived']
-
-const EMPTY: Partial<Beneficiary> = {
-  fullName: '',
-  phone: '',
-  email: '',
-  city: '',
-  state: '',
-  category: '',
-  program: '',
-  supportType: '',
-  notes: '',
-  status: 'active',
-  supportAmount: 0,
+const defaultFilters: BeneficiaryFilters = {
+  search: '',
+  category: 'all',
+  status: 'all',
+  program: 'all',
+  location: 'all',
+  priority: 'all',
 }
 
 export default function BeneficiaryAdminPage() {
   const { authed } = useAdminAuth()
-  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([])
-  const [form, setForm] = useState<Partial<Beneficiary>>(EMPTY)
-  const [editing, setEditing] = useState<string | null>(null)
+  const [dashboard, setDashboard] = useState<BeneficiaryDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<BeneficiaryFilters>(defaultFilters)
+  const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<'table' | 'pipeline'>('table')
+  const [activeBeneficiary, setActiveBeneficiary] = useState<BeneficiaryProfile | null>(null)
+  const [notes, setNotes] = useState('')
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
-  const refresh = async () => setBeneficiaries(await getBeneficiaries())
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    try {
+      setDashboard(await getBeneficiaryDashboardData())
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (authed) refresh()
-  }, [authed])
+  }, [authed, refresh])
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.fullName?.trim()) return
-    await saveBeneficiary({ ...form, id: editing ?? undefined, fullName: form.fullName.trim() })
-    setForm(EMPTY)
-    setEditing(null)
+  const filteredBeneficiaries = useMemo(() => {
+    if (!dashboard) return []
+    return filterBeneficiaries(dashboard.beneficiaries, filters)
+  }, [dashboard, filters])
+
+  const openProfile = (beneficiary: BeneficiaryProfile) => {
+    setActiveBeneficiary(beneficiary)
+    setNotes(beneficiary.notes ?? '')
+  }
+
+  const setStatus = async (id: string, status: BeneficiaryStatus) => {
+    await saveBeneficiary({ id, fullName: activeBeneficiary?.fullName ?? '', status })
     await refresh()
+    const refreshed = (await getBeneficiaryDashboardData()).beneficiaries.find((b) => b.id === id)
+    if (refreshed) setActiveBeneficiary(refreshed)
+  }
+
+  const handleSaveNotes = async (id: string, adminNotes: string) => {
+    await saveBeneficiary({ id, fullName: activeBeneficiary?.fullName ?? '', notes: adminNotes })
+    updateBeneficiaryMeta(id, { adminNotes })
+    await refresh()
+  }
+
+  const handleDelete = async (id: string) => {
+    await deleteBeneficiary(id)
+    setActiveBeneficiary(null)
+    await refresh()
+  }
+
+  const handleSaveBeneficiary = async (data: BeneficiaryFormData) => {
+    if (!data.fullName.trim()) return
+    await saveBeneficiary({
+      id: editingId ?? undefined,
+      fullName: data.fullName.trim(),
+      phone: data.phone || undefined,
+      email: data.email || undefined,
+      city: data.city || undefined,
+      state: data.state || undefined,
+      category: data.category || undefined,
+      program: data.program || undefined,
+      supportType: data.supportType || undefined,
+      supportAmount: data.supportAmount,
+      status: data.status,
+      notes: data.notes || undefined,
+    })
+    setShowAddModal(false)
+    setEditingId(null)
+    await refresh()
+  }
+
+  const handleBulkAssign = () => {
+    const unassigned = filteredBeneficiaries.filter((b) => b.status === 'active')
+    window.alert(
+      unassigned.length
+        ? `Bulk assign queued for ${unassigned.length} active case(s). Case worker assignment coming soon.`
+        : 'No active cases in the current view.',
+    )
+  }
+
+  const handleImport = () => {
+    window.alert('CSV import coming soon. Use Export to download the current template format.')
+  }
+
+  const handleGenerateReports = () => {
+    exportBeneficiariesCsv(filteredBeneficiaries)
   }
 
   if (!authed) {
     return <AdminLogin title="Beneficiary Admin" subtitle="Manage beneficiary records and support tracking." />
   }
 
-  return (
-    <AdminShell title="Beneficiary Management" subtitle="Register and track programme beneficiaries">
-      <div className="volunteer-admin-layout">
-        <form className="volunteer-admin-profile admin-form-panel" onSubmit={handleSave}>
-          <h2>{editing ? 'Edit Beneficiary' : 'Add Beneficiary'}</h2>
-          <label className="volunteer-field"><span>Full Name *</span><input value={form.fullName ?? ''} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></label>
-          <label className="volunteer-field"><span>Phone</span><input value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
-          <label className="volunteer-field"><span>Category</span><input value={form.category ?? ''} onChange={(e) => setForm({ ...form, category: e.target.value })} /></label>
-          <label className="volunteer-field"><span>Program</span><input value={form.program ?? ''} onChange={(e) => setForm({ ...form, program: e.target.value })} /></label>
-          <label className="volunteer-field"><span>Support Amount (₹)</span><input type="number" value={form.supportAmount ?? 0} onChange={(e) => setForm({ ...form, supportAmount: Number(e.target.value) })} /></label>
-          <label className="volunteer-field"><span>Status</span>
-            <select value={form.status ?? 'active'} onChange={(e) => setForm({ ...form, status: e.target.value as BeneficiaryStatus })}>
-              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </label>
-          <button type="submit" className="volunteer-btn volunteer-btn-primary">{editing ? 'Update' : 'Add'}</button>
-        </form>
-
-        <div className="volunteer-admin-table-wrap">
-          <table className="volunteer-admin-table">
-            <thead><tr><th>Name</th><th>Program</th><th>Support</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody>
-              {beneficiaries.map((b) => (
-                <tr key={b.id}>
-                  <td>{b.fullName}</td>
-                  <td>{b.program ?? '—'}</td>
-                  <td>₹{b.supportAmount.toLocaleString('en-IN')}</td>
-                  <td>{b.status}</td>
-                  <td>
-                    <button type="button" onClick={() => { setEditing(b.id); setForm(b) }}>Edit</button>
-                    <button type="button" onClick={async () => { await deleteBeneficiary(b.id); await refresh() }}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+  if (loading || !dashboard) {
+    return (
+      <AdminShell title="Beneficiary Management" subtitle="Case management and impact tracking">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />
+          ))}
         </div>
+      </AdminShell>
+    )
+  }
+
+  const patchFilters = (patch: Partial<BeneficiaryFilters>) => setFilters((prev) => ({ ...prev, ...patch }))
+
+  const editingForm: BeneficiaryFormData | null = editingId
+    ? (() => {
+        const b = dashboard.beneficiaries.find((x) => x.id === editingId)
+        if (!b) return null
+        return {
+          fullName: b.fullName,
+          phone: b.phone ?? '',
+          email: b.email ?? '',
+          city: b.city ?? '',
+          state: b.state ?? '',
+          category: b.categoryLabel,
+          program: b.program ?? '',
+          supportType: b.supportType ?? '',
+          supportAmount: b.supportAmount,
+          status: b.status,
+          notes: b.notes ?? '',
+        }
+      })()
+    : null
+
+  return (
+    <AdminShell title="Beneficiary Management" subtitle="Case management, support tracking, and impact outcomes">
+      <div className="space-y-6">
+        <BeneficiaryKpiCards kpis={dashboard.kpis} />
+
+        <BeneficiaryToolbar
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onAddBeneficiary={() => { setEditingId(null); setShowAddModal(true) }}
+          onImport={handleImport}
+          onBulkAssign={handleBulkAssign}
+          onExport={() => exportBeneficiariesCsv(filteredBeneficiaries)}
+          onGenerateReports={handleGenerateReports}
+          search={filters.search}
+          onSearchChange={(search) => patchFilters({ search })}
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters((v) => !v)}
+        />
+
+        {showFilters ? (
+          <BeneficiaryFiltersPanel
+            filters={filters}
+            onChange={patchFilters}
+            programOptions={dashboard.programOptions}
+            locationOptions={dashboard.locationOptions}
+          />
+        ) : null}
+
+        <AdminCard>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-[#0B2C6B]">Beneficiary Directory</h3>
+            <p className="text-sm text-slate-500">{filteredBeneficiaries.length} beneficiaries</p>
+          </div>
+
+          {!filteredBeneficiaries.length ? (
+            <BeneficiaryEmptyState onAddBeneficiary={() => setShowAddModal(true)} />
+          ) : viewMode === 'pipeline' ? (
+            <BeneficiaryPipeline pipeline={dashboard.pipeline} onSelect={openProfile} />
+          ) : (
+            <DataTable
+              data={filteredBeneficiaries}
+              keyFn={(b) => b.id}
+              onRowClick={openProfile}
+              selectedKey={activeBeneficiary?.id}
+              columns={[
+                {
+                  key: 'beneficiary',
+                  header: 'Beneficiary',
+                  render: (b) => (
+                    <div>
+                      <p className="font-semibold text-[#0B2C6B]">{b.fullName}</p>
+                      <p className="text-xs text-slate-400">{b.categoryLabel}</p>
+                    </div>
+                  ),
+                },
+                { key: 'id', header: 'ID', render: (b) => b.beneficiaryId },
+                { key: 'program', header: 'Program', render: (b) => b.programLabel },
+                { key: 'category', header: 'Category', render: (b) => b.categoryLabel },
+                {
+                  key: 'support',
+                  header: 'Support Received',
+                  render: (b) => `₹${b.supportReceived.toLocaleString('en-IN')}`,
+                },
+                { key: 'location', header: 'Location', render: (b) => b.locationLabel },
+                { key: 'status', header: 'Status', render: (b) => <StatusBadge status={b.status} /> },
+                { key: 'updated', header: 'Last Updated', render: (b) => b.lastUpdatedLabel },
+                {
+                  key: 'actions',
+                  header: 'Actions',
+                  render: (b) => (
+                    <button
+                      type="button"
+                      className={`${adminBtnSecondary} !px-3 !py-1.5 text-xs`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openProfile(b)
+                      }}
+                    >
+                      <Eye size={13} className="mr-1" />
+                      View
+                    </button>
+                  ),
+                },
+              ]}
+            />
+          )}
+        </AdminCard>
+
+        <BeneficiaryGeographicPanel
+          geographic={dashboard.geographic}
+          supportDistribution={dashboard.supportDistribution}
+        />
+
+        <BeneficiaryAnalytics
+          beneficiariesByProgram={dashboard.beneficiariesByProgram}
+          monthlyGrowth={dashboard.monthlyGrowth}
+          supportByType={dashboard.supportByType}
+        />
+
+        <BeneficiaryAiInsights insights={dashboard.aiInsights} />
       </div>
+
+      <BeneficiaryProfileDrawer
+        beneficiary={activeBeneficiary}
+        notes={notes}
+        onNotesChange={setNotes}
+        onClose={() => setActiveBeneficiary(null)}
+        onStatusChange={setStatus}
+        onSaveNotes={handleSaveNotes}
+        onDelete={handleDelete}
+      />
+
+      <BeneficiaryAddModal
+        open={showAddModal}
+        editing={editingForm}
+        onClose={() => { setShowAddModal(false); setEditingId(null) }}
+        onSave={handleSaveBeneficiary}
+      />
     </AdminShell>
   )
 }
