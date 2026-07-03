@@ -50,9 +50,9 @@ import ReportsAdminPage from './pages/admin/ReportsAdminPage'
 import SettingsAdminPage from './pages/admin/SettingsAdminPage'
 import DonorsAdminPage from './pages/admin/DonorsAdminPage'
 import RolesAdminPage from './pages/admin/RolesAdminPage'
+import ExpensesAdminPage from './pages/admin/ExpensesAdminPage'
 import {
   IncomeAdminPage,
-  ExpensesAdminPage,
   TaxReceiptsAdminPage,
   CmsAdminPage,
   TestimonialsAdminPage,

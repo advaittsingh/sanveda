@@ -22,10 +22,6 @@ export function IncomeAdminPage() {
   return <FinanceAdminPage defaultTab="income" />
 }
 
-export function ExpensesAdminPage() {
-  return <FinanceAdminPage defaultTab="expenses" />
-}
-
 export function TaxReceiptsAdminPage() {
   return <FinanceAdminPage defaultTab="tax_receipts" />
 }
