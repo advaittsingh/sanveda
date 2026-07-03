@@ -1,67 +1,162 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import AdminLogin from '../../components/admin/AdminLogin'
 import AdminShell from '../../components/admin/AdminShell'
+import GalleryAddModal from '../../components/admin/gallery/GalleryAddModal'
+import GalleryAiInsights from '../../components/admin/gallery/GalleryAiInsights'
+import GalleryAlbumCardGrid from '../../components/admin/gallery/GalleryAlbumCardGrid'
+import GalleryAlbumProfileDrawer from '../../components/admin/gallery/GalleryAlbumProfileDrawer'
+import GalleryAnalytics from '../../components/admin/gallery/GalleryAnalytics'
+import GalleryFiltersPanel from '../../components/admin/gallery/GalleryFiltersPanel'
+import GalleryKpiCards from '../../components/admin/gallery/GalleryKpiCards'
+import GalleryToolbar, { GalleryEmptyState } from '../../components/admin/gallery/GalleryToolbar'
+import AdminCard from '../../components/admin/ui/AdminCard'
 import { useAdminAuth } from '../../context/AdminAuthContext'
-import { addGalleryItem, deleteAlbum, getAllAlbumsAdmin, saveAlbum, type GalleryAlbum } from '../../lib/galleryService'
+import { addGalleryItem } from '../../lib/galleryService'
+import {
+  exportGalleryCsv,
+  filterAlbums,
+  getGalleryDashboardData,
+  type GalleryDashboardData,
+  type GalleryFilters,
+  type AlbumProfile,
+} from '../../lib/galleryOperationsService'
+
+const defaultFilters: GalleryFilters = {
+  search: '',
+  category: 'all',
+  status: 'all',
+}
 
 export default function GalleryAdminPage() {
   const { authed } = useAdminAuth()
-  const [albums, setAlbums] = useState<GalleryAlbum[]>([])
-  const [form, setForm] = useState({ title: '', slug: '', coverImage: '', status: 'published' as const })
-  const [newItemUrl, setNewItemUrl] = useState('')
-  const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null)
+  const [dashboard, setDashboard] = useState<GalleryDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<GalleryFilters>(defaultFilters)
+  const [showFilters, setShowFilters] = useState(false)
+  const [activeAlbum, setActiveAlbum] = useState<AlbumProfile | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingAlbum, setEditingAlbum] = useState<AlbumProfile | null>(null)
+  const [uploadUrl, setUploadUrl] = useState('')
 
-  const refresh = async () => setAlbums(await getAllAlbumsAdmin())
-  useEffect(() => { if (authed) refresh() }, [authed])
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    try {
+      setDashboard(await getGalleryDashboardData())
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  const handleSaveAlbum = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await saveAlbum(form)
-    setForm({ title: '', slug: '', coverImage: '', status: 'published' })
-    await refresh()
+  useEffect(() => {
+    if (authed) refresh()
+  }, [authed, refresh])
+
+  const filteredAlbums = useMemo(() => {
+    if (!dashboard) return []
+    return filterAlbums(dashboard.albums, filters)
+  }, [dashboard, filters])
+
+  const openAlbum = (album: AlbumProfile) => setActiveAlbum(album)
+
+  const handleEdit = () => {
+    if (!activeAlbum) return
+    setEditingAlbum(activeAlbum)
+    setShowAddModal(true)
   }
 
-  const handleAddItem = async () => {
-    if (!selectedAlbum || !newItemUrl) return
-    await addGalleryItem(selectedAlbum, newItemUrl)
-    setNewItemUrl('')
+  const handleSaved = async () => {
     await refresh()
+    if (activeAlbum) {
+      const refreshed = (await getGalleryDashboardData()).albums.find((a) => a.id === activeAlbum.id)
+      if (refreshed) setActiveAlbum(refreshed)
+    }
   }
 
-  if (!authed) return <AdminLogin title="Gallery Admin" subtitle="Manage photo albums and media." />
+  const handleUploadMedia = async () => {
+    const albumId = activeAlbum?.id
+    const url = uploadUrl || window.prompt('Enter image or video URL:')
+    if (!albumId || !url) {
+      window.alert('Open an album first, then upload media to it.')
+      return
+    }
+    await addGalleryItem(albumId, url)
+    setUploadUrl('')
+    await handleSaved()
+  }
+
+  if (!authed) {
+    return (
+      <AdminLogin
+        title="Gallery Management"
+        subtitle="Digital asset management — proof of impact for donors, CSR, and social media."
+      />
+    )
+  }
 
   return (
-    <AdminShell title="Gallery Management" subtitle="Albums, images, and videos">
-      <form onSubmit={handleSaveAlbum} className="admin-form-panel" style={{ marginBottom: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-        <input placeholder="Album title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-        <input placeholder="Slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} required />
-        <input placeholder="Cover image URL" value={form.coverImage} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} />
-        <button type="submit" className="volunteer-btn volunteer-btn-primary">Create Album</button>
-      </form>
+    <AdminShell
+      title="Gallery Management"
+      subtitle="Proof-of-impact repository — albums, media assets, approval workflow, and analytics."
+    >
+      {loading && !dashboard ? (
+        <AdminCard>
+          <p className="text-sm text-slate-500">Loading media library…</p>
+        </AdminCard>
+      ) : dashboard ? (
+        <div className="space-y-6">
+          <GalleryKpiCards kpis={dashboard.kpis} />
 
-      <div className="volunteer-admin-table-wrap">
-        <table className="volunteer-admin-table">
-          <thead><tr><th>Album</th><th>Items</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody>
-            {albums.map((a) => (
-              <tr key={a.id}>
-                <td>{a.title}</td><td>{a.items.length}</td><td>{a.status}</td>
-                <td>
-                  <button type="button" onClick={() => setSelectedAlbum(a.id)}>Add Media</button>
-                  <button type="button" onClick={async () => { await deleteAlbum(a.id); await refresh() }}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          <AdminCard>
+            <GalleryToolbar
+              onCreateAlbum={() => { setEditingAlbum(null); setShowAddModal(true) }}
+              onUploadMedia={handleUploadMedia}
+              onBulkUpload={() => window.alert('Bulk upload will connect to Supabase Storage with CDN delivery.')}
+              onImport={() => window.alert('CSV import will map albums and media metadata from external DAM systems.')}
+              onExport={() => exportGalleryCsv(filteredAlbums)}
+              search={filters.search}
+              onSearchChange={(search) => setFilters((f) => ({ ...f, search }))}
+              showFilters={showFilters}
+              onToggleFilters={() => setShowFilters((v) => !v)}
+            />
+          </AdminCard>
 
-      {selectedAlbum && (
-        <div style={{ marginTop: 20, display: 'flex', gap: 12 }}>
-          <input placeholder="Image or video URL" value={newItemUrl} onChange={(e) => setNewItemUrl(e.target.value)} style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
-          <button type="button" className="volunteer-btn volunteer-btn-primary" onClick={handleAddItem}>Add to Album</button>
+          {showFilters ? (
+            <GalleryFiltersPanel
+              filters={filters}
+              onChange={(patch) => setFilters((f) => ({ ...f, ...patch }))}
+            />
+          ) : null}
+
+          {filteredAlbums.length === 0 ? (
+            <GalleryEmptyState onCreateAlbum={() => { setEditingAlbum(null); setShowAddModal(true) }} />
+          ) : (
+            <GalleryAlbumCardGrid albums={filteredAlbums} onOpen={openAlbum} />
+          )}
+
+          <GalleryAnalytics
+            uploadTrends={dashboard.uploadTrends}
+            contentDistribution={dashboard.contentDistribution}
+            categoryUsage={dashboard.categoryUsage}
+            storageBreakdown={dashboard.storageBreakdown}
+          />
+
+          <GalleryAiInsights insights={dashboard.aiInsights} />
         </div>
-      )}
+      ) : null}
+
+      <GalleryAlbumProfileDrawer
+        album={activeAlbum}
+        onClose={() => setActiveAlbum(null)}
+        onEdit={handleEdit}
+        onUploadMedia={handleUploadMedia}
+      />
+
+      <GalleryAddModal
+        open={showAddModal}
+        editing={editingAlbum}
+        onClose={() => { setShowAddModal(false); setEditingAlbum(null) }}
+        onSaved={handleSaved}
+      />
     </AdminShell>
   )
 }
