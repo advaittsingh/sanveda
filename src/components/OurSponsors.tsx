@@ -86,12 +86,29 @@ export default function OurSponsors() {
           }}
         >
           {sponsors.map((sponsor) => {
+            const imgStyle: React.CSSProperties = {
+              maxHeight: mobile ? 56 : 70,
+              maxWidth: mobile ? 140 : 180,
+              objectFit: 'contain',
+            }
+
             const content = sponsor.logo ? (
-              <img
-                src={sponsor.logo}
-                alt={sponsor.name}
-                style={{ maxHeight: mobile ? 56 : 70, maxWidth: mobile ? 140 : 180, objectFit: 'contain' }}
-              />
+              sponsor.darkBg ? (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: mobile ? '10px 14px' : '12px 18px',
+                    borderRadius: 12,
+                    background: '#000',
+                  }}
+                >
+                  <img src={sponsor.logo} alt={sponsor.name} style={imgStyle} />
+                </span>
+              ) : (
+                <img src={sponsor.logo} alt={sponsor.name} style={imgStyle} />
+              )
             ) : (
               <span
                 style={{

@@ -3,12 +3,20 @@ export interface Sponsor {
   name: string
   logo?: string
   link?: string
+  /** Use dark background behind logo (e.g. white-on-black brand marks) */
+  darkBg?: boolean
 }
 
 export const SPONSORS: Sponsor[] = [
-  { id: 1, name: 'Horizon Care Foundation', logo: '/assets/sponsors/horizon-care.svg' },
-  { id: 2, name: 'GreenLeaf Partners', logo: '/assets/sponsors/greenleaf.svg' },
-  { id: 3, name: 'Unity Bank CSR', logo: '/assets/sponsors/unity-bank.svg' },
-  { id: 4, name: 'NorthStar Global', logo: '/assets/sponsors/northstar.svg' },
-  { id: 5, name: 'BrightPath Education Trust', logo: '/assets/sponsors/brightpath.svg' },
+  {
+    id: 1,
+    name: 'Young Boy Toyz',
+    logo: '/assets/sponsors/young-boy-toyz.png',
+    darkBg: true,
+  },
+  {
+    id: 2,
+    name: 'Cannazo India',
+    logo: '/assets/sponsors/cannazo-india.png',
+  },
 ]
