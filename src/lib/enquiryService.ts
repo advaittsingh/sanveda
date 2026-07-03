@@ -144,3 +144,7 @@ export async function updateEnquiry(
   writeLocal(all)
   return updated
 }
+
+export async function createEnquiryAdmin(input: EnquiryInput): Promise<Enquiry> {
+  return submitEnquiry(input)
+}

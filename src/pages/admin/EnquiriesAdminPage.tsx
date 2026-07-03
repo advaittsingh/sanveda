@@ -1,123 +1,229 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import AdminLogin from '../../components/admin/AdminLogin'
 import AdminShell from '../../components/admin/AdminShell'
+import EnquiryAddModal from '../../components/admin/enquiries/EnquiryAddModal'
+import EnquiryAiInsights from '../../components/admin/enquiries/EnquiryAiInsights'
+import EnquiryAnalytics from '../../components/admin/enquiries/EnquiryAnalytics'
+import EnquiryFiltersPanel from '../../components/admin/enquiries/EnquiryFiltersPanel'
+import EnquiryKpiCards from '../../components/admin/enquiries/EnquiryKpiCards'
+import EnquiryPipeline from '../../components/admin/enquiries/EnquiryPipeline'
+import EnquiryProfileDrawer from '../../components/admin/enquiries/EnquiryProfileDrawer'
+import EnquirySlaPanel from '../../components/admin/enquiries/EnquirySlaPanel'
+import EnquiryToolbar, { EnquiryEmptyState } from '../../components/admin/enquiries/EnquiryToolbar'
+import AdminCard from '../../components/admin/ui/AdminCard'
+import DataTable from '../../components/admin/ui/DataTable'
+import StatusBadge from '../../components/admin/ui/StatusBadge'
+import { adminBtnSecondary } from '../../components/admin/ui/adminStyles'
 import { useAdminAuth } from '../../context/AdminAuthContext'
-import { getEnquiries, updateEnquiry, type Enquiry, type EnquiryStatus } from '../../lib/enquiryService'
+import {
+  exportEnquiriesCsv,
+  filterEnquiries,
+  getEnquiryDashboardData,
+  saveEnquiryProfile,
+  type ConvertTarget,
+  type EnquiryDashboardData,
+  type EnquiryFilters,
+  type EnquiryProfile,
+  type WorkflowStage,
+} from '../../lib/enquiryOperationsService'
+import type { EnquiryStatus } from '../../lib/enquiryService'
 
-const STATUS_OPTIONS: EnquiryStatus[] = ['new', 'in_progress', 'resolved', 'closed']
+const defaultFilters: EnquiryFilters = {
+  search: '',
+  category: 'all',
+  priority: 'all',
+  status: 'all',
+  source: 'all',
+  assignedTo: 'all',
+}
+
+function workflowToStatus(stage: WorkflowStage): EnquiryStatus {
+  if (stage === 'new' || stage === 'assigned') return 'new'
+  if (stage === 'in_progress' || stage === 'waiting') return 'in_progress'
+  if (stage === 'resolved') return 'resolved'
+  return 'closed'
+}
 
 export default function EnquiriesAdminPage() {
   const { authed } = useAdminAuth()
-  const [enquiries, setEnquiries] = useState<Enquiry[]>([])
-  const [selected, setSelected] = useState<Enquiry | null>(null)
+  const [dashboard, setDashboard] = useState<EnquiryDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<EnquiryFilters>(defaultFilters)
+  const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<'table' | 'pipeline'>('table')
+  const [activeEnquiry, setActiveEnquiry] = useState<EnquiryProfile | null>(null)
   const [notes, setNotes] = useState('')
-  const [status, setStatus] = useState<EnquiryStatus>('new')
-  const [loading, setLoading] = useState(false)
+  const [workflowStage, setWorkflowStage] = useState<WorkflowStage>('new')
+  const [showAddModal, setShowAddModal] = useState(false)
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      setEnquiries(await getEnquiries())
+      setDashboard(await getEnquiryDashboardData())
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (authed) refresh()
-  }, [authed])
+  }, [authed, refresh])
 
-  const openEnquiry = (enquiry: Enquiry) => {
-    setSelected(enquiry)
-    setNotes(enquiry.adminNotes ?? '')
-    setStatus(enquiry.status)
+  const filteredEnquiries = useMemo(() => {
+    if (!dashboard) return []
+    return filterEnquiries(dashboard.enquiries, filters)
+  }, [dashboard, filters])
+
+  const assignees = useMemo(() => {
+    if (!dashboard) return []
+    return [...new Set(dashboard.enquiries.map((e) => e.assignedTo))]
+  }, [dashboard])
+
+  const openEnquiry = (enquiry: EnquiryProfile) => {
+    setActiveEnquiry(enquiry)
+    setNotes(enquiry.internalNotes)
+    setWorkflowStage(enquiry.workflowStage)
   }
 
-  const save = async () => {
-    if (!selected) return
-    await updateEnquiry(selected.id, { status, adminNotes: notes })
+  const handleSave = async () => {
+    if (!activeEnquiry) return
+    await saveEnquiryProfile(activeEnquiry.id, {
+      workflowStage,
+      internalNotes: notes,
+      adminNotes: notes,
+      status: workflowToStatus(workflowStage),
+    })
     await refresh()
-    const updated = (await getEnquiries()).find((e) => e.id === selected.id)
-    if (updated) setSelected(updated)
+    const refreshed = (await getEnquiryDashboardData()).enquiries.find((e) => e.id === activeEnquiry.id)
+    if (refreshed) {
+      setActiveEnquiry(refreshed)
+      setNotes(refreshed.internalNotes)
+      setWorkflowStage(refreshed.workflowStage)
+    }
+  }
+
+  const handleConvert = async (target: ConvertTarget) => {
+    if (!activeEnquiry) return
+    await saveEnquiryProfile(activeEnquiry.id, {
+      convertedTo: [...(activeEnquiry.convertOptions.includes(target) ? [target] : []), target],
+    })
+    window.alert(`${activeEnquiry.name} marked for conversion to ${target}. Navigate to the respective module to complete.`)
+    await refresh()
   }
 
   if (!authed) {
     return (
       <AdminLogin
-        title="Enquiries Admin"
-        subtitle="Sign in to manage contact form submissions."
+        title="Enquiry Management"
+        subtitle="Lead management, ticketing, and relationship CRM for Sanveda NGO OS."
       />
     )
   }
 
+  const priorityBadge = (p: string) => {
+    const cls = p === 'critical' ? 'text-red-700 bg-red-50' : p === 'high' ? 'text-amber-700 bg-amber-50' : p === 'medium' ? 'text-sky-700 bg-sky-50' : 'text-slate-600 bg-slate-100'
+    return <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${cls}`}>{p}</span>
+  }
+
   return (
-    <AdminShell title="Enquiry Management" subtitle="Contact form submissions">
+    <AdminShell
+      title="Enquiry Management"
+      subtitle="Lead management + support desk — track every donor, volunteer, partner, and beneficiary lead."
+    >
+      {loading && !dashboard ? (
+        <AdminCard><p className="text-sm text-slate-500">Loading enquiries…</p></AdminCard>
+      ) : dashboard ? (
+        <div className="space-y-6">
+          <EnquiryKpiCards kpis={dashboard.kpis} />
+          <EnquirySlaPanel kpis={dashboard.kpis} />
 
-      <div className="volunteer-admin-stats">
-        <div><strong>{enquiries.length}</strong><span>Total</span></div>
-        <div><strong>{enquiries.filter((e) => e.status === 'new').length}</strong><span>New</span></div>
-        <div><strong>{enquiries.filter((e) => e.status === 'in_progress').length}</strong><span>In Progress</span></div>
-        <div><strong>{enquiries.filter((e) => e.status === 'resolved').length}</strong><span>Resolved</span></div>
-      </div>
+          <AdminCard>
+            <EnquiryToolbar
+              onCreate={() => setShowAddModal(true)}
+              onAssign={() => window.alert('Select enquiries and assign to team members.')}
+              onBulkUpdate={() => window.alert('Bulk status update for selected tickets.')}
+              onExport={() => exportEnquiriesCsv(filteredEnquiries)}
+              onGenerateReport={() => window.alert('Generate enquiry summary report for leadership.')}
+              search={filters.search}
+              onSearchChange={(search) => setFilters((f) => ({ ...f, search }))}
+              showFilters={showFilters}
+              onToggleFilters={() => setShowFilters((v) => !v)}
+            />
+          </AdminCard>
 
-      <div className="volunteer-admin-layout">
-        <div className="volunteer-admin-table-wrap">
-          {loading ? <p className="volunteer-admin-empty">Loading…</p> : null}
-          <table className="volunteer-admin-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Subject</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {enquiries.map((e) => (
-                <tr key={e.id} data-selected={selected?.id === e.id}>
-                  <td>{e.name}</td>
-                  <td>{e.email}</td>
-                  <td>{e.subject}</td>
-                  <td><span className={`volunteer-status-badge status-${e.status}`}>{e.status}</span></td>
-                  <td>{new Date(e.createdAt).toLocaleDateString()}</td>
-                  <td><button type="button" onClick={() => openEnquiry(e)}>View</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!loading && !enquiries.length && <p className="volunteer-admin-empty">No enquiries yet.</p>}
-        </div>
+          {showFilters ? (
+            <EnquiryFiltersPanel filters={filters} onChange={(patch) => setFilters((f) => ({ ...f, ...patch }))} assignees={assignees} />
+          ) : null}
 
-        {selected && (
-          <aside className="volunteer-admin-profile">
-            <h2>{selected.name}</h2>
-            <p>{selected.email} · {selected.phone}</p>
-            <p><strong>Subject:</strong> {selected.subject}</p>
-            <p style={{ whiteSpace: 'pre-wrap' }}>{selected.message}</p>
-
-            <label className="volunteer-field">
-              <span>Status</span>
-              <select value={status} onChange={(e) => setStatus(e.target.value as EnquiryStatus)}>
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="volunteer-field">
-              <span>Admin Notes</span>
-              <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </label>
-
-            <div className="volunteer-admin-actions">
-              <button type="button" onClick={save}>Save</button>
-              <a href={`mailto:${selected.email}?subject=Re: ${encodeURIComponent(selected.subject)}`}>Reply via Email</a>
+          <AdminCard>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-[#0B2C6B]">
+                {viewMode === 'table' ? 'Lead / Ticket Table' : 'Ticket Pipeline'}
+              </h3>
+              <div className="flex rounded-xl border border-[#E5E7EB] p-0.5">
+                <button type="button" className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${viewMode === 'table' ? 'bg-[#0B2C6B] text-white' : 'text-slate-600'}`}
+                  onClick={() => setViewMode('table')}>Table</button>
+                <button type="button" className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${viewMode === 'pipeline' ? 'bg-[#0B2C6B] text-white' : 'text-slate-600'}`}
+                  onClick={() => setViewMode('pipeline')}>Pipeline</button>
+              </div>
             </div>
-          </aside>
-        )}
-      </div>
+
+            {filteredEnquiries.length === 0 ? (
+              <EnquiryEmptyState onCreate={() => setShowAddModal(true)} />
+            ) : viewMode === 'pipeline' ? (
+              <EnquiryPipeline pipeline={dashboard.pipeline} onSelect={openEnquiry} />
+            ) : (
+              <DataTable
+                columns={[
+                  { key: 'ticket', header: 'Ticket', render: (e) => <span className="font-semibold text-[#0B2C6B]">{e.ticketId}</span> },
+                  { key: 'name', header: 'Name', render: (e) => e.name },
+                  { key: 'category', header: 'Category', render: (e) => e.categoryLabel },
+                  { key: 'priority', header: 'Priority', render: (e) => priorityBadge(e.priority) },
+                  { key: 'assigned', header: 'Assigned To', render: (e) => e.assignedTo },
+                  { key: 'status', header: 'Status', render: (e) => <StatusBadge status={e.workflowStage} /> },
+                  { key: 'source', header: 'Source', render: (e) => e.sourceLabel },
+                  { key: 'created', header: 'Created', render: (e) => e.createdLabel },
+                  {
+                    key: 'actions',
+                    header: '',
+                    render: (e) => (
+                      <button type="button" className={adminBtnSecondary} onClick={(ev) => { ev.stopPropagation(); openEnquiry(e) }}>
+                        View
+                      </button>
+                    ),
+                  },
+                ]}
+                data={filteredEnquiries}
+                keyFn={(e) => e.id}
+                onRowClick={openEnquiry}
+                selectedKey={activeEnquiry?.id}
+                loading={loading}
+              />
+            )}
+          </AdminCard>
+
+          <EnquiryAnalytics
+            categoryDistribution={dashboard.categoryDistribution}
+            monthlyTrends={dashboard.monthlyTrends}
+            resolutionBreakdown={dashboard.resolutionBreakdown}
+          />
+
+          <EnquiryAiInsights insights={dashboard.aiInsights} />
+        </div>
+      ) : null}
+
+      <EnquiryProfileDrawer
+        enquiry={activeEnquiry}
+        notes={notes}
+        workflowStage={workflowStage}
+        onNotesChange={setNotes}
+        onWorkflowChange={setWorkflowStage}
+        onClose={() => setActiveEnquiry(null)}
+        onSave={handleSave}
+        onConvert={handleConvert}
+      />
+
+      <EnquiryAddModal open={showAddModal} onClose={() => setShowAddModal(false)} onSaved={refresh} />
     </AdminShell>
   )
 }
