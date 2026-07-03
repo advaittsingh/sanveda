@@ -63,7 +63,7 @@ export interface MonthlyGivingDashboardData {
   recentSubscribers: MonthlyGivingSubscriber[]
   failedRenewals: MonthlyGivingSubscriber[]
   topSubscribers: Array<{ name: string; value: number; planName: string }>
-  forecast: { nextMonth: number; nextQuarter: number; nextYear: number }
+  forecast: { nextMonth: number; nextQuarter: number; nextYear: number; yoyGrowth: number }
 }
 
 const PLAN_DEFINITIONS: PlanDefinition[] = [
@@ -329,10 +329,18 @@ export async function getMonthlyGivingDashboardData(): Promise<MonthlyGivingDash
       planName: getPlan(subscriber.planId).name,
     }))
 
+  const nextYear = Math.round(currentMrr * 12 * (retention / 100))
+  const lastYearBaseline = Math.round(previousMrr * 12)
+  const yoyGrowth =
+    lastYearBaseline > 0
+      ? Number((((nextYear - lastYearBaseline) / lastYearBaseline) * 100).toFixed(1))
+      : 0
+
   const forecast = {
     nextMonth: Math.round(currentMrr * (renewalRate / 100)),
     nextQuarter: Math.round(currentMrr * 3 * (retention / 100)),
-    nextYear: Math.round(currentMrr * 12 * (retention / 100)),
+    nextYear,
+    yoyGrowth,
   }
 
   return {
