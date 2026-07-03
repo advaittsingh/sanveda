@@ -264,6 +264,55 @@ export async function getDonationById(id: string): Promise<Donation | undefined>
   return readLocal().find((d) => d.id === id)
 }
 
+export async function updateDonation(
+  id: string,
+  patch: Partial<Pick<Donation, 'status' | 'donorName' | 'donorEmail' | 'donorPhone' | 'receiptNumber' | 'razorpayPaymentId'>>,
+): Promise<Donation | undefined> {
+  if (isSupabaseConfigured) {
+    const row: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    }
+
+    if (patch.status !== undefined) row.status = patch.status
+    if (patch.donorName !== undefined) row.donor_name = patch.donorName
+    if (patch.donorEmail !== undefined) row.donor_email = patch.donorEmail
+    if (patch.donorPhone !== undefined) row.donor_phone = patch.donorPhone
+    if (patch.receiptNumber !== undefined) row.receipt_number = patch.receiptNumber
+    if (patch.razorpayPaymentId !== undefined) row.razorpay_payment_id = patch.razorpayPaymentId
+
+    const { data, error } = await requireSupabase()
+      .from('donations')
+      .update(row)
+      .eq('id', id)
+      .select()
+      .maybeSingle()
+
+    if (error) throw new Error(error.message)
+    return data ? rowToDonation(data) : undefined
+  }
+
+  const all = readLocal()
+  const index = all.findIndex((d) => d.id === id)
+  if (index < 0) return undefined
+  all[index] = { ...all[index], ...patch }
+  writeLocal(all)
+  return all[index]
+}
+
+export async function ensureDonationReceipt(id: string): Promise<Donation | undefined> {
+  const existing = await getDonationById(id)
+  if (!existing) return undefined
+  if (existing.receiptNumber) return existing
+  if (existing.status !== 'completed') return undefined
+
+  if (isSupabaseConfigured) {
+    const { data: receiptData } = await requireSupabase().rpc('generate_receipt_number')
+    return updateDonation(id, { receiptNumber: String(receiptData ?? localReceiptNumber()) })
+  }
+
+  return updateDonation(id, { receiptNumber: localReceiptNumber() })
+}
+
 export function isRazorpayConfigured(): boolean {
   return Boolean(RAZORPAY_KEY_ID.trim())
 }
