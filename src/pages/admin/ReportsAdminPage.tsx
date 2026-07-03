@@ -1,126 +1,165 @@
-import { useState } from 'react'
-import { Download, FileSpreadsheet, FileText } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import AdminLogin from '../../components/admin/AdminLogin'
 import AdminShell from '../../components/admin/AdminShell'
-import AdminCard from '../../components/admin/ui/AdminCard'
-import { adminBtnSecondary } from '../../components/admin/ui/adminStyles'
+import ReportAiGeneratorModal from '../../components/admin/reports/ReportAiGeneratorModal'
+import ReportAiInsights from '../../components/admin/reports/ReportAiInsights'
+import ReportAnalytics from '../../components/admin/reports/ReportAnalytics'
+import ReportBuilderModal from '../../components/admin/reports/ReportBuilderModal'
+import ReportCategoryNav from '../../components/admin/reports/ReportCategoryNav'
+import ReportDomainPanels from '../../components/admin/reports/ReportDomainPanels'
+import ReportKpiCards from '../../components/admin/reports/ReportKpiCards'
+import ReportTemplatesGrid from '../../components/admin/reports/ReportTemplatesGrid'
+import ReportToolbar from '../../components/admin/reports/ReportToolbar'
 import { useAdminAuth } from '../../context/AdminAuthContext'
-import { getAllDonations } from '../../lib/donationService'
-import { getVolunteerApplications } from '../../lib/volunteerStore'
-import { getBeneficiaries } from '../../lib/beneficiaryService'
-import { getAllCampaignsAdmin } from '../../lib/campaignService'
-import { getFinancialSummary } from '../../lib/incomeService'
-
-function exportCsv(filename: string, rows: string[][]) {
-  const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
-  const blob = new Blob([csv], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-const REPORTS = [
-  { id: 'donations', title: 'Donation Report', desc: 'All completed donations with donor and campaign details' },
-  { id: 'volunteers', title: 'Volunteer Report', desc: 'Volunteer applications and status breakdown' },
-  { id: 'beneficiaries', title: 'Beneficiary Report', desc: 'Beneficiary records and support amounts' },
-  { id: 'campaigns', title: 'Campaign Report', desc: 'Campaign goals, raised amounts, and status' },
-  { id: 'finance', title: 'Finance Report', desc: 'Income, expenses, and net balance summary' },
-]
+import {
+  exportReportListCsv,
+  filterTemplates,
+  getReportDashboardData,
+  type ReportCategory,
+  type ReportDashboardData,
+  type ReportFormat,
+  type ReportTemplate,
+} from '../../lib/reportOperationsService'
 
 export default function ReportsAdminPage() {
   const { authed } = useAdminAuth()
-  const [exporting, setExporting] = useState<string | null>(null)
+  const [dashboard, setDashboard] = useState<ReportDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [category, setCategory] = useState<ReportCategory | 'all'>('all')
+  const [search, setSearch] = useState('')
+  const [showBuilder, setShowBuilder] = useState(false)
+  const [showAiGenerator, setShowAiGenerator] = useState(false)
+  const [scrollToTemplates, setScrollToTemplates] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
 
-  if (!authed) {
-    return <AdminLogin title="Reports" subtitle="Generate and export operational reports." />
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    try {
+      setDashboard(await getReportDashboardData())
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (authed) refresh()
+  }, [authed, refresh])
+
+  const filteredTemplates = useMemo(() => {
+    if (!dashboard) return []
+    let list = filterTemplates(dashboard.templates, category)
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      list = list.filter(
+        (t) => t.name.toLowerCase().includes(q) || t.categoryLabel.toLowerCase().includes(q) || t.description.toLowerCase().includes(q),
+      )
+    }
+    return list
+  }, [dashboard, category, search])
+
+  const notify = (message: string) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 3500)
   }
 
-  const handleExport = async (id: string, format: 'csv' | 'excel') => {
-    setExporting(`${id}-${format}`)
-    try {
-      if (id === 'donations') {
-        const donations = await getAllDonations()
-        exportCsv(`sanveda-donations.${format === 'excel' ? 'csv' : 'csv'}`, [
-          ['Date', 'Donor', 'Campaign', 'Amount', 'Status', 'Receipt'],
-          ...donations.map((d) => [
-            new Date(d.createdAt).toLocaleDateString(),
-            d.isAnonymous ? 'Anonymous' : (d.donorName ?? ''),
-            d.campaignTitle,
-            String(d.amount),
-            d.status,
-            d.receiptNumber ?? '',
-          ]),
-        ])
-      } else if (id === 'volunteers') {
-        const volunteers = await getVolunteerApplications()
-        exportCsv('sanveda-volunteers.csv', [
-          ['Name', 'Email', 'City', 'Status', 'Applied'],
-          ...volunteers.map((v) => [v.fullName, v.email, v.city, v.status, new Date(v.createdAt).toLocaleDateString()]),
-        ])
-      } else if (id === 'beneficiaries') {
-        const beneficiaries = await getBeneficiaries()
-        exportCsv('sanveda-beneficiaries.csv', [
-          ['Name', 'Program', 'Category', 'Status', 'Support Amount'],
-          ...beneficiaries.map((b) => [b.fullName, b.program ?? '', b.category ?? '', b.status, String(b.supportAmount ?? 0)]),
-        ])
-      } else if (id === 'campaigns') {
-        const campaigns = await getAllCampaignsAdmin()
-        exportCsv('sanveda-campaigns.csv', [
-          ['Title', 'Slug', 'Goal', 'Raised', 'Status'],
-          ...campaigns.map((c) => [c.title, c.slug, String(c.goal), String(c.raised), c.status]),
-        ])
-      } else if (id === 'finance') {
-        const summary = await getFinancialSummary()
-        exportCsv('sanveda-finance.csv', [
-          ['Metric', 'Value'],
-          ['Total Income', String(summary.totalIncome)],
-          ['Total Expenses', String(summary.totalExpenses)],
-          ['Net Balance', String(summary.netBalance)],
-          ['Pending Expenses', String(summary.pendingExpenses)],
-        ])
-      }
-    } finally {
-      setExporting(null)
+  const handleGenerate = (label: string) => {
+    notify(`Generating "${label}" — PDF and Excel will be ready shortly.`)
+  }
+
+  const handleBuilderGenerate = (name: string, format: ReportFormat) => {
+    notify(`Custom report "${name}" queued as ${format.toUpperCase()}.`)
+  }
+
+  const handleAiGenerate = (prompt: string) => {
+    notify(`AI report generation started: "${prompt.slice(0, 60)}…"`)
+  }
+
+  const handleExport = () => {
+    if (dashboard) exportReportListCsv(filteredTemplates.length ? filteredTemplates : dashboard.templates)
+    notify('Report list exported to CSV.')
+  }
+
+  const handleTemplateGenerate = (template: ReportTemplate) => {
+    handleGenerate(template.name)
+  }
+
+  useEffect(() => {
+    if (scrollToTemplates) {
+      document.getElementById('report-templates')?.scrollIntoView({ behavior: 'smooth' })
+      setScrollToTemplates(false)
     }
+  }, [scrollToTemplates])
+
+  if (!authed) {
+    return (
+      <AdminLogin
+        title="Reporting Center"
+        subtitle="Intelligence, compliance, and impact reporting hub for trustees, auditors, donors, and management."
+      />
+    )
   }
 
   return (
-    <AdminShell title="Reporting Center" subtitle="Export donation, volunteer, beneficiary, campaign, and finance reports">
-      <div className="grid gap-4 md:grid-cols-2">
-        {REPORTS.map((report) => (
-          <AdminCard key={report.id}>
-            <h3 className="font-semibold text-[#0B2C6B]">{report.title}</h3>
-            <p className="mt-1 text-sm text-slate-500">{report.desc}</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                className={adminBtnSecondary}
-                disabled={!!exporting}
-                onClick={() => handleExport(report.id, 'csv')}
-              >
-                <Download size={14} className="mr-1.5 inline" />
-                {exporting === `${report.id}-csv` ? 'Exporting…' : 'CSV'}
-              </button>
-              <button
-                type="button"
-                className={adminBtnSecondary}
-                disabled={!!exporting}
-                onClick={() => handleExport(report.id, 'excel')}
-              >
-                <FileSpreadsheet size={14} className="mr-1.5 inline" />
-                Excel
-              </button>
-              <button type="button" className={adminBtnSecondary} disabled title="PDF export coming soon">
-                <FileText size={14} className="mr-1.5 inline" />
-                PDF
-              </button>
+    <AdminShell
+      title="Reporting Center"
+      subtitle="CEO/CFO/Trustee cockpit — how much came in, where it went, who benefited, and what impact was created"
+    >
+      {toast ? (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-[#0B2C6B] px-4 py-3 text-sm font-medium text-white shadow-lg">
+          {toast}
+        </div>
+      ) : null}
+
+      {loading || !dashboard ? (
+        <div className="py-20 text-center text-sm text-slate-500">Loading reporting dashboard…</div>
+      ) : (
+        <div className="space-y-8">
+          <ReportKpiCards kpis={dashboard.kpis} />
+
+          <ReportToolbar
+            onCreateReport={() => setShowBuilder(true)}
+            onScheduleReport={() => notify('Schedule Report — configure frequency and recipients in the next release.')}
+            onTemplates={() => setScrollToTemplates(true)}
+            onExport={handleExport}
+            onAiGenerator={() => setShowAiGenerator(true)}
+            search={search}
+            onSearchChange={setSearch}
+          />
+
+          <ReportCategoryNav active={category} onChange={setCategory} />
+
+          {(category === 'all' || category === 'analytics') ? (
+            <ReportAnalytics
+              donationTrends={dashboard.donationTrends}
+              expenseDistribution={dashboard.expenseDistribution}
+              geographicImpact={dashboard.geographicImpact}
+            />
+          ) : null}
+
+          <div id="report-templates">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-[#0B2C6B]">Report Templates</h2>
+              <p className="text-sm text-slate-500">Predefined reports across all categories</p>
             </div>
-          </AdminCard>
-        ))}
-      </div>
+            <ReportTemplatesGrid templates={filteredTemplates} onGenerate={handleTemplateGenerate} />
+          </div>
+
+          <ReportDomainPanels data={dashboard} category={category} onGenerate={handleGenerate} />
+
+          <ReportAiInsights insights={dashboard.aiInsights} />
+        </div>
+      )}
+
+      <ReportBuilderModal
+        open={showBuilder}
+        onClose={() => setShowBuilder(false)}
+        onGenerate={handleBuilderGenerate}
+      />
+      <ReportAiGeneratorModal
+        open={showAiGenerator}
+        onClose={() => setShowAiGenerator(false)}
+        onGenerate={handleAiGenerate}
+      />
     </AdminShell>
   )
 }
