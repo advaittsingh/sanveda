@@ -26,6 +26,8 @@ const styles: Record<string, string> = {
   cancelled: 'bg-red-50 text-red-600',
   paused: 'bg-violet-50 text-violet-700',
   vip: 'bg-violet-50 text-violet-700',
+  invited: 'bg-violet-50 text-violet-700',
+  suspended: 'bg-red-50 text-red-600',
   dormant: 'bg-slate-100 text-slate-600',
   'at-risk': 'bg-orange-50 text-orange-700',
   individual: 'bg-sky-50 text-sky-700',
