@@ -5,6 +5,7 @@ const styles: Record<string, string> = {
   review: 'bg-sky-50 text-sky-700',
   screening: 'bg-sky-50 text-sky-700',
   interview: 'bg-violet-50 text-violet-700',
+  orientation: 'bg-indigo-50 text-indigo-700',
   active: 'bg-emerald-50 text-emerald-700',
   success: 'bg-emerald-50 text-emerald-700',
   approved: 'bg-emerald-50 text-emerald-700',

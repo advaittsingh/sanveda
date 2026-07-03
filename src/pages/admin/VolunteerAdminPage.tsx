@@ -1,199 +1,268 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Eye } from 'lucide-react'
 import AdminLogin from '../../components/admin/AdminLogin'
 import AdminShell from '../../components/admin/AdminShell'
+import VolunteerAiInsights from '../../components/admin/volunteers/VolunteerAiInsights'
+import VolunteerAnalytics from '../../components/admin/volunteers/VolunteerAnalytics'
+import VolunteerFiltersPanel from '../../components/admin/volunteers/VolunteerFiltersPanel'
+import VolunteerKanban from '../../components/admin/volunteers/VolunteerKanban'
+import VolunteerKpiCards from '../../components/admin/volunteers/VolunteerKpiCards'
+import VolunteerProfileDrawer from '../../components/admin/volunteers/VolunteerProfileDrawer'
+import VolunteerTeamManagement from '../../components/admin/volunteers/VolunteerTeamManagement'
+import VolunteerToolbar, { VolunteerEmptyState } from '../../components/admin/volunteers/VolunteerToolbar'
+import AdminCard from '../../components/admin/ui/AdminCard'
+import DataTable from '../../components/admin/ui/DataTable'
+import StatusBadge from '../../components/admin/ui/StatusBadge'
+import { adminBtnSecondary } from '../../components/admin/ui/adminStyles'
 import { useAdminAuth } from '../../context/AdminAuthContext'
+import { downloadVolunteerIdCard } from '../../lib/documentService'
+import { registerVerification } from '../../lib/verificationService'
 import {
-  getVolunteerApplications,
-  getVolunteerDashboardStats,
   notifyVolunteerByEmail,
   updateVolunteerApplication,
 } from '../../lib/volunteerStore'
-import { downloadAppointmentLetter, downloadVolunteerIdCard } from '../../lib/documentService'
-import { registerVerification } from '../../lib/verificationService'
-import { VOLUNTEER_ROLE_OPTIONS } from '../../constants/volunteerContent'
-import type { VolunteerApplication, VolunteerStatus } from '../../types/volunteer'
-import StatCard from '../../components/admin/ui/StatCard'
-import DataTable from '../../components/admin/ui/DataTable'
-import StatusBadge from '../../components/admin/ui/StatusBadge'
-import DetailPanel from '../../components/admin/ui/DetailPanel'
-import { adminBtnPrimary, adminBtnSecondary, adminInputClass, adminLabelClass } from '../../components/admin/ui/adminStyles'
+import type { VolunteerStatus } from '../../types/volunteer'
+import {
+  exportVolunteersCsv,
+  filterVolunteers,
+  getVolunteerDashboardData,
+  type VolunteerDashboardData,
+  type VolunteerFilters,
+  type VolunteerProfile,
+} from '../../lib/volunteerOperationsService'
 
-function roleLabel(role: string) {
-  return VOLUNTEER_ROLE_OPTIONS.find((r) => r.value === role)?.label ?? role
+const defaultFilters: VolunteerFilters = {
+  search: '',
+  status: 'all',
+  department: 'all',
+  team: 'all',
 }
 
 export default function VolunteerAdminPage() {
   const { authed } = useAdminAuth()
-  const [applications, setApplications] = useState<VolunteerApplication[]>([])
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0, active: 0, interview: 0 })
-  const [selected, setSelected] = useState<VolunteerApplication | null>(null)
-  const [notes, setNotes] = useState('')
+  const [dashboard, setDashboard] = useState<VolunteerDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<VolunteerFilters>(defaultFilters)
+  const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table')
+  const [activeVolunteer, setActiveVolunteer] = useState<VolunteerProfile | null>(null)
   const [team, setTeam] = useState('')
+  const [notes, setNotes] = useState('')
   const [interviewDate, setInterviewDate] = useState('')
-  const [loading, setLoading] = useState(false)
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      const [apps, dashboardStats] = await Promise.all([
-        getVolunteerApplications(),
-        getVolunteerDashboardStats(),
-      ])
-      setApplications(apps)
-      setStats(dashboardStats)
+      setDashboard(await getVolunteerDashboardData())
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (authed) refresh()
-  }, [authed])
+  }, [authed, refresh])
 
-  const openProfile = (app: VolunteerApplication) => {
-    setSelected(app)
-    setNotes(app.adminNotes ?? '')
-    setTeam(app.assignedTeam ?? '')
-    setInterviewDate(app.interviewDate ? app.interviewDate.slice(0, 16) : '')
-  }
+  const filteredVolunteers = useMemo(() => {
+    if (!dashboard) return []
+    return filterVolunteers(dashboard.volunteers, filters)
+  }, [dashboard, filters])
 
-  const applyPatch = async (id: string, patchData: Partial<VolunteerApplication>) => {
-    const updated = await updateVolunteerApplication(id, patchData)
-    await refresh()
-    if (updated) setSelected(updated)
+  const teamOptions = useMemo(() => {
+    if (!dashboard) return []
+    return [...new Set(dashboard.volunteers.map((v) => v.assignedTeam).filter(Boolean))] as string[]
+  }, [dashboard])
+
+  const openProfile = (vol: VolunteerProfile) => {
+    setActiveVolunteer(vol)
+    setTeam(vol.assignedTeam ?? '')
+    setNotes(vol.adminNotes ?? '')
+    setInterviewDate(vol.interviewDate ? vol.interviewDate.slice(0, 16) : '')
   }
 
   const setStatus = async (id: string, status: VolunteerStatus) => {
     const updated = await updateVolunteerApplication(id, { status })
     await refresh()
-    if (updated) setSelected(updated)
-    if (!updated) return
+    if (updated) {
+      const refreshed = (await getVolunteerDashboardData()).volunteers.find((v) => v.id === id)
+      if (refreshed) setActiveVolunteer(refreshed)
 
-    if (status === 'approved' && updated.volunteerId) {
-      notifyVolunteerByEmail(
-        updated,
-        'Sanveda Volunteer Application Approved',
-        `Dear ${updated.fullName},\n\nCongratulations! Your volunteer application has been approved.\nVolunteer ID: ${updated.volunteerId}\n\nWelcome to the Sanveda family.\n\nRegards,\nSanveda Global Humanitarian Foundation`,
-      )
-      await registerVerification({
-        type: 'volunteer_id',
-        holderName: updated.fullName,
-        referenceId: updated.volunteerId,
-        metadata: { applicationId: updated.id },
-      }).catch(() => {})
+      if (status === 'approved' && updated.volunteerId) {
+        notifyVolunteerByEmail(
+          updated,
+          'Sanveda Volunteer Application Approved',
+          `Dear ${updated.fullName},\n\nCongratulations! Your volunteer application has been approved.\nVolunteer ID: ${updated.volunteerId}\n\nWelcome to the Sanveda family.`,
+        )
+        await registerVerification({
+          type: 'volunteer_id',
+          holderName: updated.fullName,
+          referenceId: updated.volunteerId,
+          metadata: { applicationId: updated.id },
+        }).catch(() => {})
+      }
+      if (status === 'rejected') {
+        notifyVolunteerByEmail(
+          updated,
+          'Sanveda Volunteer Application Update',
+          `Dear ${updated.fullName},\n\nThank you for your interest in volunteering with Sanveda.`,
+        )
+      }
     }
-    if (status === 'rejected') {
-      notifyVolunteerByEmail(
-        updated,
-        'Sanveda Volunteer Application Update',
-        `Dear ${updated.fullName},\n\nThank you for your interest in volunteering with Sanveda. After careful review, we are unable to proceed with your application at this time.\n\nRegards,\nSanveda Global Humanitarian Foundation`,
-      )
+  }
+
+  const handleSave = async (
+    id: string,
+    patch: { assignedTeam?: string; adminNotes?: string; interviewDate?: string },
+  ) => {
+    const updated = await updateVolunteerApplication(id, patch)
+    await refresh()
+    if (updated) {
+      const refreshed = (await getVolunteerDashboardData()).volunteers.find((v) => v.id === id)
+      if (refreshed) setActiveVolunteer(refreshed)
     }
+  }
+
+  const handleBulkApprove = async () => {
+    const pending = filteredVolunteers.filter((v) => v.status === 'pending' || v.status === 'screening')
+    for (const vol of pending.slice(0, 10)) {
+      await setStatus(vol.id, 'approved')
+    }
+  }
+
+  const handleGenerateIdCards = () => {
+    const approved = filteredVolunteers.filter((v) => v.volunteerId)
+    if (!approved.length) {
+      window.alert('No approved volunteers with ID cards in the current view.')
+      return
+    }
+    approved.slice(0, 5).forEach((v) => downloadVolunteerIdCard(v))
   }
 
   if (!authed) {
+    return <AdminLogin title="Volunteer Admin" subtitle="Sign in to manage volunteer applications." />
+  }
+
+  if (loading || !dashboard) {
     return (
-      <AdminLogin
-        title="Volunteer Admin"
-        subtitle="Sign in to manage volunteer applications."
-      />
+      <AdminShell title="Volunteer Management" subtitle="Applications, approvals, assignments, and ID cards">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />
+          ))}
+        </div>
+      </AdminShell>
     )
   }
 
-  return (
-    <AdminShell title="Volunteer Management" subtitle="Applications, approvals, assignments, and ID cards">
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Applications" value={stats.total} />
-        <StatCard label="Pending" value={stats.pending} accent="secondary" />
-        <StatCard label="Approved" value={stats.approved} accent="green" />
-        <StatCard label="Rejected" value={stats.rejected} />
-        <StatCard label="Active" value={stats.active} accent="blue" />
-      </div>
+  const patchFilters = (patch: Partial<VolunteerFilters>) => setFilters((prev) => ({ ...prev, ...patch }))
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
-        <DataTable
-          loading={loading}
-          data={applications}
-          keyFn={(app) => app.id}
-          selectedKey={selected?.id}
-          onRowClick={openProfile}
-          columns={[
-            {
-              key: 'photo',
-              header: '',
-              render: (app) => (
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B2C6B]/10 text-sm font-bold text-[#0B2C6B]">
-                  {app.fullName.charAt(0)}
-                </span>
-              ),
-            },
-            { key: 'name', header: 'Name', render: (app) => <span className="font-medium">{app.fullName}</span> },
-            { key: 'role', header: 'Role', render: (app) => app.preferredRoles.map(roleLabel).join(', ') },
-            { key: 'location', header: 'Location', render: (app) => `${app.city}, ${app.state}` },
-            { key: 'team', header: 'Team', render: (app) => app.assignedTeam ?? '—' },
-            { key: 'status', header: 'Status', render: (app) => <StatusBadge status={app.status} /> },
-            {
-              key: 'actions',
-              header: 'Actions',
-              render: (app) => (
-                <button type="button" className={adminBtnSecondary} onClick={(e) => { e.stopPropagation(); openProfile(app) }}>
-                  View
-                </button>
-              ),
-            },
-          ]}
+  return (
+    <AdminShell title="Volunteer Management" subtitle="Full NGO volunteer workforce management system">
+      <div className="space-y-6">
+        <VolunteerKpiCards kpis={dashboard.kpis} />
+
+        <VolunteerToolbar
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onAddVolunteer={() => window.open('/volunteer/apply', '_blank')}
+          onImport={() => window.alert('CSV import will be available in a future release.')}
+          onBulkApprove={handleBulkApprove}
+          onGenerateIdCards={handleGenerateIdCards}
+          onExport={() => exportVolunteersCsv(filteredVolunteers)}
+          search={filters.search}
+          onSearchChange={(search) => patchFilters({ search })}
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters((v) => !v)}
         />
 
-        <DetailPanel open={!!selected} onClose={() => setSelected(null)} title={selected?.fullName ?? 'Volunteer'}>
-          {selected && (
-            <div className="space-y-5 text-sm text-slate-600">
-              <p className="text-xs text-slate-400">{selected.id}</p>
-              {selected.volunteerId ? <p><strong className="text-slate-800">Volunteer ID:</strong> {selected.volunteerId}</p> : null}
-              <div>
-                <h3 className="mb-1 font-semibold text-[#0B2C6B]">Contact</h3>
-                <p>{selected.email} · {selected.phone}</p>
-                <p>{selected.address}</p>
-                <p>{selected.city}, {selected.state}, {selected.country}</p>
-              </div>
-              <div>
-                <h3 className="mb-1 font-semibold text-[#0B2C6B]">Details</h3>
-                <p><strong>Roles:</strong> {selected.preferredRoles.map(roleLabel).join(', ')}</p>
-                <p><strong>Type:</strong> {selected.volunteerType}</p>
-                <p><strong>Hours/week:</strong> {selected.hoursPerWeek || '—'}</p>
-              </div>
-              <div>
-                <h3 className="mb-1 font-semibold text-[#0B2C6B]">Motivation</h3>
-                <p>{selected.motivation}</p>
-                <p>{selected.skills}</p>
-              </div>
-              <label className="block"><span className={adminLabelClass}>Assigned Team</span>
-                <input className={adminInputClass} value={team} onChange={(e) => setTeam(e.target.value)} />
-              </label>
-              <label className="block"><span className={adminLabelClass}>Interview Date</span>
-                <input type="datetime-local" className={adminInputClass} value={interviewDate} onChange={(e) => setInterviewDate(e.target.value)} />
-              </label>
-              <label className="block"><span className={adminLabelClass}>Notes</span>
-                <textarea className={adminInputClass} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <button type="button" className={adminBtnSecondary} onClick={() => setStatus(selected.id, 'screening')}>Screening</button>
-                <button type="button" className={adminBtnSecondary} onClick={() => applyPatch(selected.id, { status: 'interview', interviewDate: interviewDate || new Date().toISOString() })}>Interview</button>
-                <button type="button" className={adminBtnPrimary} onClick={() => setStatus(selected.id, 'approved')}>Approve</button>
-                <button type="button" className={adminBtnSecondary} onClick={() => setStatus(selected.id, 'rejected')}>Reject</button>
-                <button type="button" className={adminBtnPrimary} onClick={() => setStatus(selected.id, 'active')}>Activate</button>
-                {selected.volunteerId && selected.status !== 'rejected' ? (
-                  <>
-                    <button type="button" className={adminBtnSecondary} onClick={() => downloadVolunteerIdCard(selected)}>ID Card</button>
-                    <button type="button" className={adminBtnSecondary} onClick={() => downloadAppointmentLetter({ recipientName: selected.fullName, role: selected.preferredRoles[0] ?? 'Volunteer', department: selected.assignedTeam ?? 'Field Operations', startDate: new Date().toLocaleDateString('en-IN'), type: 'volunteer', referenceId: selected.volunteerId ?? selected.id })}>Appointment</button>
-                  </>
-                ) : null}
-                <button type="button" className={adminBtnSecondary} onClick={() => applyPatch(selected.id, { assignedTeam: team, adminNotes: notes, interviewDate: interviewDate || undefined })}>Save</button>
-                <button type="button" className={adminBtnSecondary} onClick={() => notifyVolunteerByEmail(selected, 'Sanveda Volunteer Update', `Dear ${selected.fullName},\n\nWe have an update regarding your volunteer application (${selected.id}).\n\nRegards,\nSanveda Team`)}>Email</button>
-              </div>
-            </div>
+        {showFilters ? (
+          <VolunteerFiltersPanel filters={filters} teams={teamOptions} onChange={patchFilters} />
+        ) : null}
+
+        <VolunteerTeamManagement teams={dashboard.teams} />
+
+        <AdminCard>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-[#0B2C6B]">Volunteer Directory</h3>
+            <p className="text-sm text-slate-500">{filteredVolunteers.length} volunteers</p>
+          </div>
+
+          {!filteredVolunteers.length ? (
+            <VolunteerEmptyState
+              onAddVolunteer={() => window.open('/volunteer/apply', '_blank')}
+              onImport={() => patchFilters({ search: '' })}
+            />
+          ) : viewMode === 'kanban' ? (
+            <VolunteerKanban pipeline={dashboard.pipeline} onSelect={openProfile} />
+          ) : (
+            <DataTable
+              data={filteredVolunteers}
+              keyFn={(v) => v.id}
+              onRowClick={openProfile}
+              selectedKey={activeVolunteer?.id}
+              columns={[
+                {
+                  key: 'volunteer',
+                  header: 'Volunteer',
+                  render: (v) => (
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0B2C6B]/10 text-sm font-bold text-[#0B2C6B]">
+                        {v.fullName.charAt(0)}
+                      </span>
+                      <span className="font-semibold text-[#0B2C6B]">{v.fullName}</span>
+                    </div>
+                  ),
+                },
+                { key: 'role', header: 'Role', render: (v) => v.primaryRole },
+                { key: 'dept', header: 'Department', render: (v) => v.department },
+                { key: 'location', header: 'Location', render: (v) => v.location },
+                { key: 'exp', header: 'Experience', render: (v) => v.experienceLabel },
+                { key: 'status', header: 'Status', render: (v) => <StatusBadge status={v.status} /> },
+                { key: 'hours', header: 'Hours', render: (v) => v.volunteerHours },
+                {
+                  key: 'actions',
+                  header: 'Actions',
+                  render: (v) => (
+                    <button
+                      type="button"
+                      className={`${adminBtnSecondary} !px-3 !py-1.5 text-xs`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openProfile(v)
+                      }}
+                    >
+                      <Eye size={13} className="mr-1" />
+                      View
+                    </button>
+                  ),
+                },
+              ]}
+            />
           )}
-        </DetailPanel>
+        </AdminCard>
+
+        <VolunteerAnalytics
+          volunteersByDepartment={dashboard.volunteersByDepartment}
+          volunteerGrowth={dashboard.volunteerGrowth}
+          retentionRates={dashboard.retentionRates}
+          hoursByDepartment={dashboard.hoursByDepartment}
+        />
+
+        <VolunteerAiInsights insights={dashboard.aiInsights} />
       </div>
+
+      <VolunteerProfileDrawer
+        volunteer={activeVolunteer}
+        onClose={() => setActiveVolunteer(null)}
+        onStatusChange={setStatus}
+        onSave={handleSave}
+        team={team}
+        notes={notes}
+        interviewDate={interviewDate}
+        onTeamChange={setTeam}
+        onNotesChange={setNotes}
+        onInterviewDateChange={setInterviewDate}
+      />
     </AdminShell>
   )
 }
