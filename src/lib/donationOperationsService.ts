@@ -16,6 +16,7 @@ type DonationSource = 'Website' | 'UPI' | 'Razorpay' | 'Bank'
 type DonationGateway = 'Razorpay' | 'UPI' | 'Bank' | 'Manual'
 type TaxExemption = '80G' | 'FCRA' | 'CSR' | 'None'
 type RefundStatus = 'none' | 'requested' | 'approved' | 'rejected'
+export type DonationRange = 'today' | '7d' | '30d' | 'quarter' | 'year'
 
 export interface DonationAuditLog {
   id: string
@@ -61,6 +62,7 @@ export interface DonationOpsRecord extends Donation {
 
 export interface DonationDashboardData {
   allDonations: DonationOpsRecord[]
+  range: DonationRange
   kpis: {
     totalRaised: number
     today: number
@@ -78,10 +80,21 @@ export interface DonationDashboardData {
   pendingVerifications: DonationOpsRecord[]
   topDonors: { label: string; value: number; donationCount: number }[]
   taxReceipts: { generated: number; pending: number; sent: number; downloaded: number }
-  reconciliation: { collected: number; received: number; difference: number }
+  receiptProgress: number
+  reconciliation: { collected: number; received: number; difference: number; status: 'ok' | 'warning' }
   funnel: { visitors: number; clickedDonate: number; startedPayment: number; successful: number }
   refunds: DonationOpsRecord[]
-  compliance: { eightyGGenerated: number; fcraDonations: number; csrDonations: number; pendingDocuments: number }
+  compliance: {
+    eightyGGenerated: number
+    fcraDonations: number
+    csrDonations: number
+    pendingDocuments: number
+    eightyGStatus: 'compliant' | 'warning'
+    fcraStatus: 'compliant' | 'warning'
+    csrStatus: 'compliant' | 'warning'
+  }
+  alerts: { id: string; message: string; tone: 'warning' | 'info' }[]
+  activity: { id: string; time: string; title: string; subtitle?: string }[]
 }
 
 function readMetaMap(): Record<string, DonationAdminMeta> {
@@ -150,7 +163,106 @@ function monthBounds(offset = 0) {
   return new Date(now.getFullYear(), now.getMonth() - offset, 1).toISOString()
 }
 
-export async function getDonationDashboardData(): Promise<DonationDashboardData> {
+function getRangeStart(range: DonationRange) {
+  const now = new Date()
+  switch (range) {
+    case 'today':
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+    case '7d':
+      return new Date(now.getTime() - 7 * 86400000).toISOString()
+    case 'quarter':
+      return new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString()
+    case 'year':
+      return new Date(now.getFullYear(), 0, 1).toISOString()
+    default:
+      return new Date(now.getTime() - 30 * 86400000).toISOString()
+  }
+}
+
+function getPreviousRangeStart(range: DonationRange) {
+  const now = new Date()
+  switch (range) {
+    case 'today':
+      return new Date(now.getTime() - 86400000).toISOString()
+    case '7d':
+      return new Date(now.getTime() - 14 * 86400000).toISOString()
+    case 'quarter':
+      return new Date(now.getFullYear(), now.getMonth() - 6, 1).toISOString()
+    case 'year':
+      return new Date(now.getFullYear() - 1, 0, 1).toISOString()
+    default:
+      return new Date(now.getTime() - 60 * 86400000).toISOString()
+  }
+}
+
+function buildTimeSeries(completed: DonationOpsRecord[], range: DonationRange) {
+  const now = new Date()
+
+  if (range === 'today') {
+    return Array.from({ length: 6 }).map((_, i) => {
+      const bucketStart = new Date(now.getTime() - (5 - i) * 3600000)
+      const bucketEnd = new Date(bucketStart.getTime() + 3600000)
+      return {
+        label: bucketStart.toLocaleTimeString('en-IN', { hour: '2-digit' }),
+        value: completed
+          .filter((d) => d.createdAt >= bucketStart.toISOString() && d.createdAt < bucketEnd.toISOString())
+          .reduce((sum, d) => sum + d.amount, 0),
+      }
+    })
+  }
+
+  if (range === '7d') {
+    return Array.from({ length: 7 }).map((_, i) => {
+      const bucketStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (6 - i))
+      const bucketEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (5 - i))
+      return {
+        label: bucketStart.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+        value: completed
+          .filter((d) => d.createdAt >= bucketStart.toISOString() && d.createdAt < bucketEnd.toISOString())
+          .reduce((sum, d) => sum + d.amount, 0),
+      }
+    })
+  }
+
+  if (range === 'quarter') {
+    return Array.from({ length: 3 }).map((_, i) => {
+      const bucketStart = new Date(now.getFullYear(), now.getMonth() - (2 - i), 1)
+      const bucketEnd = new Date(now.getFullYear(), now.getMonth() - (1 - i), 1)
+      return {
+        label: bucketStart.toLocaleDateString('en-IN', { month: 'short' }),
+        value: completed
+          .filter((d) => d.createdAt >= bucketStart.toISOString() && d.createdAt < bucketEnd.toISOString())
+          .reduce((sum, d) => sum + d.amount, 0),
+      }
+    })
+  }
+
+  if (range === 'year') {
+    return Array.from({ length: 12 }).map((_, i) => {
+      const bucketStart = new Date(now.getFullYear(), i, 1)
+      const bucketEnd = new Date(now.getFullYear(), i + 1, 1)
+      return {
+        label: bucketStart.toLocaleDateString('en-IN', { month: 'short' }),
+        value: completed
+          .filter((d) => d.createdAt >= bucketStart.toISOString() && d.createdAt < bucketEnd.toISOString())
+          .reduce((sum, d) => sum + d.amount, 0),
+      }
+    })
+  }
+
+  return Array.from({ length: 6 }).map((_, i) => {
+    const bucketStart = new Date(now.getTime() - (30 - (i + 1) * 5) * 86400000)
+    const bucketEnd = new Date(bucketStart.getTime() + 5 * 86400000)
+    return {
+      label: bucketStart.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+      value: completed
+        .filter((d) => d.createdAt >= bucketStart.toISOString() && d.createdAt < bucketEnd.toISOString())
+        .reduce((sum, d) => sum + d.amount, 0),
+    }
+  })
+}
+
+export async function getDonationDashboardData(range: DonationRange = '30d'): Promise<DonationDashboardData> {
   const [donations, campaigns] = await Promise.all([getAllDonations(), getAllCampaignsAdmin()])
   const metaMap = readMetaMap()
   const campaignCategoryMap = new Map<string, string>()
@@ -201,25 +313,31 @@ export async function getDonationDashboardData(): Promise<DonationDashboardData>
   const successfulTransactions = completed.length
   const totalRaised = completed.reduce((sum, d) => sum + d.amount, 0)
 
+  const rangeStart = getRangeStart(range)
+  const prevRangeStart = getPreviousRangeStart(range)
   const todayStart = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).toISOString()
   const monthStart = monthBounds(0)
-  const prevMonthStart = monthBounds(1)
   const today = completed.filter((d) => d.createdAt >= todayStart).reduce((sum, d) => sum + d.amount, 0)
   const thisMonth = completed.filter((d) => d.createdAt >= monthStart).reduce((sum, d) => sum + d.amount, 0)
-  const previousMonth = completed
-    .filter((d) => d.createdAt >= prevMonthStart && d.createdAt < monthStart)
+  const previousRange = completed
+    .filter((d) => d.createdAt >= prevRangeStart && d.createdAt < rangeStart)
     .reduce((sum, d) => sum + d.amount, 0)
-  const raisedTrend = formatTrend(thisMonth, previousMonth)
+  const currentRangeRaised = completed
+    .filter((d) => d.createdAt >= rangeStart)
+    .reduce((sum, d) => sum + d.amount, 0)
+  const raisedTrend = formatTrend(currentRangeRaised, previousRange)
+  const visibleRecords = records.filter((d) => d.createdAt >= rangeStart)
+  const visibleCompleted = visibleRecords.filter((d) => d.status === 'completed')
 
   const donationSources = Array.from(
-    records.reduce((acc, donation) => {
+    visibleCompleted.reduce((acc, donation) => {
       acc.set(donation.source, (acc.get(donation.source) ?? 0) + donation.amount)
       return acc
     }, new Map<string, number>()),
   ).map(([label, value]) => ({ label, value }))
 
   const campaignAllocation = Array.from(
-    records.reduce((acc, donation) => {
+    visibleCompleted.reduce((acc, donation) => {
       acc.set(donation.category, (acc.get(donation.category) ?? 0) + donation.amount)
       return acc
     }, new Map<string, number>()),
@@ -228,18 +346,10 @@ export async function getDonationDashboardData(): Promise<DonationDashboardData>
     .sort((a, b) => b.value - a.value)
     .slice(0, 6)
 
-  const donationsOverTime = Array.from({ length: 6 }).map((_, i) => {
-    const start = monthBounds(5 - i)
-    const end = i === 5 ? undefined : monthBounds(4 - i)
-    const label = new Date(start).toLocaleDateString('en-IN', { month: 'short' })
-    const value = completed
-      .filter((d) => d.createdAt >= start && (!end || d.createdAt < end))
-      .reduce((sum, d) => sum + d.amount, 0)
-    return { label, value }
-  })
+  const donationsOverTime = buildTimeSeries(visibleCompleted, range)
 
   const topDonors = Array.from(
-    completed.reduce((acc, donation) => {
+    visibleCompleted.reduce((acc, donation) => {
       if (donation.isAnonymous) return acc
       const key = donation.donorLabel
       const current = acc.get(key) ?? { amount: 0, count: 0 }
@@ -269,9 +379,37 @@ export async function getDonationDashboardData(): Promise<DonationDashboardData>
 
   const refunds = records.filter((d) => d.refundStatus !== 'none' || d.status === 'refunded')
   const pendingDocuments = records.reduce((sum, d) => sum + d.pendingDocuments.length, 0)
+  const receiptProgress = generated + receiptsPending > 0 ? Math.round((generated / (generated + receiptsPending)) * 100) : 100
+  const activity = [
+    ...records.slice(0, 4).map((donation) => ({
+      id: `don-${donation.id}`,
+      time: new Date(donation.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+      title: `${donation.status === 'completed' ? '₹' + donation.amount.toLocaleString('en-IN') + ' donation' : 'Donation update'}`,
+      subtitle: donation.donorLabel,
+    })),
+    ...records
+      .flatMap((donation) =>
+        donation.auditLogs.map((log) => ({
+          id: log.id,
+          time: new Date(log.at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+          title: log.action,
+          subtitle: log.detail,
+        })),
+      )
+      .sort((a, b) => b.time.localeCompare(a.time))
+      .slice(0, 4),
+  ]
+    .slice(0, 6)
+
+  const alerts = [
+    pending.length > 0 ? { id: 'pending', message: `${pending.length} donations require verification`, tone: 'warning' as const } : null,
+    receiptsPending > 0 ? { id: 'receipts', message: `${receiptsPending} receipts pending generation`, tone: 'warning' as const } : null,
+    difference > 0 ? { id: 'recon', message: `${difference.toLocaleString('en-IN')} reconciliation mismatch`, tone: 'info' as const } : null,
+  ].filter(Boolean) as { id: string; message: string; tone: 'warning' | 'info' }[]
 
   return {
     allDonations: records,
+    range,
     kpis: {
       totalRaised,
       today,
@@ -285,7 +423,7 @@ export async function getDonationDashboardData(): Promise<DonationDashboardData>
     donationsOverTime,
     donationSources,
     campaignAllocation,
-    recentDonations: records.slice(0, 8),
+    recentDonations: visibleRecords.slice(0, 8),
     pendingVerifications: pending.slice(0, 6),
     topDonors,
     taxReceipts: {
@@ -294,10 +432,12 @@ export async function getDonationDashboardData(): Promise<DonationDashboardData>
       sent,
       downloaded,
     },
+    receiptProgress,
     reconciliation: {
       collected: gatewayCollected,
       received,
       difference,
+      status: difference > 0 ? 'warning' : 'ok',
     },
     funnel: {
       visitors: funnelVisitors,
@@ -311,7 +451,12 @@ export async function getDonationDashboardData(): Promise<DonationDashboardData>
       fcraDonations: records.filter((d) => d.complianceType === 'FCRA').length,
       csrDonations: records.filter((d) => d.complianceType === 'CSR').length,
       pendingDocuments,
+      eightyGStatus: receiptsPending > 0 ? 'warning' : 'compliant',
+      fcraStatus: 'compliant',
+      csrStatus: pendingDocuments > 0 ? 'warning' : 'compliant',
     },
+    alerts,
+    activity,
   }
 }
 

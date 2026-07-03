@@ -25,8 +25,8 @@ interface Props {
 export default function DonationAnalytics({ donationsOverTime, donationSources, campaignAllocation }: Props) {
   return (
     <div className="grid gap-5 xl:grid-cols-3">
-      <ChartCard title="Donations Over Time" subtitle="Monthly fundraising trend" className="xl:col-span-2">
-        <ResponsiveContainer width="100%" height={260}>
+      <ChartCard title="Donations Over Time" subtitle="Fundraising trend" className="min-h-0">
+        <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={donationsOverTime}>
             <defs>
               <linearGradient id="donationArea" x1="0" y1="0" x2="0" y2="1">
@@ -43,8 +43,8 @@ export default function DonationAnalytics({ donationsOverTime, donationSources, 
         </ResponsiveContainer>
       </ChartCard>
 
-      <ChartCard title="Donation Sources" subtitle="Collection mix by source">
-        <ResponsiveContainer width="100%" height={260}>
+      <ChartCard title="Donation Sources" subtitle="Collection mix">
+        <ResponsiveContainer width="100%" height={220}>
           <PieChart>
             <Pie
               data={donationSources.length ? donationSources : [{ label: 'No data', value: 1 }]}
@@ -64,8 +64,8 @@ export default function DonationAnalytics({ donationsOverTime, donationSources, 
         </ResponsiveContainer>
       </ChartCard>
 
-      <ChartCard title="Campaign Allocation" subtitle="Funds by campaign category" className="xl:col-span-3">
-        <ResponsiveContainer width="100%" height={260}>
+      <ChartCard title="Campaign Allocation" subtitle="Funds by category">
+        <ResponsiveContainer width="100%" height={200}>
           <BarChart data={campaignAllocation.length ? campaignAllocation : [{ label: 'No data', value: 0 }]}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
             <XAxis dataKey="label" tick={{ fontSize: 11 }} />
