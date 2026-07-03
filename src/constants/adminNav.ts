@@ -75,6 +75,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
   {
     title: 'Finance',
     items: [
+      { label: 'Overview', to: '/admin/finance', icon: BarChart3 },
       { label: 'Income', to: '/admin/income', icon: Wallet },
       { label: 'Expenses', to: '/admin/expenses', icon: Receipt },
       { label: 'Reports', to: '/admin/reports', icon: BarChart3 },

@@ -2,7 +2,6 @@ import AdminLogin from '../../components/admin/AdminLogin'
 import AdminShell from '../../components/admin/AdminShell'
 import AdminCard from '../../components/admin/ui/AdminCard'
 import { useAdminAuth } from '../../context/AdminAuthContext'
-import { Navigate } from 'react-router-dom'
 import FinanceAdminPage from './FinanceAdminPage'
 
 function PlaceholderAdminPage({ title, subtitle }: { title: string; subtitle: string }) {
@@ -28,7 +27,7 @@ export function ExpensesAdminPage() {
 }
 
 export function TaxReceiptsAdminPage() {
-  return <Navigate to="/admin/donations" replace />
+  return <FinanceAdminPage defaultTab="tax_receipts" />
 }
 
 export function CmsAdminPage() {
