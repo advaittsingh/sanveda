@@ -33,17 +33,22 @@ export async function logAudit(
 ): Promise<void> {
   const now = new Date().toISOString()
   let userId: string | undefined
+  const severity = action.endsWith('_failed') || details.status === 'failed' ? 'warning' : 'info'
 
   if (isSupabaseConfigured) {
     const { data: { user } } = await requireSupabase().auth.getUser()
     userId = user?.id
-    await requireSupabase().from('audit_logs').insert({
+    const { error } = await requireSupabase().from('audit_logs').insert({
       user_id: userId ?? null,
       action,
       entity_type: entityType,
       entity_id: entityId ?? null,
       details,
+      severity,
     })
+    if (error) {
+      console.error('[audit] Failed to write audit log:', error.message, { action, entityType, entityId })
+    }
     return
   }
 

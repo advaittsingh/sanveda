@@ -1,4 +1,4 @@
-import { readPersistedMetaMap, writePersistedMetaMap, writeDevStorageList } from './persistMeta'
+import { readPersistedMetaMap, writePersistedMetaMap, writeDevStorageList, isProductionDataMode } from './persistMeta'
 import { withAudit } from './auditMiddleware'
 import { downloadCsv } from './adminExport'
 import { getExpenses, saveExpense, updateExpenseStatus, type Expense, type ExpenseStatus } from './expenseService'
@@ -274,7 +274,7 @@ function buildProfile(expense: Expense, meta: ExpenseAdminMeta | undefined, inde
 
 async function seedDemoIfEmpty(): Promise<Expense[]> {
   let expenses = await getExpenses()
-  if (expenses.length === 0) {
+  if (expenses.length === 0 && !isProductionDataMode()) {
     const now = new Date().toISOString()
     expenses = DEMO_EXPENSES.map((d, i) => ({
       id: `exp-${i + 1}`,

@@ -136,24 +136,16 @@ export async function completeDonation(
   id: string,
   paymentId?: string,
 ): Promise<Donation | undefined> {
-  const receiptNumber = localReceiptNumber()
-
   if (isSupabaseConfigured) {
-    const { data: receiptData } = await requireSupabase().rpc('generate_receipt_number')
-    const { data, error } = await requireSupabase()
-      .from('donations')
-      .update({
-        status: 'completed',
-        razorpay_payment_id: paymentId ?? null,
-        receipt_number: receiptData ?? receiptNumber,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single()
+    const { data, error } = await requireSupabase().rpc('complete_donation_admin', {
+      p_donation_id: id,
+      p_payment_id: paymentId ?? null,
+    })
 
     if (error) throw new Error(error.message)
-    const donation = rowToDonation(data)
+    if (!data) return undefined
+
+    const donation = rowToDonation(data as Record<string, unknown>)
 
     if (donation.donorEmail && donation.receiptNumber) {
       await sendTransactionalEmail(
@@ -181,6 +173,7 @@ export async function completeDonation(
     return donation
   }
 
+  const receiptNumber = localReceiptNumber()
   const all = readLocal()
   const index = all.findIndex((d) => d.id === id)
   if (index < 0) return undefined

@@ -2,6 +2,7 @@ import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { downloadCsv, printHtmlReport } from './adminExport'
 import { finalizeReceipt, assertReceiptMutable } from './financeLedgerService'
 import { withAudit } from './auditMiddleware'
+import { isProductionDataMode } from './persistMeta'
 import { getAllDonations, type Donation } from './donationService'
 import { registerVerification, verifyCode } from './verificationService'
 
@@ -297,9 +298,9 @@ export async function getTaxReceiptDashboardData(): Promise<TaxReceiptDashboardD
 
   let receipts = donations.length
     ? donations.map((d, i) => donationToReceipt(d, i, metaMap))
-    : buildDemoReceipts()
+    : (isProductionDataMode() ? [] : buildDemoReceipts())
 
-  if (donations.length > 0 && receipts.length < 2) {
+  if (!isProductionDataMode() && donations.length > 0 && receipts.length < 2) {
     receipts = [...receipts, ...buildDemoReceipts().filter((d) => !receipts.some((r) => r.receiptNumber === d.receiptNumber))]
   }
 
@@ -331,12 +332,12 @@ export async function getTaxReceiptDashboardData(): Promise<TaxReceiptDashboardD
     emailHistory,
     templates: buildTemplates(),
     kpis: {
-      totalReceipts: Math.max(receipts.length, 14582),
-      eightyGReceipts: Math.max(eightyGReceipts, 12945),
-      pendingGeneration: Math.max(pendingGeneration, 84),
-      generatedThisMonth: Math.max(generatedThisMonth, 1254),
-      totalTaxBenefit: Math.max(totalTaxBenefit, 82000000),
-      failedDeliveries: Math.max(failedDeliveries, 12),
+      totalReceipts: receipts.length,
+      eightyGReceipts,
+      pendingGeneration,
+      generatedThisMonth,
+      totalTaxBenefit,
+      failedDeliveries,
     },
     receiptsGeneratedTrend: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
       label,
@@ -438,7 +439,7 @@ export async function generateReceipt(receiptId: string): Promise<void> {
       issueDate: new Date().toISOString(),
     }
     writeMeta(meta)
-    if (receipt) finalizeReceipt(receipt.receiptNumber)
+    if (receipt) await finalizeReceipt(receipt.receiptNumber)
   })
 }
 

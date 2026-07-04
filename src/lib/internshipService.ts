@@ -139,13 +139,12 @@ export async function getInternships(): Promise<Internship[]> {
 export async function findInternshipByEmailAndId(email: string, applicationId: string): Promise<Internship | undefined> {
   const normalized = email.trim().toLowerCase()
   if (isSupabaseConfigured) {
-    const { data } = await requireSupabase()
-      .from('internships')
-      .select('*')
-      .eq('application_id', applicationId)
-      .eq('email', normalized)
-      .maybeSingle()
-    return data ? rowToInternship(data) : undefined
+    const { data, error } = await requireSupabase().rpc('lookup_internship_status', {
+      p_application_id: applicationId,
+      p_email: normalized,
+    })
+    if (error) throw new Error(error.message)
+    return data ? rowToInternship(data as Record<string, unknown>) : undefined
   }
   return readLocal().find((i) => i.applicationId === applicationId && i.email === normalized)
 }

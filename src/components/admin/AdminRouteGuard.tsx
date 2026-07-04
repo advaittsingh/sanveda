@@ -21,7 +21,15 @@ export default function AdminRouteGuard({ children }: Props) {
     )
   }
 
-  if (!loading && !canAccessPath(pathname)) {
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
+        <p className="text-sm text-slate-500">Verifying access permissions…</p>
+      </div>
+    )
+  }
+
+  if (!canAccessPath(pathname)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#F8FAFC] p-6 text-center">
         <h1 className="text-xl font-bold text-[#0B2C6B]">Access Denied</h1>

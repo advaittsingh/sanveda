@@ -1,5 +1,6 @@
 import { downloadCsv } from './adminExport'
 import { getAuditLogs, type AuditLog } from './auditService'
+import { isProductionDataMode } from './persistMeta'
 
 export type AuditTab =
   | 'dashboard'
@@ -232,6 +233,9 @@ function buildDemoLogs(): AuditLogEntry[] {
 }
 
 function enrichLegacyLog(log: AuditLog): AuditLogEntry {
+  const failed = log.action.endsWith('_failed') || log.details?.status === 'failed'
+  const severityRaw = String(log.details?.severity ?? (failed ? 'warning' : log.action === 'DELETE' ? 'critical' : 'info'))
+  const severity = (['info', 'warning', 'critical', 'security'].includes(severityRaw) ? severityRaw : 'info') as AuditSeverity
   return {
     id: log.id,
     userId: log.userId,
@@ -242,11 +246,11 @@ function enrichLegacyLog(log: AuditLog): AuditLogEntry {
     entityType: log.entityType,
     entityId: log.entityId ?? '—',
     object: String(log.details?.object ?? log.entityId ?? log.entityType),
-    action: (log.action.toUpperCase() as AuditAction) || 'UPDATE',
+    action: (log.action.replace(/_failed$/, '').toUpperCase() as AuditAction) || 'UPDATE',
     oldValue: String(log.details?.oldValue ?? '—'),
     newValue: String(log.details?.newValue ?? JSON.stringify(log.details)),
-    severity: 'info',
-    status: 'success',
+    severity,
+    status: failed ? 'failed' : 'success',
     ip: String(log.details?.ip ?? '—'),
     device: String(log.details?.device ?? '—'),
     browser: String(log.details?.browser ?? '—'),
@@ -256,91 +260,108 @@ function enrichLegacyLog(log: AuditLog): AuditLogEntry {
 }
 
 export async function getAuditDashboardData(): Promise<AuditDashboardData> {
-  let logs = buildDemoLogs()
+  let logs: AuditLogEntry[] = []
   try {
-    const legacy = await getAuditLogs(50)
-    if (legacy.length) {
-      const enriched = legacy.map(enrichLegacyLog)
-      const ids = new Set(enriched.map((l) => l.id))
-      logs = [...enriched, ...logs.filter((l) => !ids.has(l.id))]
-    }
+    const legacy = await getAuditLogs(200)
+    logs = legacy.map(enrichLegacyLog)
   } catch {
-    // use demo data
+    logs = []
+  }
+
+  if (logs.length === 0 && !isProductionDataMode()) {
+    logs = buildDemoLogs()
   }
 
   const today = new Date().toDateString()
   const todayCount = logs.filter((l) => new Date(l.createdAt).toDateString() === today).length
+  const moduleCounts = new Map<string, number>()
+  for (const log of logs) {
+    moduleCounts.set(log.module, (moduleCounts.get(log.module) ?? 0) + 1)
+  }
+  const totalModule = [...moduleCounts.values()].reduce((a, b) => a + b, 0) || 1
+  const actionsByModule = [...moduleCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([label, value]) => ({ label, value, pct: Math.round((value / totalModule) * 100) }))
+
+  const financialLogs: FinancialAuditEntry[] = logs
+    .filter((l) => ['donations', 'finance', 'expenses', 'tax_receipts', 'transactions'].includes(l.entityType))
+    .slice(0, 8)
+    .map((l) => ({
+      id: l.id,
+      date: new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      user: l.userName,
+      action: `${l.action} ${l.object}`,
+      amount: l.newValue,
+      project: l.module,
+      referenceId: l.entityId,
+      severity: l.severity,
+    }))
+
+  const securityLogs: SecurityLogEntry[] = logs
+    .filter((l) => l.action === 'LOGIN' || l.action === 'LOGOUT' || l.severity === 'security')
+    .slice(0, 8)
+    .map((l) => ({
+      id: l.id,
+      event: l.action,
+      user: l.userName,
+      device: l.device,
+      ip: l.ip,
+      result: l.status,
+      createdAt: l.createdAt,
+    }))
 
   return {
     logs,
-    securityLogs: [
-      { id: 's1', event: 'Login', user: 'Admin', device: 'Mac', ip: '122.xxx.xxx.xxx', result: 'success', createdAt: logs[0].createdAt },
-      { id: 's2', event: 'Login', user: 'Unknown', device: 'Windows', ip: '180.xxx.xxx.xxx', result: 'failed', createdAt: logs[4].createdAt },
-      { id: 's3', event: 'Password Change', user: 'Rahul Sharma', device: 'iPhone', ip: '103.xxx.xxx.xxx', result: 'success', createdAt: logs[1].createdAt },
-      { id: 's4', event: '2FA Activated', user: 'Priya Mehta', device: 'MacBook Air', ip: '49.xxx.xxx.xxx', result: 'success', createdAt: logs[5].createdAt },
-      { id: 's5', event: 'Role Change', user: 'Advait Singh', device: 'MacBook Pro', ip: '122.xxx.xxx.xxx', result: 'success', createdAt: logs[2].createdAt },
-    ],
-    financialLogs: [
-      { id: 'f1', date: '04 Jul 2026', user: 'Finance Admin', action: 'Tax receipt generated', amount: '₹25,000', project: 'Save Child', referenceId: 'TR-2026-0042', severity: 'info' },
-      { id: 'f2', date: '03 Jul 2026', user: 'Finance Manager', action: 'Approved Expense', amount: '₹1,20,000', project: 'Healthcare Outreach', referenceId: 'EXP-2039', severity: 'critical' },
-      { id: 'f3', date: '03 Jul 2026', user: 'System', action: 'Donation received', amount: '₹50,000', project: 'Cancer Treatment Fund', referenceId: 'DON-8821', severity: 'info' },
-      { id: 'f4', date: '02 Jul 2026', user: 'Finance Manager', action: 'Refund processed', amount: '₹2,500', project: 'General Fund', referenceId: 'REF-112', severity: 'warning' },
-      { id: 'f5', date: '01 Jul 2026', user: 'Finance Admin', action: 'Bank reconciliation', amount: '₹12,45,000', project: 'All Accounts', referenceId: 'RECON-JUL-01', severity: 'critical' },
-    ],
-    volunteerLogs: [
-      { id: 'v1', date: '04 Jul 2026', action: 'Volunteer approved', volunteer: 'Priya Patel', module: 'Volunteers', user: 'Rahul Sharma' },
-      { id: 'v2', date: '03 Jul 2026', action: 'Volunteer applied', volunteer: 'Aman Gupta', module: 'Volunteers', user: 'System' },
-      { id: 'v3', date: '02 Jul 2026', action: 'Certificate generated', volunteer: 'Neha Singh', module: 'Volunteers', user: 'Aman Gupta' },
-      { id: 'v4', date: '01 Jul 2026', action: 'Volunteer assigned', volunteer: 'Ravi Kumar', module: 'Events', user: 'Rahul Sharma' },
-    ],
-    membershipLogs: [
-      { id: 'm1', date: '04 Jul 2026', action: 'Membership applied', member: 'Suresh Iyer', user: 'System' },
-      { id: 'm2', date: '03 Jul 2026', action: 'Payment received', member: 'Kavita Rao', user: 'System' },
-      { id: 'm3', date: '02 Jul 2026', action: 'Member approved', member: 'Deepak Jain', user: 'Admin' },
-      { id: 'm4', date: '01 Jul 2026', action: 'Membership renewed', member: 'Anita Desai', user: 'System' },
-    ],
-    dataChanges: [
-      { id: 'd1', entity: 'Donation #1054', original: '₹5,000', updated: '₹50,000', changedBy: 'Admin', approvedBy: 'Finance Head', module: 'Donations', createdAt: logs[6].createdAt },
-      { id: 'd2', entity: 'Campaign #452', original: 'Goal: ₹10,00,000', updated: 'Goal: ₹15,00,000', changedBy: 'Advait Singh', approvedBy: 'Director', module: 'Campaigns', createdAt: logs[2].createdAt },
-    ],
+    securityLogs: securityLogs.length ? securityLogs : (isProductionDataMode() ? [] : buildDemoLogs().slice(4, 5).map((l) => ({
+      id: l.id, event: 'Login', user: l.userName, device: l.device, ip: l.ip, result: l.status, createdAt: l.createdAt,
+    }))),
+    financialLogs,
+    volunteerLogs: logs.filter((l) => l.entityType === 'volunteers').slice(0, 5).map((l) => ({
+      id: l.id,
+      date: new Date(l.createdAt).toLocaleDateString('en-IN'),
+      action: l.action,
+      volunteer: l.object,
+      module: l.module,
+      user: l.userName,
+    })),
+    membershipLogs: logs.filter((l) => l.entityType === 'memberships').slice(0, 5).map((l) => ({
+      id: l.id,
+      date: new Date(l.createdAt).toLocaleDateString('en-IN'),
+      action: l.action,
+      member: l.object,
+      user: l.userName,
+    })),
+    dataChanges: logs.filter((l) => l.action === 'UPDATE' || l.action === 'DELETE').slice(0, 5).map((l) => ({
+      id: l.id,
+      entity: l.object,
+      original: l.oldValue,
+      updated: l.newValue,
+      changedBy: l.userName,
+      approvedBy: '—',
+      module: l.module,
+      createdAt: l.createdAt,
+    })),
     complianceReports: [
-      { id: 'c1', name: 'NGO Annual Audit', description: 'Full annual activity and financial audit trail', lastGenerated: '01 Jul 2026' },
-      { id: 'c2', name: 'Donation Audit', description: 'All donation create, update, refund events', lastGenerated: '03 Jul 2026' },
-      { id: 'c3', name: 'Finance Audit', description: 'Expenses, approvals, reconciliations', lastGenerated: '04 Jul 2026' },
-      { id: 'c4', name: 'Volunteer Audit', description: 'Applications, approvals, certificates', lastGenerated: '02 Jul 2026' },
-      { id: 'c5', name: 'Admin Activity Audit', description: 'All admin user actions across modules' },
-      { id: 'c6', name: 'Security Audit', description: 'Login, auth, permission changes' },
-      { id: 'c7', name: 'CSR Audit', description: 'Corporate partnership and CSR disbursement logs' },
-      { id: 'c8', name: 'Tax Audit', description: '80G receipts, tax certificates, revocations' },
+      { id: 'c1', name: 'NGO Annual Audit', description: 'Full annual activity and financial audit trail' },
+      { id: 'c2', name: 'Donation Audit', description: 'All donation create, update, refund events' },
+      { id: 'c3', name: 'Finance Audit', description: 'Expenses, approvals, reconciliations' },
     ],
     kpis: {
-      totalLogs: 128543,
-      today: Math.max(todayCount, 342),
-      criticalActions: logs.filter((l) => l.severity === 'critical').length || 18,
-      failedActions: logs.filter((l) => l.status === 'failed').length || 5,
-      activeAdmins: 12,
-      securityAlerts: 2,
+      totalLogs: logs.length,
+      today: todayCount,
+      criticalActions: logs.filter((l) => l.severity === 'critical').length,
+      failedActions: logs.filter((l) => l.status === 'failed').length,
+      activeAdmins: new Set(logs.map((l) => l.userName)).size,
+      securityAlerts: logs.filter((l) => l.severity === 'security' || l.status === 'failed').length,
     },
-    actionsByModule: [
-      { label: 'Campaigns', value: 35, pct: 35 },
-      { label: 'Finance', value: 25, pct: 25 },
-      { label: 'Volunteers', value: 20, pct: 20 },
-      { label: 'CMS', value: 10, pct: 10 },
-      { label: 'Other', value: 10, pct: 10 },
-    ],
-    adminActivity: [
-      { label: 'Advait', value: 42, pct: 42 },
-      { label: 'Rahul', value: 28, pct: 28 },
-      { label: 'Finance Team', value: 20, pct: 20 },
-      { label: 'Others', value: 10, pct: 10 },
-    ],
-    aiAlerts: [
-      { id: '1', message: 'Admin deleted 12 records in 3 minutes', tone: 'critical' },
-      { id: '2', message: 'Unusual login from new device detected', tone: 'warning' },
-      { id: '3', message: 'Expense approvals exceeded threshold this week', tone: 'warning' },
-      { id: '4', message: 'Multiple failed logins detected from IP 180.xxx.xxx.xxx', tone: 'critical' },
-      { id: '5', message: 'High-value donation edited — Donation #1054', tone: 'critical' },
-    ],
+    actionsByModule: actionsByModule.length ? actionsByModule : [{ label: 'System', value: logs.length, pct: 100 }],
+    adminActivity: [],
+    aiAlerts: logs.filter((l) => l.severity === 'critical' || l.status === 'failed').slice(0, 4).map((l, i) => ({
+      id: String(i),
+      message: `${l.action} on ${l.object} by ${l.userName}`,
+      tone: l.severity === 'critical' ? 'critical' as const : 'warning' as const,
+    })),
   }
 }
 

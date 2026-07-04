@@ -55,6 +55,6 @@ export function useRbac(): RbacContextValue {
 
 export function useModuleAccess(pathname: string): boolean {
   const { canAccessPath, loading } = useRbac()
-  if (loading) return true
+  if (loading) return false
   return canAccessPath(pathname)
 }

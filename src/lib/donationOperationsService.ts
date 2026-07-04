@@ -1,3 +1,4 @@
+import { exportCsvWithAudit } from './adminExport'
 import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { getAllCampaignsAdmin } from './campaignService'
 import { parseCategory } from './campaignAdminService'
@@ -527,7 +528,7 @@ export async function bulkSendReceipts(ids: string[]) {
   await Promise.all(ids.map((id) => markReceiptSent(id)))
 }
 
-export function exportDonationsCsv(donations: DonationOpsRecord[]) {
+export async function exportDonationsCsv(donations: DonationOpsRecord[]) {
   const headers = ['Donor', 'Campaign', 'Amount', 'Payment', 'Tax', 'Status', 'Receipt', 'Gateway', 'Transaction ID']
   const rows = donations.map((donation) => [
     donation.donorLabel,
@@ -540,15 +541,6 @@ export function exportDonationsCsv(donations: DonationOpsRecord[]) {
     donation.gateway,
     donation.transactionId,
   ])
-
-  const csv = [headers, ...rows]
-    .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(','))
-    .join('\n')
-  const blob = new Blob([csv], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = `sanveda-donations-${new Date().toISOString().slice(0, 10)}.csv`
-  anchor.click()
-  URL.revokeObjectURL(url)
+  const filename = `sanveda-donations-${new Date().toISOString().slice(0, 10)}.csv`
+  await exportCsvWithAudit(filename, headers, rows, 'donations')
 }

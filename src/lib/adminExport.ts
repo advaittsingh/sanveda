@@ -1,3 +1,5 @@
+import { auditAction } from './auditMiddleware'
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -24,6 +26,17 @@ export function downloadCsv(filename: string, headers: string[], rows: Array<Arr
   link.download = filename
   link.click()
   URL.revokeObjectURL(url)
+}
+
+export async function exportCsvWithAudit(
+  filename: string,
+  headers: string[],
+  rows: Array<Array<string | number>>,
+  entityType: string,
+  entityId?: string,
+): Promise<void> {
+  await auditAction('EXPORT', entityType, entityId, { filename, rowCount: rows.length })
+  downloadCsv(filename, headers, rows)
 }
 
 export function printHtmlReport(title: string, subtitle: string, sections: string[]) {

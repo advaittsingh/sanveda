@@ -1,6 +1,7 @@
 import type { Campaign } from '../types'
 import type { CampaignAdminMeta, CampaignWorkflowStatus } from '../types/campaignAdmin'
 import { SANVEDA_CAMPAIGNS } from '../constants/campaignContent'
+import { withAudit } from './auditMiddleware'
 import { isSupabaseConfigured, requireSupabase } from './supabase'
 
 export type CampaignStatus = CampaignWorkflowStatus
@@ -184,6 +185,7 @@ export async function getAllCampaignsAdmin(): Promise<CampaignRecord[]> {
 }
 
 export async function saveCampaign(input: Partial<CampaignRecord> & { title: string; slug: string }): Promise<CampaignRecord> {
+  return withAudit(input.id ? 'UPDATE' : 'CREATE', 'campaigns', String(input.id ?? input.slug), async () => {
   const now = new Date().toISOString()
 
   if (isSupabaseConfigured) {
@@ -251,9 +253,11 @@ export async function saveCampaign(input: Partial<CampaignRecord> & { title: str
   const next = [...campaigns, record]
   saveLocalAdminCampaigns(next)
   return record
+  })
 }
 
 export async function deleteCampaign(id: number): Promise<void> {
+  return withAudit('DELETE', 'campaigns', String(id), async () => {
   if (isSupabaseConfigured) {
     const { error } = await requireSupabase().from('campaigns').delete().eq('id', id)
     if (error) throw new Error(error.message)
@@ -262,9 +266,11 @@ export async function deleteCampaign(id: number): Promise<void> {
 
   const campaigns = await getAllCampaignsAdmin()
   saveLocalAdminCampaigns(campaigns.filter((c) => c.id !== id))
+  })
 }
 
 export async function bulkUpdateCampaignStatus(ids: number[], status: CampaignStatus): Promise<void> {
+  return withAudit('UPDATE', 'campaigns', ids.join(','), async () => {
   const campaigns = await getAllCampaignsAdmin()
   const idSet = new Set(ids)
   const next = campaigns.map((c) => (idSet.has(c.id) ? { ...c, status } : c))
@@ -281,4 +287,5 @@ export async function bulkUpdateCampaignStatus(ids: number[], status: CampaignSt
   }
 
   saveLocalAdminCampaigns(next)
+  })
 }

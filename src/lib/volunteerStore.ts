@@ -249,15 +249,12 @@ export async function findApplicationByEmailAndId(
   const normalized = email.trim().toLowerCase()
 
   if (isSupabaseConfigured) {
-    const { data, error } = await requireSupabase()
-      .from('volunteer_applications')
-      .select('*')
-      .eq('id', id)
-      .eq('email', normalized)
-      .maybeSingle()
-
+    const { data, error } = await requireSupabase().rpc('lookup_volunteer_application', {
+      p_id: id,
+      p_email: normalized,
+    })
     if (error) throw new Error(error.message)
-    return data ? rowToApplication(data) : undefined
+    return data ? rowToApplication(data as Record<string, unknown>) : undefined
   }
 
   return readAllLocal().find((a) => a.id === id && a.email === normalized)

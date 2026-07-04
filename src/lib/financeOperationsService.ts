@@ -1,4 +1,4 @@
-import { writeDevStorageList } from './persistMeta'
+import { isProductionDataMode, writeDevStorageList } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { formatIndianCompact } from './formatIndian'
 import { getExpenses, type Expense } from './expenseService'
@@ -272,7 +272,7 @@ async function seedDemoData(): Promise<{ income: IncomeRecord[]; expenses: Expen
   let income = await getIncomeRecords()
   let expenses = await getExpenses()
 
-  if (income.length === 0) {
+  if (income.length === 0 && !isProductionDataMode()) {
     const now = new Date().toISOString()
     income = DEMO_INCOME.map((d, i) => ({
       id: `inc-${i + 1}`,

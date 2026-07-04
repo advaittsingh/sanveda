@@ -1,5 +1,6 @@
 import { readDevStorageList, writeDevStorageList } from './persistMeta'
 import { withAudit } from './auditMiddleware'
+import { isProductionDataMode } from './persistMeta'
 import { downloadCsv, printHtmlReport, renderMetricSection, renderTableSection } from './adminExport'
 import { getAllCampaignsAdmin } from './campaignService'
 import { getAllDonations } from './donationService'
@@ -213,6 +214,7 @@ async function buildSeedLedger(): Promise<TransactionRecord[]> {
 async function ensureLedger(): Promise<TransactionRecord[]> {
   const existing = readLedger()
   if (existing.length) return existing
+  if (isProductionDataMode()) return []
   const seeded = await buildSeedLedger()
   writeLedger(seeded)
   return seeded

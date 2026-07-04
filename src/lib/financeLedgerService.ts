@@ -1,7 +1,7 @@
-import { readDevStorageList, writeDevStorageList } from './persistMeta'
 import { getAllDonations } from './donationService'
 import { isSupabaseConfigured, requireSupabase } from './supabase'
 import { auditAction } from './auditMiddleware'
+import { allowLocalStoragePersistence, readDevStorageList, writeDevStorageList } from './persistMeta'
 
 export interface ReconciliationResult {
   matched: number
@@ -21,14 +21,37 @@ export interface LedgerEntry {
 }
 
 const LOCKED_RECEIPTS_KEY = 'sanveda_locked_receipts'
+const RECEIPT_LOCK_TYPE = 'tax_receipt'
 
-/** Demo/dev lock set for tax receipts (immutable once issued). */
-export function isReceiptLocked(receiptNumber: string): boolean {
-  const set = readDevStorageList<string>(LOCKED_RECEIPTS_KEY)
-  return set.includes(receiptNumber)
+export async function isReceiptLocked(receiptNumber: string): Promise<boolean> {
+  if (isSupabaseConfigured) {
+    const { data, error } = await requireSupabase()
+      .from('finance_ledger_locks')
+      .select('id')
+      .eq('source_type', RECEIPT_LOCK_TYPE)
+      .eq('source_id', receiptNumber)
+      .maybeSingle()
+    if (error) return false
+    return Boolean(data)
+  }
+  return readDevStorageList<string>(LOCKED_RECEIPTS_KEY).includes(receiptNumber)
 }
 
-export function lockReceipt(receiptNumber: string): void {
+export async function lockReceipt(receiptNumber: string): Promise<void> {
+  if (isSupabaseConfigured) {
+    const { data: { user } } = await requireSupabase().auth.getUser()
+    const { error } = await requireSupabase()
+      .from('finance_ledger_locks')
+      .upsert({
+        source_type: RECEIPT_LOCK_TYPE,
+        source_id: receiptNumber,
+        locked_by: user?.id ?? null,
+        locked_at: new Date().toISOString(),
+      }, { onConflict: 'source_type,source_id' })
+    if (error) throw new Error(error.message)
+    return
+  }
+  if (!allowLocalStoragePersistence()) return
   const set = new Set(readDevStorageList<string>(LOCKED_RECEIPTS_KEY))
   set.add(receiptNumber)
   writeDevStorageList(LOCKED_RECEIPTS_KEY, [...set])
@@ -41,13 +64,15 @@ export async function reconcileDonationsWithLedger(): Promise<ReconciliationResu
   const amountMismatch: ReconciliationResult['amountMismatch'] = []
 
   if (isSupabaseConfigured) {
-    const { data: incomeRows } = await requireSupabase()
+    const { data: incomeRows, error } = await requireSupabase()
       .from('income_records')
-      .select('id, amount, source_id, source_type')
-      .eq('source_type', 'donation')
+      .select('id, amount, reference_id, source')
+      .eq('source', 'donation')
+
+    if (error) throw new Error(error.message)
 
     const incomeBySource = new Map(
-      (incomeRows ?? []).map((r) => [String(r.source_id), Number(r.amount)]),
+      (incomeRows ?? []).map((r) => [String(r.reference_id), Number(r.amount)]),
     )
 
     for (const d of donations) {
@@ -85,11 +110,11 @@ export async function reconcileDonationsWithLedger(): Promise<ReconciliationResu
 }
 
 export async function assertReceiptMutable(receiptNumber: string): Promise<void> {
-  if (isReceiptLocked(receiptNumber)) {
+  if (await isReceiptLocked(receiptNumber)) {
     throw new Error(`Tax receipt ${receiptNumber} is locked and cannot be modified.`)
   }
 }
 
-export function finalizeReceipt(receiptNumber: string): void {
-  lockReceipt(receiptNumber)
+export async function finalizeReceipt(receiptNumber: string): Promise<void> {
+  await lockReceipt(receiptNumber)
 }

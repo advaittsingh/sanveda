@@ -9,7 +9,10 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:migrate": "bash scripts/apply-migrations.sh",
+    "setup:prod": "bash scripts/setup-production.sh",
+    "deploy:prod": "vercel --prod --yes"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

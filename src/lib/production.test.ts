@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { canAccessRoute, moduleForPath } from './rbacRoutes'
 import { canAccess } from './rbacService'
 import { sanitizeHtml } from '../components/ui/HtmlContent'
+import { withAudit } from './auditMiddleware'
+import { reconcileDonationsWithLedger } from './financeLedgerService'
 
 describe('rbacRoutes', () => {
   it('maps admin paths to modules', () => {
@@ -54,5 +56,25 @@ describe('HtmlContent sanitizeHtml', () => {
   it('preserves safe formatting', () => {
     const safe = '<p><strong>Sanveda</strong></p>'
     expect(sanitizeHtml(safe)).toContain('<strong>Sanveda</strong>')
+  })
+})
+
+describe('financeLedger reconcile', () => {
+  it('returns reconciliation result shape', async () => {
+    const result = await reconcileDonationsWithLedger()
+    expect(result).toMatchObject({
+      matched: expect.any(Number),
+      orphanedDonations: expect.any(Array),
+      orphanedTransactions: expect.any(Array),
+      amountMismatch: expect.any(Array),
+      reconciledAt: expect.any(String),
+    })
+  })
+})
+
+describe('auditMiddleware withAudit', () => {
+  it('returns mutation result', async () => {
+    const result = await withAudit('CREATE', 'test', '1', async () => 42)
+    expect(result).toBe(42)
   })
 })

@@ -170,15 +170,12 @@ export async function findMembershipByEmailAndId(email: string, id: string): Pro
   const normalized = email.trim().toLowerCase()
 
   if (isSupabaseConfigured) {
-    const { data, error } = await requireSupabase()
-      .from('memberships')
-      .select('*')
-      .eq('id', id)
-      .eq('email', normalized)
-      .maybeSingle()
-
+    const { data, error } = await requireSupabase().rpc('lookup_membership_status', {
+      p_id: id,
+      p_email: normalized,
+    })
     if (error) throw new Error(error.message)
-    return data ? rowToMembership(data) : undefined
+    return data ? rowToMembership(data as Record<string, unknown>) : undefined
   }
 
   return readLocal().find((m) => m.id === id && m.email === normalized)
