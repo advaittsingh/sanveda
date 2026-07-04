@@ -79,6 +79,7 @@ export async function submitEnquiry(input: EnquiryInput): Promise<Enquiry> {
       'We received your enquiry — Sanveda',
       enquiryReceivedEmailHtml(enquiry.name),
       'enquiry_received',
+      { enquiryId: enquiry.id },
     )
     return enquiry
   }

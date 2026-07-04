@@ -24,6 +24,7 @@ FILES=(
   supabase/schema-phase4-production.sql
   supabase/schema-phase5-sprint.sql
   supabase/schema-phase6-donation-ops.sql
+  supabase/schema-phase7-donation-public.sql
 )
 
 if [[ -n "${SUPABASE_ACCESS_TOKEN:-}" ]] && command -v supabase >/dev/null 2>&1; then

@@ -108,7 +108,13 @@ export async function submitInternshipApplication(form: InternshipFormData): Pro
 
     if (error) throw new Error(error.message)
     const internship = rowToInternship(data)
-    await sendTransactionalEmail(internship.email, 'Internship Application Received', `<p>Dear ${internship.fullName}, we received your internship application (${applicationId}).</p>`, 'custom')
+    await sendTransactionalEmail(
+      internship.email,
+      'Internship Application Received',
+      `<p>Dear ${internship.fullName}, we received your internship application (${applicationId}).</p>`,
+      'internship_received',
+      { internshipId: internship.id },
+    )
     return internship
   }
 

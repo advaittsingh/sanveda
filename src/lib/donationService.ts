@@ -4,9 +4,8 @@ import {
   isServerPaymentAvailable,
   verifyRazorpayPayment,
 } from './paymentService'
-import { donationReceiptEmailHtml, sendTransactionalEmail } from './emailService'
-import { isSupabaseConfigured, RAZORPAY_KEY_ID, requireSupabase } from './supabase'
 import { registerVerification } from './verificationService'
+import { isSupabaseConfigured, RAZORPAY_KEY_ID, requireSupabase } from './supabase'
 
 export type DonationStatus = 'pending' | 'completed' | 'failed' | 'refunded'
 
@@ -135,9 +134,15 @@ export async function createDonation(input: CreateDonationInput): Promise<Donati
 export async function completeDonation(
   id: string,
   paymentId?: string,
+  options?: { asAdmin?: boolean },
 ): Promise<Donation | undefined> {
   if (isSupabaseConfigured) {
-    const { data, error } = await requireSupabase().rpc('complete_donation_admin', {
+    const rpc = options?.asAdmin ? 'complete_donation_admin' : 'complete_donation_public'
+    if (!options?.asAdmin && paymentId && !paymentId.startsWith('demo_')) {
+      throw new Error('Payment must be verified server-side before completing the donation')
+    }
+
+    const { data, error } = await requireSupabase().rpc(rpc, {
       p_donation_id: id,
       p_payment_id: paymentId ?? null,
     })
@@ -146,20 +151,6 @@ export async function completeDonation(
     if (!data) return undefined
 
     const donation = rowToDonation(data as Record<string, unknown>)
-
-    if (donation.donorEmail && donation.receiptNumber) {
-      await sendTransactionalEmail(
-        donation.donorEmail,
-        `Your Sanveda Donation Receipt — ${donation.receiptNumber}`,
-        donationReceiptEmailHtml({
-          donorName: donation.isAnonymous ? 'Donor' : (donation.donorName ?? 'Donor'),
-          amount: donation.amount,
-          campaignTitle: donation.campaignTitle,
-          receiptNumber: donation.receiptNumber,
-        }),
-        'donation_receipt',
-      )
-    }
 
     if (donation.receiptNumber && !donation.isAnonymous) {
       await registerVerification({

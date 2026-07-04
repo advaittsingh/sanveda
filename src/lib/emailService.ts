@@ -12,33 +12,47 @@ export type EmailTemplate =
   | 'membership_received'
   | 'membership_approved'
   | 'enquiry_received'
+  | 'internship_received'
   | 'custom'
+
+export interface EmailMeta {
+  enquiryId?: string
+  volunteerId?: string
+  membershipId?: string
+  internshipId?: string
+}
 
 export async function sendTransactionalEmail(
   to: string,
   subject: string,
   html: string,
   template: EmailTemplate = 'custom',
+  meta?: EmailMeta,
 ): Promise<boolean> {
   if (!isSupabaseConfigured || !FUNCTIONS_URL) {
     console.info('[email] Demo mode — would send:', { to, subject, template })
     return false
   }
 
-  const { data: { session } } = await requireSupabase().auth.getSession()
+  try {
+    const { data: { session } } = await requireSupabase().auth.getSession()
 
-  const res = await fetch(`${FUNCTIONS_URL}/send-email`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify({ to, subject, html, template }),
-  })
+    const res = await fetch(`${FUNCTIONS_URL}/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ to, subject, html, template, ...meta }),
+    })
 
-  if (!res.ok) return false
-  const body = await res.json()
-  return Boolean(body.success)
+    if (!res.ok) return false
+    const body = await res.json()
+    return Boolean(body.success)
+  } catch (err) {
+    console.warn('[email] Send failed:', err)
+    return false
+  }
 }
 
 export function donationReceiptEmailHtml(params: {

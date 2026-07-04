@@ -124,6 +124,7 @@ export async function submitMembershipApplication(form: MembershipFormData): Pro
       'Sanveda Membership Application Received',
       membershipStatusEmailHtml(membership.fullName, 'pending'),
       'membership_received',
+      { membershipId: membership.id },
     )
 
     return membership

@@ -324,7 +324,7 @@ export async function approveDonation(id: string) {
     const donation = await getDonationById(id)
     if (!donation) return
     if (donation.status === 'pending') {
-      await completeDonation(id, donation.razorpayPaymentId)
+      await completeDonation(id, donation.razorpayPaymentId, { asAdmin: true })
     } else {
       await updateDonation(id, { status: 'completed' })
     }
