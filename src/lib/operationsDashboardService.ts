@@ -6,6 +6,7 @@ import { getEvents } from './eventService'
 import { getMemberships } from './membershipService'
 import { getDashboardAnalytics } from './analyticsService'
 import { getVolunteerApplications } from './volunteerStore'
+import { computePaymentFunnel } from './donationCalculations'
 
 export interface ActionItem {
   id: string
@@ -31,9 +32,9 @@ export interface CampaignHealth {
 }
 
 export interface DonationFunnel {
-  visitors: number
-  viewedCampaign: number
-  clickedDonate: number
+  started: number
+  pending: number
+  failed: number
   completed: number
   conversion: number
 }
@@ -185,13 +186,15 @@ export async function getOperationsDashboard(): Promise<OperationsDashboard> {
     else urgent++
   }
 
-  const completed = donations.filter((d) => d.status === 'completed').length
+  const paymentFunnel = computePaymentFunnel(donations as Parameters<typeof computePaymentFunnel>[0])
   const funnel: DonationFunnel = {
-    visitors: Math.max(completed * 100, 1200),
-    viewedCampaign: Math.max(completed * 30, 350),
-    clickedDonate: Math.max(completed * 4, 50),
-    completed,
-    conversion: completed > 0 ? Math.round((completed / Math.max(completed * 100, 1200)) * 1000) / 10 : 0,
+    started: paymentFunnel.started,
+    pending: paymentFunnel.pending,
+    failed: paymentFunnel.failed,
+    completed: paymentFunnel.successful,
+    conversion: paymentFunnel.started > 0
+      ? Math.round((paymentFunnel.successful / paymentFunnel.started) * 1000) / 10
+      : 0,
   }
 
   const now = new Date()

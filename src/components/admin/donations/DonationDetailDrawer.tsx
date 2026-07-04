@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Download, Mail, RefreshCcw, X } from 'lucide-react'
 import type { DonationOpsRecord } from '../../../lib/donationOperationsService'
-import { adminBtnPrimary, adminBtnSecondary } from '../ui/adminStyles'
+import { adminBtnPrimary, adminBtnSecondary, adminBtnDanger } from '../ui/adminStyles'
 import StatusBadge from '../ui/StatusBadge'
 
 interface Props {
@@ -11,6 +11,9 @@ interface Props {
   onDownloadReceipt: (id: string) => Promise<void>
   onRefund: (id: string, reason: string) => Promise<void>
   onSaveNotes: (id: string, notes: string) => Promise<void>
+  onApproveRefund?: (refundId: string, donationId: string) => Promise<void>
+  onRejectRefund?: (refundId: string, donationId: string) => Promise<void>
+  pendingRefundId?: string
 }
 
 export default function DonationDetailDrawer({
@@ -20,6 +23,9 @@ export default function DonationDetailDrawer({
   onDownloadReceipt,
   onRefund,
   onSaveNotes,
+  onApproveRefund,
+  onRejectRefund,
+  pendingRefundId,
 }: Props) {
   const [notes, setNotes] = useState('')
   const [refundReason, setRefundReason] = useState('')
@@ -30,6 +36,8 @@ export default function DonationDetailDrawer({
   }, [donation])
 
   if (!donation) return null
+
+  const canRefund = donation.status === 'completed' && donation.refundStatus === 'none'
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -56,54 +64,71 @@ export default function DonationDetailDrawer({
             <Info label="Payment Method" value={donation.paymentMethod} />
             <Info label="Tax Exemption" value={donation.taxExemption} />
             <Info label="Receipt" value={donation.receiptNumber ?? 'Pending'} />
+            <Info label="Receipt Status" value={donation.receiptState} />
             <Info label="Compliance" value={donation.complianceType} />
+            <Info label="Date" value={new Date(donation.createdAt).toLocaleString('en-IN')} />
           </div>
 
-          <section>
-            <h3 className="mb-2 text-sm font-semibold text-[#0B2C6B]">Receipt Actions</h3>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" className={adminBtnSecondary} onClick={() => onSendReceipt(donation.id)}>
-                <Mail size={14} className="mr-1.5" />
-                Send Receipt
-              </button>
-              <button type="button" className={adminBtnSecondary} onClick={() => onDownloadReceipt(donation.id)}>
-                <Download size={14} className="mr-1.5" />
-                Download PDF
-              </button>
-            </div>
-          </section>
+          {donation.status === 'completed' ? (
+            <section>
+              <h3 className="mb-2 text-sm font-semibold text-[#0B2C6B]">Receipt Actions</h3>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className={adminBtnSecondary} onClick={() => onSendReceipt(donation.id)}>
+                  <Mail size={14} className="mr-1.5" />
+                  Send Receipt Email
+                </button>
+                <button type="button" className={adminBtnSecondary} onClick={() => onDownloadReceipt(donation.id)}>
+                  <Download size={14} className="mr-1.5" />
+                  Download Receipt
+                </button>
+              </div>
+            </section>
+          ) : null}
 
           <section>
-            <h3 className="mb-2 text-sm font-semibold text-[#0B2C6B]">Notes</h3>
+            <h3 className="mb-2 text-sm font-semibold text-[#0B2C6B]">Admin Notes</h3>
             <textarea
               className="w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-[#0B2C6B]/30 focus:ring-2 focus:ring-[#0B2C6B]/10"
               rows={4}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add donor or compliance notes..."
+              placeholder="Add donor or compliance notes…"
             />
             <button type="button" className={`${adminBtnPrimary} mt-2`} onClick={() => onSaveNotes(donation.id, notes)}>
               Save Notes
             </button>
           </section>
 
-          <section>
-            <h3 className="mb-2 text-sm font-semibold text-[#0B2C6B]">Refund</h3>
-            <textarea
-              className="w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-[#0B2C6B]/30 focus:ring-2 focus:ring-[#0B2C6B]/10"
-              rows={3}
-              value={refundReason}
-              onChange={(e) => setRefundReason(e.target.value)}
-              placeholder="Reason for refund request..."
-            />
-            <button type="button" className={`${adminBtnSecondary} mt-2`} onClick={() => onRefund(donation.id, refundReason || 'Admin initiated refund review')}>
-              <RefreshCcw size={14} className="mr-1.5" />
-              Request Refund
-            </button>
-          </section>
+          {canRefund ? (
+            <section>
+              <h3 className="mb-2 text-sm font-semibold text-[#0B2C6B]">Request Refund</h3>
+              <textarea
+                className="w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-[#0B2C6B]/30 focus:ring-2 focus:ring-[#0B2C6B]/10"
+                rows={3}
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                placeholder="Reason for refund request…"
+              />
+              <button type="button" className={`${adminBtnSecondary} mt-2`} onClick={() => onRefund(donation.id, refundReason || 'Admin initiated refund review')}>
+                <RefreshCcw size={14} className="mr-1.5" />
+                Submit Refund Request
+              </button>
+            </section>
+          ) : null}
+
+          {donation.refundStatus === 'requested' && pendingRefundId && onApproveRefund && onRejectRefund ? (
+            <section>
+              <h3 className="mb-2 text-sm font-semibold text-[#0B2C6B]">Refund Approval</h3>
+              <p className="mb-3 text-sm text-slate-600">{donation.refundReason ?? 'Refund pending review'}</p>
+              <div className="flex gap-2">
+                <button type="button" className={adminBtnPrimary} onClick={() => onApproveRefund(pendingRefundId, donation.id)}>Approve Refund</button>
+                <button type="button" className={adminBtnDanger} onClick={() => onRejectRefund(pendingRefundId, donation.id)}>Reject</button>
+              </div>
+            </section>
+          ) : null}
 
           <section>
-            <h3 className="mb-2 text-sm font-semibold text-[#0B2C6B]">Audit Logs</h3>
+            <h3 className="mb-2 text-sm font-semibold text-[#0B2C6B]">Audit Trail</h3>
             <ul className="space-y-2">
               {donation.auditLogs.length ? donation.auditLogs.map((log) => (
                 <li key={log.id} className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2">
@@ -112,7 +137,7 @@ export default function DonationDetailDrawer({
                   <p className="mt-1 text-[11px] text-slate-400">{new Date(log.at).toLocaleString('en-IN')}</p>
                 </li>
               )) : (
-                <li className="text-sm text-slate-500">No audit logs yet.</li>
+                <li className="text-sm text-slate-500">No audit entries for this donation yet.</li>
               )}
             </ul>
           </section>
