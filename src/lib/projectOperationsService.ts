@@ -1,6 +1,7 @@
 import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getAllCampaignsAdmin } from './campaignService'
+import { FOCUS_AREAS as SITE_FOCUS_AREAS } from '../constants/focusAreas'
 import { formatIndianCompact } from './formatIndian'
 import { getProjects, type Project, type ProjectStatus } from './projectService'
 
@@ -160,16 +161,7 @@ export const LIFECYCLE_STAGES: { stage: LifecycleStage; label: string }[] = [
   { stage: 'completed', label: 'Completed' },
 ]
 
-export const FOCUS_AREAS = [
-  'Healthcare',
-  'Education',
-  'Sports',
-  'Women Welfare',
-  'Child Welfare',
-  'Disaster Relief',
-  'Livelihood',
-  'Environment',
-] as const
+export const FOCUS_AREAS = SITE_FOCUS_AREAS.map((area) => area.tabLabel)
 
 const MANAGERS = ['Rahul Sharma', 'Priya Sharma', 'Neha Gupta', 'Ankit Verma']
 

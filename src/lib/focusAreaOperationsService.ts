@@ -112,18 +112,12 @@ export interface FocusAreaDashboardData {
   aiInsights: { id: string; message: string; tone: 'info' | 'warning' | 'success' }[]
 }
 
-export const STRATEGIC_FOCUS_AREAS: { slug: string; name: string; tabLabel: string; keywords: string[] }[] = [
-  { slug: 'healthcare', name: 'Healthcare', tabLabel: 'Healthcare', keywords: ['health', 'medical', 'healthcare', 'patient'] },
-  { slug: 'education', name: 'Education', tabLabel: 'Education', keywords: ['education', 'school', 'scholarship', 'student'] },
-  { slug: 'women-empowerment', name: 'Women Empowerment', tabLabel: 'Women', keywords: ['women', 'empowerment', 'gender'] },
-  { slug: 'child-welfare', name: 'Child Welfare', tabLabel: 'Child Welfare', keywords: ['child', 'children', 'welfare'] },
-  { slug: 'sports-development', name: 'Sports Development', tabLabel: 'Sports', keywords: ['sport', 'athlete', 'sports'] },
-  { slug: 'livelihood-programs', name: 'Livelihood Programs', tabLabel: 'Livelihood', keywords: ['livelihood', 'employment', 'skill'] },
-  { slug: 'disaster-relief', name: 'Disaster Relief', tabLabel: 'Disaster Relief', keywords: ['disaster', 'relief', 'flood'] },
-  { slug: 'community-development', name: 'Community Development', tabLabel: 'Community', keywords: ['community', 'social', 'upliftment'] },
-  { slug: 'environmental-sustainability', name: 'Environmental Sustainability', tabLabel: 'Environment', keywords: ['environment', 'sustainability', 'green'] },
-  { slug: 'senior-citizen-welfare', name: 'Senior Citizen Welfare', tabLabel: 'Senior Citizens', keywords: ['senior', 'elderly', 'aged'] },
-]
+export const STRATEGIC_FOCUS_AREAS = FOCUS_AREAS.map((area) => ({
+  slug: area.slug,
+  name: area.title,
+  tabLabel: area.tabLabel,
+  keywords: [...area.keywords, ...area.categoryKeys],
+}))
 
 function readMetaMap(): Record<string, FocusAreaAdminMeta> {
   return readPersistedMetaMap<FocusAreaAdminMeta>('sanveda_focus_area_admin_meta')
@@ -147,7 +141,7 @@ function matchesStrategicArea(text: string, area: typeof STRATEGIC_FOCUS_AREAS[0
 }
 
 function resolveLegacyArea(slug: string): FocusArea | undefined {
-  return FOCUS_AREAS.find((a) => a.slug.includes(slug) || slug.includes(a.slug.split('-')[0]))
+  return FOCUS_AREAS.find((a) => a.slug === slug)
 }
 
 function buildImpactMetrics(areaName: string, seed: number, beneficiaries: number): { label: string; value: number }[] {
@@ -254,7 +248,7 @@ function buildProfile(
     description: meta?.customDescription ?? legacyFocus.description,
     mission: meta?.mission ?? `Advance ${strategic.name.toLowerCase()} outcomes through verified programmes and community partnerships.`,
     objectives: meta?.objectives ?? `Increase reach, improve outcomes, and ensure transparent fund utilization across ${strategic.name.toLowerCase()} initiatives.`,
-    priority: meta?.priority ?? (strategic.slug === 'healthcare' || strategic.slug === 'education' ? 'strategic' : 'high'),
+    priority: meta?.priority ?? (strategic.slug === 'healthcare-therapeutic-support' || strategic.slug === 'education-skill-development' ? 'strategic' : 'high'),
     status: meta?.status ?? 'active',
     image: legacyFocus.image,
     accent: legacyFocus.accent,
@@ -356,20 +350,20 @@ function computeAiInsights(areas: FocusAreaProfile[]) {
       : [{ id: 'empty', message: 'No programme data yet. Link projects and campaigns to focus areas to see insights.', tone: 'info' as const }]
   }
 
-  const healthcare = areas.find((a) => a.slug === 'healthcare')
-  const education = areas.find((a) => a.slug === 'education')
-  const sports = areas.find((a) => a.slug === 'sports-development')
-  const disaster = areas.find((a) => a.slug === 'disaster-relief')
-  const women = areas.find((a) => a.slug === 'women-empowerment')
+  const healthcare = areas.find((a) => a.slug === 'healthcare-therapeutic-support')
+  const education = areas.find((a) => a.slug === 'education-skill-development')
+  const sports = areas.find((a) => a.slug === 'sports-development-athlete-empowerment')
+  const community = areas.find((a) => a.slug === 'community-social-upliftment')
+  const events = areas.find((a) => a.slug === 'ethical-events-brand-partnerships')
   const totalFunding = areas.reduce((s, a) => s + a.fundsRaised, 0) || 1
-  const healthcarePct = healthcare ? Math.round((healthcare.fundsRaised / totalFunding) * 100) : 42
+  const healthcarePct = healthcare ? Math.round((healthcare.fundsRaised / totalFunding) * 100) : 0
 
   return [
     { id: 'healthcare', message: `Healthcare generates ${healthcarePct}% of all donations`, tone: 'success' as const },
-    { id: 'education', message: `Education has the highest beneficiary growth (${education?.beneficiaryCount.toLocaleString('en-IN') ?? '10,200'} served)`, tone: 'info' as const },
-    { id: 'sports', message: `Sports programs require additional funding (${formatIndianCompact(sports?.fundsRemaining ?? 500000)} remaining)`, tone: 'warning' as const },
-    { id: 'disaster', message: `Disaster relief projects exceeded target impact by ${disaster ? disaster.progressPct - 70 : 23}%`, tone: 'success' as const },
-    { id: 'women', message: `Women's empowerment programs have highest retention (${women?.donorCount ?? 840} donors)`, tone: 'info' as const },
+    { id: 'education', message: `Education has the highest beneficiary growth (${education?.beneficiaryCount.toLocaleString('en-IN') ?? '0'} served)`, tone: 'info' as const },
+    { id: 'sports', message: `Sports programs require additional funding (${formatIndianCompact(sports?.fundsRemaining ?? 0)} remaining)`, tone: 'warning' as const },
+    { id: 'community', message: `Community programmes reached ${community?.beneficiaryCount.toLocaleString('en-IN') ?? '0'} beneficiaries`, tone: 'success' as const },
+    { id: 'events', message: `Brand partnerships engaged ${events?.donorCount ?? 0} donors`, tone: 'info' as const },
   ]
 }
 

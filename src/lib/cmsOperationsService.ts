@@ -315,12 +315,11 @@ export async function getCmsDashboardData(): Promise<CmsDashboardData> {
       },
     ],
     focusAreas: [
-      { id: '1', title: 'Healthcare', description: 'Medical camps and cancer care programmes', image: '/assets/focus-areas/healthcare.jpg', projects: 12, campaigns: 8, beneficiaries: 5420 },
-      { id: '2', title: 'Education', description: 'Scholarships and school infrastructure', image: '/assets/focus-areas/education.jpg', projects: 8, campaigns: 6, beneficiaries: 3200 },
-      { id: '3', title: 'Sports', description: 'Youth development through sports', image: '/assets/focus-areas/sports.jpg', projects: 5, campaigns: 4, beneficiaries: 1800 },
-      { id: '4', title: 'Humanitarian Relief', description: 'Disaster response and emergency aid', image: '/assets/OurImpact-e70006e2.png', projects: 6, campaigns: 5, beneficiaries: 8500 },
-      { id: '5', title: 'Community Development', description: 'Livelihood and rural empowerment', image: '/assets/hero-banner.jpg', projects: 4, campaigns: 3, beneficiaries: 2100 },
-      { id: '6', title: 'Mental Wellness', description: 'Counselling and therapeutic support', image: '/assets/focus-areas/healthcare.jpg', projects: 3, campaigns: 2, beneficiaries: 950 },
+      { id: '1', title: 'Healthcare & Therapeutic Support', description: 'Medical camps and therapeutic support programmes', image: '/assets/focus-areas/healthcare.jpg', projects: 0, campaigns: 0, beneficiaries: 0 },
+      { id: '2', title: 'Education & Skill Development', description: 'Scholarships and school infrastructure', image: '/assets/focus-areas/education.jpg', projects: 0, campaigns: 0, beneficiaries: 0 },
+      { id: '3', title: 'Sports Development & Athlete Empowerment', description: 'Youth development through sports', image: '/assets/focus-areas/sports.jpg', projects: 0, campaigns: 0, beneficiaries: 0 },
+      { id: '4', title: 'Community & Social Upliftment', description: 'Disaster response and community aid', image: '/assets/focus-areas/community.jpg', projects: 0, campaigns: 0, beneficiaries: 0 },
+      { id: '5', title: 'Ethical Events & Brand Partnerships', description: 'Purpose-driven collaborations and fundraising events', image: '/assets/focus-areas/events.jpg', projects: 0, campaigns: 0, beneficiaries: 0 },
     ],
     forms: [
       { id: '1', name: 'Volunteer Form', fields: ['Text', 'Email', 'Phone', 'Textarea'], submissions: 845 },
