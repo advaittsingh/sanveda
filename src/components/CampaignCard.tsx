@@ -298,26 +298,29 @@ export default function CampaignCard({ campaign, mobile, fluid }: Props) {
         <div
           style={{
             display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
+            alignItems: 'stretch',
             gap: mobile ? 8 : 10,
             width: '100%',
-            height: mobile ? 36 : 44,
           }}
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >
-          <ShareCampaignButton slug={slug} title={campaign.title} mobile={mobile} />
+          <ShareCampaignButton slug={slug} title={campaign.title} mobile={mobile} equalWidth />
           <SecondaryButton
             onClick={onDonate}
             style={{
+              flex: '1 1 0',
+              minWidth: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               borderRadius: 10,
-              padding: mobile ? '8px 16px' : '15px 24px',
-              width: mobile ? 115 : 160,
+              padding: mobile ? '8px 12px' : '15px 16px',
               height: mobile ? 36 : 44,
               fontSize: mobile ? 11 : 14,
               lineHeight: mobile ? '11px' : '14px',
               textTransform: 'none',
+              width: 'auto',
             }}
           >
             Donate Now
