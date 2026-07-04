@@ -350,19 +350,25 @@ export async function getBlogDashboardData(): Promise<BlogDashboardData> {
       ...c,
       pct: Math.round((c.value / totalCat) * 100),
     })),
-    aiInsights: [
-      { id: 'healthcare', message: 'Healthcare stories generate the highest engagement.', tone: 'success' as const },
-      { id: 'beneficiary', message: 'Beneficiary stories convert best to donations.', tone: 'success' as const },
-      { id: 'length', message: 'Articles longer than 1000 words perform better.', tone: 'info' as const },
-      { id: 'volunteer', message: 'Volunteer stories have the highest share rate.', tone: 'info' as const },
-      { id: 'seo', message: '8 posts are missing SEO metadata.', tone: 'warning' as const },
-    ],
-    relatedSuggestions: [
-      'Cancer Treatment Success',
-      'Healthcare Outreach',
-      'Volunteer Medical Camp',
-      'Beneficiary Recovery Story',
-    ],
+    aiInsights: isProductionDataMode()
+      ? (articles.length === 0
+          ? [{ id: 'empty', message: 'No articles yet. Publish your first story from the Articles tab.', tone: 'info' as const }]
+          : [])
+      : [
+          { id: 'healthcare', message: 'Healthcare stories generate the highest engagement.', tone: 'success' as const },
+          { id: 'beneficiary', message: 'Beneficiary stories convert best to donations.', tone: 'success' as const },
+          { id: 'length', message: 'Articles longer than 1000 words perform better.', tone: 'info' as const },
+          { id: 'volunteer', message: 'Volunteer stories have the highest share rate.', tone: 'info' as const },
+          { id: 'seo', message: '8 posts are missing SEO metadata.', tone: 'warning' as const },
+        ],
+    relatedSuggestions: isProductionDataMode()
+      ? articles.slice(0, 4).map((a) => a.title)
+      : [
+          'Cancer Treatment Success',
+          'Healthcare Outreach',
+          'Volunteer Medical Camp',
+          'Beneficiary Recovery Story',
+        ],
     socialFormats: [
       'Instagram Carousel',
       'Facebook Post',

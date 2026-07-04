@@ -326,9 +326,64 @@ export async function getTaxReceiptDashboardData(): Promise<TaxReceiptDashboardD
       sentAt: r.issueDate,
     }))
 
+  const categoryMap = new Map<string, number>()
+  for (const r of receipts) {
+    const key = r.receiptTypeLabel || r.receiptType
+    categoryMap.set(key, (categoryMap.get(key) ?? 0) + 1)
+  }
+  const categoryTotal = receipts.length || 1
+  const donationsByTaxCategory = [...categoryMap.entries()]
+    .map(([label, value]) => ({ label, value, pct: Math.round((value / categoryTotal) * 100) }))
+    .sort((a, b) => b.value - a.value)
+
+  const monthBuckets = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const receiptsGeneratedTrend = isProductionDataMode()
+    ? monthBuckets.map((label, i) => {
+        const count = receipts.filter((r) => {
+          const d = new Date(r.issueDate)
+          return d.getMonth() === i && r.status !== 'pending'
+        }).length
+        return { label, value: count }
+      }).slice(Math.max(0, now.getMonth() - 5), now.getMonth() + 1)
+    : monthBuckets.slice(0, 6).map((label, i) => ({
+        label,
+        value: 800 + i * 400 + (label.charCodeAt(0) % 200),
+      }))
+
+  const sentCount = receipts.filter((r) => r.emailStatus === 'sent' || r.emailStatus === 'opened').length
+  const deliveredTotal = receipts.filter((r) => r.emailStatus !== 'pending').length
+  const deliveryRate = deliveredTotal ? Math.round((sentCount / deliveredTotal) * 1000) / 10 : 0
+  const missingPan = receipts.filter((r) => r.eightyGEligible && !r.pan?.trim()).length
+
+  const aiInsights = isProductionDataMode()
+    ? [
+        ...(pendingGeneration > 0
+          ? [{ id: 'pending', message: `${pendingGeneration} receipts are pending generation.`, tone: 'warning' as const }]
+          : []),
+        ...(missingPan > 0
+          ? [{ id: 'pan', message: `${missingPan} donor PAN(s) required before 80G issuance.`, tone: 'warning' as const }]
+          : []),
+        ...(failedDeliveries > 0
+          ? [{ id: 'failed', message: `${failedDeliveries} receipt email(s) failed to deliver.`, tone: 'warning' as const }]
+          : []),
+        ...(deliveredTotal > 0
+          ? [{ id: 'delivery', message: `Receipt delivery success rate is ${deliveryRate}%.`, tone: 'success' as const }]
+          : []),
+        ...(receipts.length === 0
+          ? [{ id: 'empty', message: 'No receipts yet. Completed donations will appear here for 80G and tax compliance.', tone: 'info' as const }]
+          : []),
+      ]
+    : [
+        { id: 'pending', message: `${pendingGeneration} receipts are pending generation.`, tone: 'warning' as const },
+        { id: 'pan', message: '12 donor PANs require verification before 80G issuance.', tone: 'warning' as const },
+        { id: 'healthcare', message: 'Healthcare campaign generated the highest 80G claims this quarter.', tone: 'success' as const },
+        { id: 'delivery', message: 'Receipt delivery success rate is 99.2%.', tone: 'success' as const },
+        { id: 'review', message: '₹18 lakh in donations require manual compliance review.', tone: 'info' as const },
+      ]
+
   return {
     receipts,
-    certificates: buildCertificates(),
+    certificates: isProductionDataMode() ? [] : buildCertificates(),
     emailHistory,
     templates: buildTemplates(),
     kpis: {
@@ -339,22 +394,9 @@ export async function getTaxReceiptDashboardData(): Promise<TaxReceiptDashboardD
       totalTaxBenefit,
       failedDeliveries,
     },
-    receiptsGeneratedTrend: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
-      label,
-      value: 800 + i * 400 + (label.charCodeAt(0) % 200),
-    })),
-    donationsByTaxCategory: [
-      { label: '80G', value: 75, pct: 75 },
-      { label: 'CSR', value: 15, pct: 15 },
-      { label: 'General', value: 10, pct: 10 },
-    ],
-    aiInsights: [
-      { id: 'pending', message: `${pendingGeneration} receipts are pending generation.`, tone: 'warning' },
-      { id: 'pan', message: '12 donor PANs require verification before 80G issuance.', tone: 'warning' },
-      { id: 'healthcare', message: 'Healthcare campaign generated the highest 80G claims this quarter.', tone: 'success' },
-      { id: 'delivery', message: 'Receipt delivery success rate is 99.2%.', tone: 'success' },
-      { id: 'review', message: '₹18 lakh in donations require manual compliance review.', tone: 'info' },
-    ],
+    receiptsGeneratedTrend,
+    donationsByTaxCategory,
+    aiInsights,
     complianceReports: [...COMPLIANCE_REPORT_TYPES],
     bulkPendingCount: pendingGeneration,
   }

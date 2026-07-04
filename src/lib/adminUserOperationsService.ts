@@ -513,18 +513,26 @@ export async function getRbacDashboardData(): Promise<RbacDashboardData> {
       pendingInvites: pendingCount,
       departments: departments.length,
     },
-    activityByDepartment: [
-      { label: 'Administration', value: 35, pct: 35 },
-      { label: 'Fundraising', value: 30, pct: 30 },
-      { label: 'Finance', value: 20, pct: 20 },
-      { label: 'Operations', value: 15, pct: 15 },
-    ],
-    moduleUsage: [
-      { label: 'Campaigns', value: 40, pct: 40 },
-      { label: 'Finance', value: 25, pct: 25 },
-      { label: 'Volunteers', value: 20, pct: 20 },
-      { label: 'CMS', value: 15, pct: 15 },
-    ],
+    activityByDepartment: isProductionDataMode()
+      ? departments.map((d) => ({
+          label: d.name,
+          value: d.headCount,
+          pct: users.length ? Math.round((d.headCount / users.length) * 100) : 0,
+        }))
+      : [
+          { label: 'Administration', value: 35, pct: 35 },
+          { label: 'Fundraising', value: 30, pct: 30 },
+          { label: 'Finance', value: 20, pct: 20 },
+          { label: 'Operations', value: 15, pct: 15 },
+        ],
+    moduleUsage: isProductionDataMode()
+      ? []
+      : [
+          { label: 'Campaigns', value: 40, pct: 40 },
+          { label: 'Finance', value: 25, pct: 25 },
+          { label: 'Volunteers', value: 20, pct: 20 },
+          { label: 'CMS', value: 15, pct: 15 },
+        ],
     securitySettings: {
       twoFactor: true,
       googleLogin: true,
@@ -534,12 +542,24 @@ export async function getRbacDashboardData(): Promise<RbacDashboardData> {
       sessionTimeout: '8 hours',
       passwordPolicy: 'Min 12 chars, uppercase, number, symbol',
     },
-    aiInsights: [
-      { id: 'invites', message: `${Math.max(pendingCount, 2)} admin invites are pending acceptance.`, tone: 'warning' as const },
-      { id: '2fa', message: `${users.filter((u) => !u.security?.twoFactor).length} admins have not enabled 2FA.`, tone: 'warning' as const },
-      { id: 'kernel', message: 'This module is the NGO OS kernel — all module access flows from roles configured here.', tone: 'info' as const },
-      { id: 'audit', message: 'All financial approvals are logged in the audit trail.', tone: 'success' as const },
-    ],
+    aiInsights: isProductionDataMode()
+      ? [
+          ...(pendingCount > 0
+            ? [{ id: 'invites', message: `${pendingCount} admin invite(s) pending acceptance.`, tone: 'warning' as const }]
+            : []),
+          ...(users.filter((u) => !u.security?.twoFactor).length > 0
+            ? [{ id: '2fa', message: `${users.filter((u) => !u.security?.twoFactor).length} admin(s) have not enabled 2FA.`, tone: 'warning' as const }]
+            : []),
+          ...(users.length === 0
+            ? [{ id: 'empty', message: 'No admin users found. Bootstrap accounts via Supabase Auth.', tone: 'info' as const }]
+            : []),
+        ]
+      : [
+          { id: 'invites', message: `${pendingCount || 2} admin invites are pending acceptance.`, tone: 'warning' as const },
+          { id: '2fa', message: `${users.filter((u) => !u.security?.twoFactor).length} admins have not enabled 2FA.`, tone: 'warning' as const },
+          { id: 'kernel', message: 'This module is the NGO OS kernel — all module access flows from roles configured here.', tone: 'info' as const },
+          { id: 'audit', message: 'All financial approvals are logged in the audit trail.', tone: 'success' as const },
+        ],
   }
 }
 

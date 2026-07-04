@@ -1,8 +1,8 @@
 import { isSupabaseConfigured } from './supabase'
 
-/** Production data must come from Supabase — never localStorage as source of truth. */
+/** When Supabase is configured, admin must show real data only — no demo overlays. */
 export function isProductionDataMode(): boolean {
-  return isSupabaseConfigured && import.meta.env.PROD
+  return isSupabaseConfigured
 }
 
 /** Demo/dev-only localStorage persistence for admin meta overlays. */

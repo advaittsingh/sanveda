@@ -45,7 +45,7 @@ export default function AdminLogin({ title, subtitle }: Props) {
           <img
             src={ASSETS.logo}
             alt={BRAND.shortName}
-            className="mx-auto mb-4 h-16 w-auto object-contain"
+            className="mx-auto mb-4 h-20 w-20 rounded-full object-cover shadow-md"
           />
           <p className="text-xs font-bold uppercase tracking-widest" style={{ color: C.secondaryLight }}>
             {BRAND.shortName} Admin

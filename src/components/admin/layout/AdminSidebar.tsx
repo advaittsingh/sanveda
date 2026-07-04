@@ -25,7 +25,7 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: Props) {
       <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
         {!collapsed && (
           <div className="flex items-center gap-2.5">
-            <img src={ASSETS.logo} alt={BRAND.shortName} className="h-9 w-auto object-contain brightness-0 invert" />
+            <img src={ASSETS.logo} alt={BRAND.shortName} className="h-10 w-10 shrink-0 rounded-full object-cover" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: C.secondaryLight }}>
                 {BRAND.shortName}
@@ -35,7 +35,7 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: Props) {
           </div>
         )}
         {collapsed && (
-          <img src={ASSETS.logo} alt={BRAND.shortName} className="mx-auto h-8 w-auto object-contain brightness-0 invert" />
+          <img src={ASSETS.logo} alt={BRAND.shortName} className="mx-auto h-9 w-9 rounded-full object-cover" />
         )}
         <button
           type="button"

@@ -461,10 +461,12 @@ function computeAnalytics(enquiries: EnquiryProfile[]) {
     .map(([label, value]) => ({ label, value, pct: Math.round((value / total) * 100) }))
     .sort((a, b) => b.value - a.value)
 
-  const monthlyTrends = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
-    label,
-    value: 40 + i * 25 + (hashCode(label) % 30),
-  }))
+  const monthlyTrends = isProductionDataMode()
+    ? []
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
+        label,
+        value: 40 + i * 25 + (hashCode(label) % 30),
+      }))
 
   const resolved = enquiries.filter((e) => ['resolved', 'closed'].includes(e.workflowStage)).length
   const open = enquiries.filter((e) => ['new', 'assigned', 'in_progress', 'waiting'].includes(e.workflowStage)).length
@@ -484,6 +486,23 @@ function computeAiInsights(enquiries: EnquiryProfile[], kpis: EnquiryDashboardDa
   const highPriority = enquiries.filter((e) => e.priority === 'critical' || e.priority === 'high')
     .filter((e) => !['resolved', 'closed'].includes(e.workflowStage)).length
   const volunteerAuto = enquiries.filter((e) => e.category === 'volunteer' && e.workflowStage === 'new').length
+
+  if (isProductionDataMode()) {
+    return [
+      ...(enquiries.length === 0
+        ? [{ id: 'empty', message: 'No enquiries yet. Submissions from the public site will appear here.', tone: 'info' as const }]
+        : []),
+      ...(highPriority > 0
+        ? [{ id: 'priority', message: `${highPriority} high-priority ticket(s) require action.`, tone: 'warning' as const }]
+        : []),
+      ...(volunteerAuto > 0
+        ? [{ id: 'volunteer', message: `${volunteerAuto} new volunteer enquiry(ies) awaiting review.`, tone: 'info' as const }]
+        : []),
+      ...(kpis.overdueCount > 0
+        ? [{ id: 'overdue', message: `${kpis.overdueCount} enquiry(ies) are overdue on SLA.`, tone: 'warning' as const }]
+        : []),
+    ]
+  }
 
   return [
     { id: 'csr', message: 'CSR enquiries have increased by 42% this quarter', tone: 'success' as const },
