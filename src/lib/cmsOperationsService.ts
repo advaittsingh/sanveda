@@ -1,4 +1,4 @@
-import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
+import { readPersistedMetaMap, writePersistedMetaMap, isProductionDataMode } from './persistMeta'
 import { downloadCsv } from './adminExport'
 
 export type CmsTab =
@@ -225,6 +225,49 @@ function buildHomepageSections(): HomepageSection[] {
 export async function getCmsDashboardData(): Promise<CmsDashboardData> {
   const meta = readMeta()
   const storedSections = meta.homepageSections as HomepageSection[] | undefined
+  const production = isProductionDataMode()
+  const pages = buildPages()
+  const homepageSections = storedSections ?? buildHomepageSections()
+
+  if (production) {
+    return {
+      pages,
+      homepageSections,
+      heroBanners: [],
+      navigation: [],
+      statistics: [],
+      testimonials: [],
+      focusAreas: [],
+      forms: [],
+      announcements: [],
+      redirects: [],
+      sectionBlocks: [],
+      footer: {
+        aboutText: '',
+        address: '',
+        phone: '',
+        email: '',
+        policies: [],
+      },
+      kpis: {
+        websitePages: pages.length,
+        homepageSections: homepageSections.filter((s) => s.enabled).length,
+        publishedContent: pages.filter((p) => p.status === 'published').length,
+        draftContent: pages.filter((p) => p.status === 'draft').length,
+        activeBanners: 0,
+        lastPublished: '—',
+      },
+      analytics: {
+        visitors: 0,
+        pageViews: 0,
+        bounceRate: 0,
+        donationConversion: 0,
+        topPages: [],
+      },
+      trafficTrend: [],
+      aiInsights: [{ id: 'empty', message: 'Connect analytics integrations to see website traffic and conversion data.', tone: 'info' as const }],
+    }
+  }
 
   return {
     pages: buildPages(),

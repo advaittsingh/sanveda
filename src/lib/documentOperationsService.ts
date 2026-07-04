@@ -1,4 +1,5 @@
 import { downloadCsv } from './adminExport'
+import { isProductionDataMode } from './persistMeta'
 import { getAllDocuments, type DocumentCategory, type DocumentFolder, type DocumentRecord, type DocumentStatus, type DocumentVisibility } from './documentsService'
 
 export type { DocumentCategory, DocumentFolder, DocumentStatus, DocumentVisibility }
@@ -151,7 +152,7 @@ const COMPLIANCE_REGISTRY: Omit<ComplianceItem, 'status'>[] = [
 ]
 
 function buildComplianceDashboard(docs: DocumentProfile[]): ComplianceItem[] {
-  return COMPLIANCE_REGISTRY.map((item) => {
+  const mapped = COMPLIANCE_REGISTRY.map((item) => {
     const match = docs.find((d) =>
       d.title.toLowerCase().includes(item.name.toLowerCase()) ||
       d.tags.some((t) => item.name.toLowerCase().includes(t)),
@@ -162,6 +163,11 @@ function buildComplianceDashboard(docs: DocumentProfile[]): ComplianceItem[] {
     else if (days !== undefined && days <= 60) status = 'expiring'
     return { ...item, status, documentId: match?.documentId }
   })
+
+  if (isProductionDataMode()) {
+    return mapped.filter((item) => item.documentId)
+  }
+  return mapped
 }
 
 function buildExpiryAlerts(docs: DocumentProfile[]): ExpiryAlert[] {
@@ -186,15 +192,18 @@ function computeKpis(docs: DocumentProfile[]) {
     reportsGenerated: docs.filter((d) =>
       ['annual_report', 'audit', 'csr', 'project_report', 'financial'].includes(d.category),
     ).length,
-    storageUsedGb: Math.round((storageMb / 1024) * 10) / 10 || 18,
+    storageUsedGb: Math.round((storageMb / 1024) * 10) / 10 || (isProductionDataMode() ? 0 : 18),
   }
 }
 
 function computeAnalytics(docs: DocumentProfile[]) {
-  const uploadTrends = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
-    label,
-    value: 15 + i * 12 + (hashCode(label) % 20),
-  }))
+  const production = isProductionDataMode()
+  const uploadTrends = production
+    ? []
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
+        label,
+        value: 15 + i * 12 + (hashCode(label) % 20),
+      }))
 
   const catMap = new Map<string, number>()
   for (const d of docs) catMap.set(d.categoryLabel, (catMap.get(d.categoryLabel) ?? 0) + 1)
@@ -216,6 +225,17 @@ function computeAnalytics(docs: DocumentProfile[]) {
 }
 
 function computeAiInsights(docs: DocumentProfile[], alerts: ExpiryAlert[]) {
+  if (isProductionDataMode()) {
+    if (docs.length === 0) {
+      return [{ id: 'empty', message: 'No documents yet. Upload compliance certificates, reports, and policies.', tone: 'info' as const }]
+    }
+    const expiringCount = alerts.filter((a) => a.daysRemaining <= 60).length
+    if (expiringCount > 0) {
+      return [{ id: 'expiry', message: `${expiringCount} document${expiringCount === 1 ? '' : 's'} expiring within 60 days`, tone: 'warning' as const }]
+    }
+    return []
+  }
+
   const expiringCount = alerts.filter((a) => a.daysRemaining <= 60).length
   const missingFinancials = docs.some((d) => d.title.includes('Annual Report') && d.status === 'draft')
   const incompleteProjects = docs.filter((d) => d.project && d.status !== 'published').length

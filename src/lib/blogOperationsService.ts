@@ -223,6 +223,7 @@ function toArticleProfile(blog: BlogRecord, metaMap: Record<string, ArticleMeta>
   const author = authors.find((a) => a.id === meta.authorId) ?? authors[blog.id % authors.length]
   const contentType = inferContentType(blog, meta)
   const bodyHtml = meta.bodyHtml ?? blog.content.map((c) => c.description ?? '').join('\n\n')
+  const production = isProductionDataMode()
 
   return {
     ...blog,
@@ -231,12 +232,12 @@ function toArticleProfile(blog: BlogRecord, metaMap: Record<string, ArticleMeta>
     workflowStatus: inferWorkflow(blog, meta),
     authorId: author.id,
     authorName: meta.authorName ?? author.name,
-    focusArea: meta.focusArea ?? (blog.category?.includes('Healthcare') ? 'Healthcare' : blog.category?.includes('Education') ? 'Education' : 'Humanitarian Relief'),
-    project: meta.project ?? 'Community Outreach',
-    campaign: meta.campaign ?? 'Save Lives Campaign',
+    focusArea: meta.focusArea ?? (production ? '' : (blog.category?.includes('Healthcare') ? 'Healthcare' : blog.category?.includes('Education') ? 'Education' : 'Humanitarian Relief')),
+    project: meta.project ?? (production ? '' : 'Community Outreach'),
+    campaign: meta.campaign ?? (production ? '' : 'Save Lives Campaign'),
     tags: meta.tags ?? [blog.category ?? 'General'].filter(Boolean),
     bodyHtml,
-    isFeatured: meta.isFeatured ?? blog.id === 1,
+    isFeatured: meta.isFeatured ?? (!production && blog.id === 1),
     scheduledAt: meta.scheduledAt,
     reviewer: meta.reviewer,
     expiryDate: meta.expiryDate,
@@ -249,20 +250,20 @@ function toArticleProfile(blog: BlogRecord, metaMap: Record<string, ArticleMeta>
       schemaType: meta.seo?.schemaType ?? 'Article',
     },
     analytics: {
-      views: meta.analytics?.views ?? hashNum(blog.slug, 1200, 45000),
-      shares: meta.analytics?.shares ?? hashNum(blog.slug + 's', 20, 800),
-      donationsGenerated: meta.analytics?.donationsGenerated ?? hashNum(blog.slug + 'd', 5000, 250000),
-      readingTimeMinutes: meta.analytics?.readingTimeMinutes ?? hashNum(blog.slug + 'r', 3, 8),
-      ctr: meta.analytics?.ctr ?? hashNum(blog.slug + 'c', 4, 12),
+      views: meta.analytics?.views ?? (production ? 0 : hashNum(blog.slug, 1200, 45000)),
+      shares: meta.analytics?.shares ?? (production ? 0 : hashNum(blog.slug + 's', 20, 800)),
+      donationsGenerated: meta.analytics?.donationsGenerated ?? (production ? 0 : hashNum(blog.slug + 'd', 5000, 250000)),
+      readingTimeMinutes: meta.analytics?.readingTimeMinutes ?? (production ? 0 : hashNum(blog.slug + 'r', 3, 8)),
+      ctr: meta.analytics?.ctr ?? (production ? 0 : hashNum(blog.slug + 'c', 4, 12)),
     },
-    beneficiaryStory: meta.beneficiaryStory ?? (contentType === 'story' ? {
+    beneficiaryStory: meta.beneficiaryStory ?? (production || contentType !== 'story' ? undefined : {
       beneficiaryName: 'Priya Sharma',
       program: 'Cancer Support',
       supportAmount: 450000,
       outcomeStatus: 'Recovered',
       galleryIds: [],
       videoUrl: '',
-    } : undefined),
+    }),
     relatedSlugs: meta.relatedSlugs ?? [],
   }
 }

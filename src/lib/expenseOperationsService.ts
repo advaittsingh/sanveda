@@ -294,6 +294,15 @@ async function seedDemoIfEmpty(): Promise<Expense[]> {
 function buildVendors(expenses: ExpenseProfile[]): VendorRecord[] {
   const map = new Map<string, number>()
   for (const e of expenses) map.set(e.vendor, (map.get(e.vendor) ?? 0) + e.amount)
+  if (isProductionDataMode()) {
+    return [...map.entries()].map(([name, totalSpend], i) => ({
+      id: String(i + 1),
+      name,
+      type: 'vendor' as const,
+      totalSpend,
+      gst: '',
+    }))
+  }
   return VENDORS.map((v, i) => ({
     id: String(i + 1),
     name: v.name,
@@ -304,6 +313,7 @@ function buildVendors(expenses: ExpenseProfile[]): VendorRecord[] {
 }
 
 function buildBudgetControls(): BudgetControl[] {
+  if (isProductionDataMode()) return []
   return [
     { project: 'Healthcare Programme', budget: 5000000, spent: 4800000, remaining: 200000, utilizationPct: 96, warning: 'Budget nearing limit' },
     { project: 'Education Initiative', budget: 4000000, spent: 2600000, remaining: 1400000, utilizationPct: 65 },
@@ -312,6 +322,7 @@ function buildBudgetControls(): BudgetControl[] {
 }
 
 function buildGrantUtilization(): GrantUtilization[] {
+  if (isProductionDataMode()) return []
   return [
     { name: 'UNICEF Grant', allocated: 20000000, utilized: 14500000, remaining: 5500000 },
     { name: 'Tata Trusts CSR', allocated: 12000000, utilized: 9600000, remaining: 2400000 },
@@ -319,6 +330,7 @@ function buildGrantUtilization(): GrantUtilization[] {
 }
 
 function buildAuditLogs(): ExpenseAuditEntry[] {
+  if (isProductionDataMode()) return []
   return [
     { id: '1', user: 'Admin', date: '2026-07-04T10:30:00Z', action: 'Approved expense', oldValue: '₹45,000 pending', newValue: 'Approved', comments: 'Healthcare programme' },
     { id: '2', user: 'Finance Team', date: '2026-07-03T14:00:00Z', action: 'Marked as paid', oldValue: 'Approved', newValue: 'Paid', comments: 'UPI transfer' },
@@ -327,20 +339,22 @@ function buildAuditLogs(): ExpenseAuditEntry[] {
 }
 
 function computeKpis(expenses: ExpenseProfile[]) {
-  const total = expenses.reduce((s, e) => s + e.amount, 0) || 127000000
-  const approved = expenses.filter((e) => e.status === 'approved' || e.status === 'paid').reduce((s, e) => s + e.amount, 0) || 112000000
-  const pending = expenses.filter((e) => e.status === 'pending').reduce((s, e) => s + e.amount, 0) || 4500000
+  const production = isProductionDataMode()
+  const total = expenses.reduce((s, e) => s + e.amount, 0) || (production ? 0 : 127000000)
+  const approved = expenses.filter((e) => e.status === 'approved' || e.status === 'paid').reduce((s, e) => s + e.amount, 0) || (production ? 0 : 112000000)
+  const pending = expenses.filter((e) => e.status === 'pending').reduce((s, e) => s + e.amount, 0) || (production ? 0 : 4500000)
   return {
     totalExpenses: total,
     approvedExpenses: approved,
     pendingApprovals: pending,
-    budgetUtilizationPct: 72,
-    overduePayments: 800000,
-    activeVendors: VENDORS.length + 144,
+    budgetUtilizationPct: production ? 0 : 72,
+    overduePayments: production ? 0 : 800000,
+    activeVendors: production ? 0 : VENDORS.length + 144,
   }
 }
 
 function computeAnalytics(expenses: ExpenseProfile[], budgets: BudgetControl[]) {
+  const production = isProductionDataMode()
   const catMap = new Map<string, number>()
   for (const e of expenses) catMap.set(e.categoryLabel, (catMap.get(e.categoryLabel) ?? 0) + e.amount)
   const total = [...catMap.values()].reduce((s, v) => s + v, 0) || 1
@@ -348,7 +362,7 @@ function computeAnalytics(expenses: ExpenseProfile[], budgets: BudgetControl[]) 
     .map(([label, value]) => ({ label, value, pct: Math.round((value / total) * 100) }))
     .sort((a, b) => b.value - a.value)
 
-  if (categoryDistribution.length === 0) {
+  if (categoryDistribution.length === 0 && !production) {
     categoryDistribution.push(
       { label: 'Programs', value: 45, pct: 45 },
       { label: 'Operations', value: 20, pct: 20 },
@@ -358,10 +372,12 @@ function computeAnalytics(expenses: ExpenseProfile[], budgets: BudgetControl[]) 
     )
   }
 
-  const monthlySpending = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
-    label,
-    value: 1500000 + i * 1200000 + (hashCode(label) % 800000),
-  }))
+  const monthlySpending = production
+    ? []
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
+        label,
+        value: 1500000 + i * 1200000 + (hashCode(label) % 800000),
+      }))
 
   const budgetUtilization = budgets.map((b) => ({
     label: b.project.replace(' Programme', '').replace(' Initiative', '').replace(' Development', ''),
@@ -373,6 +389,12 @@ function computeAnalytics(expenses: ExpenseProfile[], budgets: BudgetControl[]) 
 }
 
 function computeAiInsights(expenses: ExpenseProfile[]) {
+  if (isProductionDataMode()) {
+    return expenses.length
+      ? []
+      : [{ id: 'empty', message: 'No expenses recorded yet. Track programme expenses with approval workflows.', tone: 'info' as const }]
+  }
+
   const pendingInvoices = expenses.filter((e) => e.status === 'pending').length
   return [
     { id: 'healthcare', message: 'Healthcare expenses increased by 22% this quarter', tone: 'warning' as const },

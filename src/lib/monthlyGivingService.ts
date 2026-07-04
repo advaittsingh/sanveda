@@ -84,6 +84,7 @@ const LAST_NAMES = [
 ]
 
 function readSubscribers(): MonthlyGivingSubscriber[] {
+  if (isProductionDataMode()) return []
   try {
     const raw = localStorage.getItem(MONTHLY_GIVING_KEY)
     return raw ? (JSON.parse(raw) as MonthlyGivingSubscriber[]) : []
@@ -100,6 +101,7 @@ export function getMonthlySubscriptionForDonor(email: string): MonthlyGivingSubs
 }
 
 function writeSubscribers(subscribers: MonthlyGivingSubscriber[]) {
+  if (isProductionDataMode()) return
   localStorage.setItem(MONTHLY_GIVING_KEY, JSON.stringify(subscribers))
 }
 

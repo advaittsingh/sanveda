@@ -1,4 +1,4 @@
-import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
+import { readPersistedMetaMap, writePersistedMetaMap, isProductionDataMode } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getAllCampaignsAdmin } from './campaignService'
 import { campaignMatchesFocusArea, FOCUS_AREAS, type FocusArea } from '../constants/focusAreas'
@@ -191,6 +191,7 @@ function buildProfile(
 ): FocusAreaProfile {
   const legacy = resolveLegacyArea(strategic.slug)
   const seed = hashCode(strategic.slug)
+  const production = isProductionDataMode()
 
   const legacyFocus: FocusArea = legacy ?? {
     slug: strategic.slug,
@@ -229,18 +230,22 @@ function buildProfile(
     raised: c.raised ?? 0,
   }))
 
-  const beneficiaryCount = beneficiaries.length || 800 + (seed % 4000)
-  const fundsRaised = projects.reduce((s, p) => s + p.budget, 0) + campaigns.reduce((s, c) => s + (c.raised ?? 0), 0) || 5000000 + (seed % 20000000)
-  const fundsUtilized = projects.reduce((s, p) => s + p.spent, 0) || Math.round(fundsRaised * (0.65 + (seed % 20) / 100))
+  const beneficiaryCount = beneficiaries.length || (production ? 0 : 800 + (seed % 4000))
+  const fundsRaised =
+    projects.reduce((s, p) => s + p.budget, 0) + campaigns.reduce((s, c) => s + (c.raised ?? 0), 0) ||
+    (production ? 0 : 5000000 + (seed % 20000000))
+  const fundsUtilized =
+    projects.reduce((s, p) => s + p.spent, 0) ||
+    (production ? 0 : Math.round(fundsRaised * (0.65 + (seed % 20) / 100)))
   const budgetAllocated = fundsRaised
   const fundsRemaining = Math.max(budgetAllocated - fundsUtilized, 0)
   const utilizationPct = budgetAllocated > 0 ? Math.round((fundsUtilized / budgetAllocated) * 100) : 0
   const progressPct = projects.length
     ? Math.round(projects.reduce((s, p) => s + p.progressPercent, 0) / projects.length)
-    : 60 + (seed % 30)
+    : production ? 0 : 60 + (seed % 30)
 
-  const volunteerCount = 80 + (seed % 300) + events.length * 5
-  const donorCount = 200 + (seed % 800) + campaigns.length * 15
+  const volunteerCount = production ? events.length * 5 : 80 + (seed % 300) + events.length * 5
+  const donorCount = production ? campaigns.length * 15 : 200 + (seed % 800) + campaigns.length * 15
 
   return {
     slug: strategic.slug,
@@ -254,8 +259,8 @@ function buildProfile(
     image: legacyFocus.image,
     accent: legacyFocus.accent,
     publicUrl: `/focus-areas/${legacyFocus.slug}`,
-    projectCount: projects.length || 5 + (seed % 12),
-    campaignCount: campaigns.length || 3 + (seed % 10),
+    projectCount: projects.length || (production ? 0 : 5 + (seed % 12)),
+    campaignCount: campaigns.length || (production ? 0 : 3 + (seed % 10)),
     beneficiaryCount,
     volunteerCount,
     donorCount,
@@ -265,34 +270,34 @@ function buildProfile(
     budgetAllocated,
     utilizationPct,
     progressPct,
-    projects: projectRows.length ? projectRows : [
+    projects: projectRows.length ? projectRows : production ? [] : [
       { id: '1', title: `${strategic.tabLabel} Outreach`, budget: 5000000, progress: progressPct },
       { id: '2', title: `${strategic.tabLabel} Initiative`, budget: 20000000, progress: Math.max(progressPct - 10, 40) },
     ],
-    campaigns: campaignRows.length ? campaignRows : [
+    campaigns: campaignRows.length ? campaignRows : production ? [] : [
       { id: '1', title: `Donate for ${strategic.tabLabel}`, raised: Math.round(fundsRaised * 0.3) },
       { id: '2', title: `${strategic.tabLabel} Drive`, raised: Math.round(fundsRaised * 0.2) },
     ],
-    beneficiarySegments: [
+    beneficiarySegments: production && beneficiaryCount === 0 ? [] : [
       { label: 'Children', count: Math.round(beneficiaryCount * 0.41) },
       { label: 'Women', count: Math.round(beneficiaryCount * 0.28) },
       { label: 'Senior Citizens', count: Math.round(beneficiaryCount * 0.12) },
       { label: 'Patients', count: Math.round(beneficiaryCount * 0.19) },
     ],
-    volunteerSegments: [
+    volunteerSegments: production && volunteerCount === 0 ? [] : [
       { label: 'Doctors', count: Math.round(volunteerCount * 0.13) },
       { label: 'Nurses', count: Math.round(volunteerCount * 0.18) },
       { label: 'Support Staff', count: Math.round(volunteerCount * 0.3) },
       { label: 'General Volunteers', count: Math.round(volunteerCount * 0.39) },
     ],
-    impactMetrics: buildImpactMetrics(strategic.name, seed, beneficiaryCount),
-    geographic: {
+    impactMetrics: production && beneficiaryCount === 0 ? [] : buildImpactMetrics(strategic.name, seed, beneficiaryCount),
+    geographic: production ? { states: 0, districts: 0, villages: 0, cities: 0 } : {
       states: 8 + (seed % 6),
       districts: 20 + (seed % 30),
       villages: 100 + (seed % 250),
       cities: 10 + (seed % 20),
     },
-    successStories: [
+    successStories: production ? [] : [
       {
         title: `${strategic.tabLabel} Impact Story`,
         beneficiary: 'Community Member',
@@ -302,7 +307,7 @@ function buildProfile(
         hasPhotos: true,
       },
     ],
-    documents: [
+    documents: production ? [] : [
       { name: 'Research Reports', uploaded: true },
       { name: 'Project Reports', uploaded: true },
       { name: 'Budgets', uploaded: true },
@@ -333,15 +338,24 @@ function computeAnalytics(areas: FocusAreaProfile[]) {
     .map((a) => ({ label: a.tabLabel, value: a.beneficiaryCount, pct: Math.round((a.beneficiaryCount / benTotal) * 100) }))
     .sort((a, b) => b.value - a.value)
 
-  const growthTrends = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
-    label,
-    value: 20 + i * 15 + (hashCode(label) % 20),
-  }))
+  const growthTrends = isProductionDataMode()
+    ? []
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
+        label,
+        value: 20 + i * 15 + (hashCode(label) % 20),
+      }))
 
   return { fundingDistribution, beneficiaryDistribution, growthTrends }
 }
 
 function computeAiInsights(areas: FocusAreaProfile[]) {
+  if (isProductionDataMode()) {
+    const hasData = areas.some((a) => a.projectCount > 0 || a.beneficiaryCount > 0 || a.fundsRaised > 0)
+    return hasData
+      ? []
+      : [{ id: 'empty', message: 'No programme data yet. Link projects and campaigns to focus areas to see insights.', tone: 'info' as const }]
+  }
+
   const healthcare = areas.find((a) => a.slug === 'healthcare')
   const education = areas.find((a) => a.slug === 'education')
   const sports = areas.find((a) => a.slug === 'sports-development')

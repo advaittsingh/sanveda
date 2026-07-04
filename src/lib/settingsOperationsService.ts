@@ -333,16 +333,27 @@ function defaultData(): SettingsDashboardData {
       { id: '2', name: 'Expense', steps: ['Expense Submitted', 'Finance', 'Director'] },
       { id: '3', name: 'Volunteer', steps: ['Volunteer Application', 'Volunteer Manager', 'Admin'] },
     ],
-    analytics: {
-      storageUsed: '2.4 GB',
-      apiCalls: 48200,
-      emailsSent: 1240,
-      smsSent: 380,
-      transactions: 892,
-      users: 18,
-      campaigns: 24,
-      donations: 3420,
-    },
+    analytics: isProductionDataMode()
+      ? {
+          storageUsed: '0 GB',
+          apiCalls: 0,
+          emailsSent: 0,
+          smsSent: 0,
+          transactions: 0,
+          users: 0,
+          campaigns: 0,
+          donations: 0,
+        }
+      : {
+          storageUsed: '2.4 GB',
+          apiCalls: 48200,
+          emailsSent: 1240,
+          smsSent: 380,
+          transactions: 892,
+          users: 18,
+          campaigns: 24,
+          donations: 3420,
+        },
     aiInsights: isProductionDataMode()
       ? [
           { id: '1', message: 'Platform settings are synced with your live Supabase project.', tone: 'success' as const },

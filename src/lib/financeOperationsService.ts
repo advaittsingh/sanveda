@@ -352,10 +352,11 @@ function buildAuditLogs(): AuditLogEntry[] {
 }
 
 function computeKpis(income: IncomeProfile[], expenses: ExpenseProfile[]) {
-  const totalIncome = income.reduce((s, r) => s + r.amount, 0) || 184000000
-  const totalExpenses = expenses.filter((e) => e.status === 'approved' || e.status === 'paid').reduce((s, e) => s + e.amount, 0) || 127000000
-  const restricted = income.filter((i) => i.fundType === 'restricted').reduce((s, r) => s + r.amount, 0) || 83000000
-  const unrestricted = income.filter((i) => i.fundType === 'unrestricted').reduce((s, r) => s + r.amount, 0) || 31000000
+  const production = isProductionDataMode()
+  const totalIncome = income.reduce((s, r) => s + r.amount, 0) || (production ? 0 : 184000000)
+  const totalExpenses = expenses.filter((e) => e.status === 'approved' || e.status === 'paid').reduce((s, e) => s + e.amount, 0) || (production ? 0 : 127000000)
+  const restricted = income.filter((i) => i.fundType === 'restricted').reduce((s, r) => s + r.amount, 0) || (production ? 0 : 83000000)
+  const unrestricted = income.filter((i) => i.fundType === 'unrestricted').reduce((s, r) => s + r.amount, 0) || (production ? 0 : 31000000)
 
   return {
     totalIncome,
@@ -363,11 +364,14 @@ function computeKpis(income: IncomeProfile[], expenses: ExpenseProfile[]) {
     netBalance: totalIncome - totalExpenses,
     restrictedFunds: restricted,
     unrestrictedFunds: unrestricted,
-    pendingReceivables: buildReceivables().filter((r) => !r.overdue).reduce((s, r) => s + r.amount, 0) || 4200000,
+    pendingReceivables: production
+      ? buildReceivables().filter((r) => !r.overdue).reduce((s, r) => s + r.amount, 0)
+      : buildReceivables().filter((r) => !r.overdue).reduce((s, r) => s + r.amount, 0) || 4200000,
   }
 }
 
 function computeAnalytics(income: IncomeProfile[], budgets: BudgetRecord[]) {
+  const production = isProductionDataMode()
   const typeMap = new Map<string, number>()
   for (const i of income) typeMap.set(i.typeLabel, (typeMap.get(i.typeLabel) ?? 0) + i.amount)
   const typeTotal = [...typeMap.values()].reduce((s, v) => s + v, 0) || 1
@@ -375,10 +379,12 @@ function computeAnalytics(income: IncomeProfile[], budgets: BudgetRecord[]) {
     .map(([label, value]) => ({ label, value, pct: Math.round((value / typeTotal) * 100) }))
     .sort((a, b) => b.value - a.value)
 
-  const monthlyRevenue = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
-    label,
-    value: 2000000 + i * 1500000 + (hashCode(label) % 1000000),
-  }))
+  const monthlyRevenue = production
+    ? []
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
+        label,
+        value: 2000000 + i * 1500000 + (hashCode(label) % 1000000),
+      }))
 
   const budgetUtilization = budgets.map((b) => ({ label: b.focusArea, value: b.utilized, pct: b.utilizationPct }))
 
@@ -386,6 +392,12 @@ function computeAnalytics(income: IncomeProfile[], budgets: BudgetRecord[]) {
 }
 
 function computeAiInsights(budgets: BudgetRecord[]) {
+  if (isProductionDataMode()) {
+    return budgets.length
+      ? []
+      : [{ id: 'empty', message: 'No finance records yet. Income and expenses will appear here once recorded.', tone: 'info' as const }]
+  }
+
   const healthcare = budgets.find((b) => b.focusArea === 'Healthcare')
   const overdueRecv = 1800000
 
@@ -402,26 +414,27 @@ export async function getFinanceDashboardData(): Promise<FinanceDashboardData> {
   const { income: rawIncome, expenses: rawExpenses } = await seedDemoData()
   const income = rawIncome.map(enrichIncome)
   const expenses = rawExpenses.map(enrichExpense)
+  const production = isProductionDataMode()
 
-  const restrictedFunds: FundBucket[] = [
+  const restrictedFunds: FundBucket[] = production ? [] : [
     { name: 'Healthcare Grant', amount: 5000000, type: 'restricted' },
     { name: 'Education CSR', amount: 12000000, type: 'restricted' },
     { name: 'Disaster Relief', amount: 7500000, type: 'restricted' },
   ]
-  const unrestrictedFunds: FundBucket[] = [
+  const unrestrictedFunds: FundBucket[] = production ? [] : [
     { name: 'General Donations', amount: 18000000, type: 'unrestricted' },
     { name: 'Operations', amount: 8000000, type: 'unrestricted' },
     { name: 'Admin Budget', amount: 5000000, type: 'unrestricted' },
   ]
 
-  const grants = buildGrants()
-  const budgets = buildBudgets()
-  const receivables = buildReceivables()
-  const payables = buildPayables()
-  const bankAccounts = buildBankAccounts()
+  const grants = production ? [] : buildGrants()
+  const budgets = production ? [] : buildBudgets()
+  const receivables = production ? [] : buildReceivables()
+  const payables = production ? [] : buildPayables()
+  const bankAccounts = production ? [] : buildBankAccounts()
   const kpis = computeKpis(income, expenses)
-  const chartOfAccounts = buildChartOfAccounts(kpis.totalIncome, kpis.totalExpenses)
-  const auditLogs = buildAuditLogs()
+  const chartOfAccounts = production ? [] : buildChartOfAccounts(kpis.totalIncome, kpis.totalExpenses)
+  const auditLogs = production ? [] : buildAuditLogs()
   const analytics = computeAnalytics(income, budgets)
   const aiInsights = computeAiInsights(budgets)
 

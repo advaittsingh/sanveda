@@ -1,4 +1,5 @@
 import { downloadCsv } from './adminExport'
+import { isProductionDataMode } from './persistMeta'
 
 export type ReportCategory =
   | 'impact'
@@ -202,6 +203,9 @@ function buildTemplates(): ReportTemplate[] {
     { id: '11', name: 'Quarterly Board Report', category: 'board', categoryLabel: 'Board Reports', description: 'Executive summary for trustees and board', formats: ['pdf', 'dashboard'] },
     { id: '12', name: 'Donation Trends Analysis', category: 'analytics', categoryLabel: 'Analytics Reports', description: 'Trends, geographic impact, and distribution', formats: ['dashboard', 'excel'] },
   ]
+  if (isProductionDataMode()) {
+    return items.map((t) => ({ ...t, scheduled: false }))
+  }
   return items.map((t, i) => ({
     ...t,
     lastGenerated: i % 3 === 0 ? 'Today' : i % 3 === 1 ? 'Yesterday' : '3 days ago',
@@ -211,6 +215,32 @@ function buildTemplates(): ReportTemplate[] {
 
 export async function getReportDashboardData(): Promise<ReportDashboardData> {
   const templates = buildTemplates()
+
+  if (isProductionDataMode()) {
+    return {
+      kpis: {
+        reportsGenerated: 0,
+        scheduledReports: 0,
+        pendingReports: 0,
+        complianceReports: 0,
+        lastGenerated: '—',
+        automatedPct: 0,
+      },
+      templates,
+      donorReports: [],
+      campaignReports: [],
+      volunteerMetrics: { applications: 0, approved: 0, active: 0, hoursServed: 0 },
+      beneficiaryReports: [],
+      projectReports: [],
+      grantReports: [],
+      impactReports: [],
+      scheduledReports: [],
+      donationTrends: [],
+      expenseDistribution: [],
+      geographicImpact: [],
+      aiInsights: [{ id: 'empty', message: 'No reports generated yet. Use a template below to create your first report.', tone: 'info' as const }],
+    }
+  }
 
   return {
     kpis: {

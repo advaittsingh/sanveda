@@ -1,4 +1,4 @@
-import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
+import { readPersistedMetaMap, writePersistedMetaMap, isProductionDataMode } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getAllAlbumsAdmin, type GalleryAlbum, type GalleryItem } from './galleryService'
 
@@ -244,14 +244,15 @@ function buildBeforeAfter(album: GalleryAlbum, seed: number): BeforeAfterPair[] 
 
 function buildAlbumProfile(album: GalleryAlbum, meta?: AlbumAdminMeta): AlbumProfile {
   const seed = hashCode(album.id)
+  const production = isProductionDataMode()
   const category = meta?.category ?? inferCategory(album)
   const media = album.items.map((item, i) => buildMediaItem(item, album, i))
 
-  const photoCount = media.filter((m) => m.mediaType === 'image').length || 12 + (seed % 20)
-  const videoCount = media.filter((m) => m.mediaType === 'video').length || 1 + (seed % 5)
-  const documentCount = media.filter((m) => m.mediaType === 'document').length || seed % 3
-  const totalItems = media.length || photoCount + videoCount + documentCount
-  const storageGb = media.reduce((s, m) => s + m.sizeMb, 0) / 1024 || 0.5 + (seed % 30) / 10
+  const photoCount = media.filter((m) => m.mediaType === 'image').length || (production ? 0 : 12 + (seed % 20))
+  const videoCount = media.filter((m) => m.mediaType === 'video').length || (production ? 0 : 1 + (seed % 5))
+  const documentCount = media.filter((m) => m.mediaType === 'document').length || (production ? 0 : seed % 3)
+  const totalItems = media.length || (production ? 0 : photoCount + videoCount + documentCount)
+  const storageGb = media.reduce((s, m) => s + m.sizeMb, 0) / 1024 || (production ? 0 : 0.5 + (seed % 30) / 10)
 
   return {
     id: album.id,
@@ -272,18 +273,18 @@ function buildAlbumProfile(album: GalleryAlbum, meta?: AlbumAdminMeta): AlbumPro
     videoCount,
     documentCount,
     totalItems,
-    downloads: 20 + (seed % 300),
-    shares: 5 + (seed % 50),
+    downloads: production ? 0 : 20 + (seed % 300),
+    shares: production ? 0 : 5 + (seed % 50),
     storageGb: Math.round(storageGb * 10) / 10,
-    media: media.length ? media : generatePlaceholderMedia(album, photoCount, videoCount),
-    successStories: seed % 2 === 0 ? [{
+    media: media.length ? media : (production ? [] : generatePlaceholderMedia(album, photoCount, videoCount)),
+    successStories: production || seed % 2 !== 0 ? [] : [{
       title: `${album.title} Impact Story`,
       beneficiary: 'Programme Beneficiary',
       project: meta?.project ?? album.title,
       quote: `Received support worth ₹${(100000 + seed % 400000).toLocaleString('en-IN')} through Sanveda programmes.`,
       impactScore: 80 + (seed % 20),
       hasVideo: videoCount > 0,
-    }] : [],
+    }],
     beforeAfterPairs: buildBeforeAfter(album, seed),
     linkedProjects: [meta?.project ?? album.title, 'Sanveda Field Programme'].filter(Boolean) as string[],
     aiTags: AI_TAG_POOL.filter((_, i) => (seed + i) % 4 === 0).slice(0, 6),
@@ -320,6 +321,8 @@ function generatePlaceholderMedia(album: GalleryAlbum, photos: number, videos: n
 function enrichAlbums(raw: GalleryAlbum[]): AlbumProfile[] {
   const metaMap = readMetaMap()
   const profiles = raw.map((a) => buildAlbumProfile(a, metaMap[a.id]))
+
+  if (isProductionDataMode()) return profiles
 
   const extra: GalleryAlbum[] = [
     {
@@ -385,10 +388,13 @@ function computeKpis(albums: AlbumProfile[]) {
 }
 
 function computeAnalytics(albums: AlbumProfile[]) {
-  const uploadTrends = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
-    label,
-    value: 30 + i * 20 + (hashCode(label) % 25),
-  }))
+  const production = isProductionDataMode()
+  const uploadTrends = production
+    ? []
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
+        label,
+        value: 30 + i * 20 + (hashCode(label) % 25),
+      }))
 
   const photos = albums.reduce((s, a) => s + a.photoCount, 0)
   const videos = albums.reduce((s, a) => s + a.videoCount, 0)
@@ -413,16 +419,24 @@ function computeAnalytics(albums: AlbumProfile[]) {
   const imageGb = albums.reduce((s, a) => s + a.photoCount * 0.02, 0)
   const videoGb = albums.reduce((s, a) => s + a.videoCount * 0.15, 0)
   const docGb = albums.reduce((s, a) => s + a.documentCount * 0.005, 0)
-  const storageBreakdown = [
-    { label: 'Images', valueGb: Math.round(imageGb * 10) / 10 || 150 },
-    { label: 'Videos', valueGb: Math.round(videoGb * 10) / 10 || 85 },
-    { label: 'Documents', valueGb: Math.round(docGb * 10) / 10 || 10 },
-  ]
+  const storageBreakdown = production || albums.length === 0
+    ? []
+    : [
+        { label: 'Images', valueGb: Math.round(imageGb * 10) / 10 || 150 },
+        { label: 'Videos', valueGb: Math.round(videoGb * 10) / 10 || 85 },
+        { label: 'Documents', valueGb: Math.round(docGb * 10) / 10 || 10 },
+      ]
 
   return { uploadTrends, contentDistribution, categoryUsage, storageBreakdown }
 }
 
 function computeAiInsights(albums: AlbumProfile[]) {
+  if (isProductionDataMode()) {
+    return albums.length
+      ? []
+      : [{ id: 'empty', message: 'No gallery albums yet. Upload photos and videos from the Media Library tab.', tone: 'info' as const }]
+  }
+
   const noCover = albums.filter((a) => !a.coverImage).length
   const unpublishedVideos = albums.reduce((s, a) => s + (a.status !== 'published' ? a.videoCount : 0), 0)
   const healthcare = albums.filter((a) => a.category === 'healthcare').length
