@@ -1,14 +1,16 @@
 import { CD } from './campaignDetailTheme'
+import SaveCampaignButton from './SaveCampaignButton'
 
 interface Props {
   title: string
   image: string
+  campaignSlug: string
   mobile?: boolean
   tablet?: boolean
   onDonate: () => void
 }
 
-export default function CampaignDetailHero({ title, image, mobile, tablet, onDonate }: Props) {
+export default function CampaignDetailHero({ title, image, campaignSlug, mobile, tablet, onDonate }: Props) {
   return (
     <div style={{ width: '100%', marginBottom: mobile ? 8 : 24 }}>
       <div
@@ -38,16 +40,28 @@ export default function CampaignDetailHero({ title, image, mobile, tablet, onDon
           {title}
         </h1>
         {!mobile && (
-          <button
-            type="button"
-            onClick={onDonate}
-            className="btn-donate"
-            style={{ flexShrink: 0, width: 160, height: 44 }}
-          >
-            Donate Now
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+            <SaveCampaignButton slug={campaignSlug} title={title} />
+            <button
+              type="button"
+              onClick={onDonate}
+              className="btn-donate"
+              style={{ width: 160, height: 44 }}
+            >
+              Donate Now
+            </button>
+          </div>
         )}
       </div>
+
+      {mobile && (
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+          <SaveCampaignButton slug={campaignSlug} title={title} />
+          <button type="button" onClick={onDonate} className="btn-donate" style={{ flex: 1, minWidth: 140, height: 44 }}>
+            Donate Now
+          </button>
+        </div>
+      )}
 
       <div style={{ width: '100%', borderRadius: 16, overflow: 'hidden', position: 'relative' }}>
         <img

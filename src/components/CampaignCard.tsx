@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { formatCurrency, getCampaignSlug } from '../api'
 import { ASSETS } from '../constants/assets'
 import { C } from '../constants/brand'
+import SaveCampaignButton from './campaign/SaveCampaignButton'
 import SecondaryButton from './ui/SecondaryButton'
 import type { Campaign } from '../types'
 
@@ -161,6 +162,13 @@ export default function CampaignCard({ campaign, mobile, fluid }: Props) {
           }}
         >
           <img src={image} alt={campaign.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+          <div
+            style={{ position: 'absolute', left: mobile ? 8 : 10, top: mobile ? 8 : 10, zIndex: 2 }}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <SaveCampaignButton slug={slug} title={campaign.title} compact />
+          </div>
           {campaign.exemption_tag && (
             <span
               style={{

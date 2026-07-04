@@ -10,7 +10,7 @@ import CampaignProgressCard from '../components/campaign/CampaignProgressCard'
 import CampaignProjectSection from '../components/campaign/CampaignProjectSection'
 import CampaignRelatedCampaigns from '../components/campaign/CampaignRelatedCampaigns'
 import CampaignSectionNav from '../components/campaign/CampaignSectionNav'
-import { fetchCampaignBySlug } from '../api'
+import { fetchCampaignBySlug, getCampaignSlug } from '../api'
 import { ASSETS } from '../constants/assets'
 import { C } from '../constants/brand'
 import { useMediaQuery } from '../hooks/useMediaQuery'
@@ -126,6 +126,7 @@ export default function CampaignDetailPage() {
         <CampaignDetailHero
           title={campaign.title}
           image={image}
+          campaignSlug={getCampaignSlug(campaign)}
           mobile={mobile}
           tablet={tablet}
           onDonate={handleDonate}

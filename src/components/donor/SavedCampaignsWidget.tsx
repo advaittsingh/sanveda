@@ -27,7 +27,7 @@ export default function SavedCampaignsWidget({ savedCampaigns }: Props) {
           {savedCampaigns.map((c) => (
             <li key={c.slug}>
               <Link
-                to={`/campaigns/${c.slug}`}
+                to={`/campaign/${c.slug}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
