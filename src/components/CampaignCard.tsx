@@ -3,6 +3,7 @@ import { formatCurrency, getCampaignSlug } from '../api'
 import { ASSETS } from '../constants/assets'
 import { C } from '../constants/brand'
 import SaveCampaignButton from './campaign/SaveCampaignButton'
+import ShareCampaignButton from './campaign/ShareCampaignButton'
 import SecondaryButton from './ui/SecondaryButton'
 import type { Campaign } from '../types'
 
@@ -299,10 +300,14 @@ export default function CampaignCard({ campaign, mobile, fluid }: Props) {
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
+            gap: mobile ? 8 : 10,
             width: '100%',
-            height: mobile ? 32 : 44,
+            height: mobile ? 36 : 44,
           }}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
+          <ShareCampaignButton slug={slug} title={campaign.title} mobile={mobile} />
           <SecondaryButton
             onClick={onDonate}
             style={{
