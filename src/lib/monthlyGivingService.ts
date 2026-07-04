@@ -92,6 +92,13 @@ function readSubscribers(): MonthlyGivingSubscriber[] {
   }
 }
 
+/** Donor portal: find subscription by email (real data only). */
+export function getMonthlySubscriptionForDonor(email: string): MonthlyGivingSubscriber | null {
+  if (!email.trim()) return null
+  const normalized = email.trim().toLowerCase()
+  return readSubscribers().find((s) => s.donorEmail.toLowerCase() === normalized) ?? null
+}
+
 function writeSubscribers(subscribers: MonthlyGivingSubscriber[]) {
   localStorage.setItem(MONTHLY_GIVING_KEY, JSON.stringify(subscribers))
 }
