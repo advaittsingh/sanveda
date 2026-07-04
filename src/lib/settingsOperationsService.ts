@@ -1,6 +1,7 @@
-import { writePersistedMeta, allowLocalStoragePersistence } from './persistMeta'
+import { writePersistedMeta, allowLocalStoragePersistence, isProductionDataMode } from './persistMeta'
 import { withAudit } from './auditMiddleware'
 import { isSupabaseConfigured } from './supabase'
+import { BRAND, C } from '../constants/brand'
 
 export type SettingsTab =
   | 'dashboard'
@@ -195,27 +196,27 @@ export const SETTINGS_TABS: { value: SettingsTab; label: string }[] = [
 function defaultData(): SettingsDashboardData {
   return {
     organization: {
-      ngoName: 'Sanveda Global Humanitarian Foundation',
-      legalName: 'Sanveda Global Humanitarian Foundation Trust',
-      registrationNumber: 'XX/2026',
-      pan: 'XXXXX1234X',
-      gst: 'XXXXX',
-      twelveANumber: 'XXXXX',
-      eightyGNumber: 'XXXXX',
-      csrRegistration: 'CSR000XXXXX',
-      website: 'sanveda.org',
-      supportEmail: 'info@sanveda.org',
-      phone: '+91 XXXXX XXXXX',
-      address: 'Registered office address, India',
+      ngoName: BRAND.name,
+      legalName: BRAND.name,
+      registrationNumber: '',
+      pan: '',
+      gst: '',
+      twelveANumber: '',
+      eightyGNumber: '',
+      csrRegistration: '',
+      website: 'sanveda.vercel.app',
+      supportEmail: BRAND.email,
+      phone: BRAND.phone,
+      address: BRAND.address,
     },
     branding: {
-      logo: '/assets/logo.png',
-      favicon: '/favicon.ico',
-      emailHeader: '/assets/email-header.png',
-      letterhead: '/assets/letterhead.png',
+      logo: BRAND.logo,
+      favicon: '/assets/sanveda-logo.png',
+      emailHeader: BRAND.logo,
+      letterhead: BRAND.logo,
       certificateTemplate: 'default',
-      primaryColor: '#0B2C6B',
-      secondaryColor: '#0E4FA8',
+      primaryColor: C.primary,
+      secondaryColor: C.secondary,
       theme: 'light',
       darkMode: false,
     },
@@ -325,7 +326,7 @@ function defaultData(): SettingsDashboardData {
       maintenanceMode: false,
       emergencyShutdown: false,
       readOnlyMode: false,
-      demoMode: !isSupabaseConfigured,
+      demoMode: false,
     },
     workflows: [
       { id: '1', name: 'Campaign', steps: ['Campaign Draft', 'Manager', 'Director'] },
@@ -342,12 +343,17 @@ function defaultData(): SettingsDashboardData {
       campaigns: 24,
       donations: 3420,
     },
-    aiInsights: [
-      { id: '1', message: 'Platform Settings is the BIOS of NGO OS — all modules derive config from here.', tone: 'info' as const },
-      { id: '2', message: 'Razorpay and UPI gateways are connected in live mode.', tone: 'success' as const },
-      { id: '3', message: '80G and 12A compliance modules are enabled.', tone: 'success' as const },
-      { id: '4', message: 'Demo mode active — connect Supabase for production persistence.', tone: 'warning' as const },
-    ],
+    aiInsights: isProductionDataMode()
+      ? [
+          { id: '1', message: 'Platform settings are synced with your live Supabase project.', tone: 'success' as const },
+          { id: '2', message: 'Configure Razorpay and email secrets in Supabase Edge Functions for payments.', tone: 'info' as const },
+        ]
+      : [
+          { id: '1', message: 'Platform Settings is the BIOS of NGO OS — all modules derive config from here.', tone: 'info' as const },
+          { id: '2', message: 'Razorpay and UPI gateways are connected in live mode.', tone: 'success' as const },
+          { id: '3', message: '80G and 12A compliance modules are enabled.', tone: 'success' as const },
+          { id: '4', message: 'Demo mode active — connect Supabase for production persistence.', tone: 'warning' as const },
+        ],
   }
 }
 

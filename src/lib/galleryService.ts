@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, requireSupabase } from './supabase'
+import { isProductionDataMode } from './persistMeta'
 
 export interface GalleryAlbum {
   id: string
@@ -51,6 +52,7 @@ const DEMO_ALBUMS: GalleryAlbum[] = [
 ]
 
 function readLocal(): GalleryAlbum[] {
+  if (isProductionDataMode()) return []
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     return raw ? JSON.parse(raw) : DEMO_ALBUMS
@@ -71,7 +73,9 @@ export async function getPublishedAlbums(): Promise<GalleryAlbum[]> {
       .eq('status', 'published')
       .order('sort_order')
 
-    if (error || !albums?.length) return readLocal().filter((a) => a.status === 'published')
+    if (error || !albums?.length) {
+      return isProductionDataMode() ? [] : readLocal().filter((a) => a.status === 'published')
+    }
 
     const result: GalleryAlbum[] = []
     for (const album of albums) {

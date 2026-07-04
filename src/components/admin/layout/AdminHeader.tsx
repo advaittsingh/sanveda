@@ -4,6 +4,7 @@ import { useAdminAuth } from '../../../context/AdminAuthContext'
 import { useAdminLayout } from '../../../context/AdminLayoutContext'
 import { getOperationsDashboard } from '../../../lib/operationsDashboardService'
 import { formatIndianCompact, currentFinancialYear } from '../../../lib/formatIndian'
+import { BRAND, C } from '../../../constants/brand'
 import GlobalSearch from '../dashboard/GlobalSearch'
 import QuickCreateMenu from '../dashboard/QuickCreateMenu'
 
@@ -28,7 +29,8 @@ export default function AdminHeader() {
       <button
         type="button"
         onClick={toggleSidebar}
-        className="rounded-xl border border-[#E5E7EB] p-2 text-[#0B2C6B] hover:bg-[#F8FAFC] lg:hidden"
+        className="rounded-xl border border-[#E5E7EB] p-2 hover:bg-[#F5F7FA] lg:hidden"
+        style={{ color: C.primary }}
         aria-label="Open menu"
       >
         <Menu size={20} />
@@ -37,13 +39,13 @@ export default function AdminHeader() {
       <GlobalSearch />
 
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
-        <span className="hidden rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold text-[#0B2C6B] lg:inline">
+        <span className="hidden rounded-xl border border-[#E5E7EB] bg-[#F5F7FA] px-3 py-2 text-xs font-semibold lg:inline" style={{ color: C.primary }}>
           FY {currentFinancialYear()}
         </span>
 
         <div className="hidden flex-col items-end sm:flex">
           <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Raised</span>
-          <span className="text-sm font-bold text-[#0B2C6B]">{formatIndianCompact(raised)}</span>
+          <span className="text-sm font-bold" style={{ color: C.primary }}>{formatIndianCompact(raised)}</span>
         </div>
 
         {pending > 0 && (
@@ -58,7 +60,8 @@ export default function AdminHeader() {
         <button
           type="button"
           onClick={toggleNotifications}
-          className="relative rounded-xl border border-[#E5E7EB] p-2.5 text-[#0B2C6B] hover:bg-[#F8FAFC]"
+          className="relative rounded-xl border border-[#E5E7EB] p-2.5 hover:bg-[#F5F7FA]"
+          style={{ color: C.primary }}
           aria-label="Notifications"
         >
           <Bell size={18} />
@@ -75,10 +78,10 @@ export default function AdminHeader() {
             onClick={() => setProfileOpen((v) => !v)}
             className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-2 py-1.5 hover:bg-[#F8FAFC]"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B2C6B] text-sm font-bold text-white">
-              A
+            <span className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: C.primary }}>
+              {BRAND.shortName.charAt(0)}
             </span>
-            <span className="hidden text-sm font-medium text-slate-700 sm:inline">Admin</span>
+            <span className="hidden text-sm font-medium text-slate-700 sm:inline">{BRAND.shortName} Admin</span>
             <ChevronDown size={14} className="hidden text-slate-400 sm:block" />
           </button>
 

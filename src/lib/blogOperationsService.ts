@@ -1,4 +1,4 @@
-import { readPersistedMetaMap, writePersistedMetaMap } from './persistMeta'
+import { readPersistedMetaMap, writePersistedMetaMap, isProductionDataMode } from './persistMeta'
 import { withAudit } from './auditMiddleware'
 import { downloadCsv } from './adminExport'
 import { deleteBlog, getAllBlogsAdmin, saveBlog, type BlogRecord, type BlogStatus } from './blogService'
@@ -310,7 +310,7 @@ export async function getBlogDashboardData(): Promise<BlogDashboardData> {
   const authors = DEFAULT_AUTHORS
   let articles = blogs.map((b) => toArticleProfile(b, metaMap, authors))
 
-  if (articles.length === 0) {
+  if (articles.length === 0 && !isProductionDataMode()) {
     articles = [buildDemoFeatured(authors)]
   }
 
@@ -319,11 +319,11 @@ export async function getBlogDashboardData(): Promise<BlogDashboardData> {
   const scheduled = articles.filter((a) => a.workflowStatus === 'scheduled').length
   const featuredStories = articles.filter((a) => a.isFeatured).length
   const totalViews = articles.reduce((s, a) => s + a.analytics.views, 0)
-  const featuredStory = articles.find((a) => a.isFeatured) ?? buildDemoFeatured(authors)
+  const featuredStory = articles.find((a) => a.isFeatured) ?? (isProductionDataMode() ? null : buildDemoFeatured(authors))
 
   const categoryCounts = BLOG_CATEGORIES.map((cat) => ({
     label: cat,
-    value: articles.filter((a) => a.category === cat).length || hashNum(cat, 2, 28),
+    value: articles.filter((a) => a.category === cat).length,
   }))
   const totalCat = categoryCounts.reduce((s, c) => s + c.value, 0) || 1
 
@@ -333,17 +333,19 @@ export async function getBlogDashboardData(): Promise<BlogDashboardData> {
     categories: [...BLOG_CATEGORIES],
     featuredStory,
     kpis: {
-      totalArticles: Math.max(articles.length, 348),
-      published: Math.max(published, 290),
-      drafts: Math.max(drafts, 38),
-      scheduled: Math.max(scheduled, 12),
-      views: Math.max(totalViews, 1200000),
-      featuredStories: Math.max(featuredStories, 18),
+      totalArticles: articles.length,
+      published,
+      drafts,
+      scheduled,
+      views: totalViews,
+      featuredStories,
     },
-    viewsTrend: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
-      label,
-      value: 80000 + i * 35000 + (label.charCodeAt(0) % 20000),
-    })),
+    viewsTrend: isProductionDataMode()
+      ? []
+      : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((label, i) => ({
+          label,
+          value: 80000 + i * 35000 + (label.charCodeAt(0) % 20000),
+        })),
     categoryEngagement: categoryCounts.slice(0, 5).map((c) => ({
       ...c,
       pct: Math.round((c.value / totalCat) * 100),

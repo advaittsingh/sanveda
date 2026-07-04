@@ -1,6 +1,7 @@
 import { downloadCsv, printHtmlReport, renderMetricSection, renderTableSection } from './adminExport'
 import { getAllDonations } from './donationService'
 import { formatIndianCompact, formatTrend } from './formatIndian'
+import { isProductionDataMode } from './persistMeta'
 
 const MONTHLY_GIVING_KEY = 'sanveda_monthly_giving_subscribers'
 
@@ -211,6 +212,7 @@ function buildSeedSubscriber(index: number, donors: string[]): MonthlyGivingSubs
 async function ensureSubscribers(): Promise<MonthlyGivingSubscriber[]> {
   const existing = readSubscribers()
   if (existing.length) return existing
+  if (isProductionDataMode()) return []
 
   const donations = await getAllDonations()
   const realDonors = donations

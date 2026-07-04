@@ -1,4 +1,4 @@
-import { writeDevStorageList, allowLocalStoragePersistence } from './persistMeta'
+import { writeDevStorageList, allowLocalStoragePersistence, isProductionDataMode } from './persistMeta'
 import { downloadCsv } from './adminExport'
 
 export type TestimonialTab =
@@ -216,49 +216,64 @@ function buildDemoTestimonials(): TestimonialProfile[] {
 
 export async function getTestimonialDashboardData(): Promise<TestimonialDashboardData> {
   const stored = readMeta()
-  const testimonials = stored ?? buildDemoTestimonials()
+  const testimonials = stored ?? (isProductionDataMode() ? [] : buildDemoTestimonials())
 
   const published = testimonials.filter((t) => t.status === 'published' || t.status === 'featured').length
   const pendingReview = testimonials.filter((t) => t.status === 'submitted' || t.status === 'review').length
   const featured = testimonials.filter((t) => t.featured).length
   const videoTestimonials = testimonials.filter((t) => t.videoUrl).length
-  const avgRating = testimonials.reduce((s, t) => s + t.rating, 0) / (testimonials.length || 1)
+  const avgRating = testimonials.length
+    ? testimonials.reduce((s, t) => s + t.rating, 0) / testimonials.length
+    : 0
+
+  const totalViews = testimonials.reduce((s, t) => s + (t.videoViews ?? 0), 0)
+  const totalShares = testimonials.reduce((s, t) => s + (t.videoShares ?? 0), 0)
 
   return {
     testimonials,
     kpis: {
-      totalTestimonials: Math.max(testimonials.length, 428),
-      published: Math.max(published, 312),
-      pendingReview: Math.max(pendingReview, 42),
-      featured: Math.max(featured, 24),
-      videoTestimonials: Math.max(videoTestimonials, 56),
-      avgRating: Math.round(avgRating * 10) / 10 || 4.8,
+      totalTestimonials: testimonials.length,
+      published,
+      pendingReview,
+      featured,
+      videoTestimonials,
+      avgRating: Math.round(avgRating * 10) / 10,
     },
     socialProof: {
-      averageRating: 4.9,
-      totalTestimonials: Math.max(testimonials.length, 428),
-      videoViews: 245000,
-      shares: 12000,
-      sentimentScore: 94,
+      averageRating: avgRating ? Math.round(avgRating * 10) / 10 : 0,
+      totalTestimonials: testimonials.length,
+      videoViews: totalViews,
+      shares: totalShares,
+      sentimentScore: testimonials.length
+        ? Math.round(testimonials.reduce((s, t) => s + (t.sentimentScore ?? 0), 0) / testimonials.length)
+        : 0,
     },
-    categoryDistribution: [
-      { label: 'Donors', value: 35, pct: 35 },
-      { label: 'Beneficiaries', value: 30, pct: 30 },
-      { label: 'Volunteers', value: 20, pct: 20 },
-      { label: 'CSR', value: 15, pct: 15 },
-    ],
-    ratingDistribution: [
-      { label: '★★★★★', value: 82, pct: 82 },
-      { label: '★★★★', value: 15, pct: 15 },
-      { label: '★★★', value: 3, pct: 3 },
-    ],
-    aiInsights: [
-      { id: 'beneficiary', message: 'Beneficiary testimonials have the highest donor conversion.', tone: 'success' as const },
-      { id: 'video', message: 'Video testimonials outperform text by 4x.', tone: 'success' as const },
-      { id: 'healthcare', message: 'Healthcare stories receive the most engagement.', tone: 'info' as const },
-      { id: 'featured', message: '12 testimonials should be featured on the homepage.', tone: 'warning' as const },
-      { id: 'volunteer', message: 'Volunteer stories drive recruitment.', tone: 'info' as const },
-    ],
+    categoryDistribution: isProductionDataMode()
+      ? []
+      : [
+          { label: 'Donors', value: 35, pct: 35 },
+          { label: 'Beneficiaries', value: 30, pct: 30 },
+          { label: 'Volunteers', value: 20, pct: 20 },
+          { label: 'CSR', value: 15, pct: 15 },
+        ],
+    ratingDistribution: isProductionDataMode()
+      ? []
+      : [
+          { label: '★★★★★', value: 82, pct: 82 },
+          { label: '★★★★', value: 15, pct: 15 },
+          { label: '★★★', value: 3, pct: 3 },
+        ],
+    aiInsights: isProductionDataMode()
+      ? (testimonials.length === 0
+          ? [{ id: 'empty', message: 'No testimonials yet. Add your first story from the Testimonials tab.', tone: 'info' as const }]
+          : [])
+      : [
+          { id: 'beneficiary', message: 'Beneficiary testimonials have the highest donor conversion.', tone: 'success' as const },
+          { id: 'video', message: 'Video testimonials outperform text by 4x.', tone: 'success' as const },
+          { id: 'healthcare', message: 'Healthcare stories receive the most engagement.', tone: 'info' as const },
+          { id: 'featured', message: '12 testimonials should be featured on the homepage.', tone: 'warning' as const },
+          { id: 'volunteer', message: 'Volunteer stories drive recruitment.', tone: 'info' as const },
+        ],
   }
 }
 
@@ -290,7 +305,7 @@ export function exportTestimonialsCsv(items: TestimonialProfile[]) {
 }
 
 export async function saveTestimonial(input: Partial<TestimonialProfile> & { name: string }): Promise<TestimonialProfile> {
-  const all = readMeta() ?? buildDemoTestimonials()
+  const all = readMeta() ?? (isProductionDataMode() ? [] : buildDemoTestimonials())
   const category = input.category ?? 'donor'
   const record: TestimonialProfile = {
     id: input.id ?? crypto.randomUUID(),
@@ -335,7 +350,7 @@ export async function saveTestimonial(input: Partial<TestimonialProfile> & { nam
 }
 
 export async function deleteTestimonial(id: string): Promise<void> {
-  const all = readMeta() ?? buildDemoTestimonials()
+  const all = readMeta() ?? (isProductionDataMode() ? [] : buildDemoTestimonials())
   writeMeta(all.filter((t) => t.id !== id))
 }
 

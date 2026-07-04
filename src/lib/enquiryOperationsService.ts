@@ -1,4 +1,4 @@
-import { readPersistedMetaMap, writePersistedMetaMap, writeDevStorageList } from './persistMeta'
+import { readPersistedMetaMap, writePersistedMetaMap, writeDevStorageList, isProductionDataMode } from './persistMeta'
 import { downloadCsv } from './adminExport'
 import { getEnquiries, updateEnquiry, type Enquiry, type EnquiryStatus } from './enquiryService'
 
@@ -398,7 +398,7 @@ function buildProfile(enquiry: Enquiry, meta: EnquiryAdminMeta | undefined, inde
 
 async function seedDemoIfEmpty(): Promise<Enquiry[]> {
   let enquiries = await getEnquiries()
-  if (enquiries.length === 0) {
+  if (enquiries.length === 0 && !isProductionDataMode()) {
     const metaMap = readMetaMap()
     const now = new Date().toISOString()
     for (const demo of DEMO_ENQUIRIES) {
@@ -442,14 +442,14 @@ function computeKpis(enquiries: EnquiryProfile[]) {
   const slaTotal = enquiries.length || 1
 
   return {
-    totalEnquiries: enquiries.length || 1245,
-    newCount: enquiries.filter((e) => e.workflowStage === 'new').length || 87,
-    inProgress: enquiries.filter((e) => ['assigned', 'in_progress', 'waiting'].includes(e.workflowStage)).length || 42,
-    resolved: enquiries.filter((e) => ['resolved', 'closed'].includes(e.workflowStage)).length || 1056,
-    escalated: enquiries.filter((e) => e.isEscalated).length || 15,
+    totalEnquiries: enquiries.length,
+    newCount: enquiries.filter((e) => e.workflowStage === 'new').length,
+    inProgress: enquiries.filter((e) => ['assigned', 'in_progress', 'waiting'].includes(e.workflowStage)).length,
+    resolved: enquiries.filter((e) => ['resolved', 'closed'].includes(e.workflowStage)).length,
+    escalated: enquiries.filter((e) => e.isEscalated).length,
     avgResponseTimeHours: avgResponse,
-    slaCompliancePct: Math.round((slaOk / slaTotal) * 100) || 94,
-    overdueCount: enquiries.filter((e) => e.isOverdue).length || 8,
+    slaCompliancePct: Math.round((slaOk / slaTotal) * 100),
+    overdueCount: enquiries.filter((e) => e.isOverdue).length,
   }
 }
 

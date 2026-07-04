@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Shield } from 'lucide-react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import { isSupabaseConfigured } from '../../lib/supabase'
+import { ASSETS } from '../../constants/assets'
+import { BRAND, C } from '../../constants/brand'
+import { adminBtnPrimary } from './ui/adminStyles'
 
 interface Props {
   title: string
@@ -30,18 +32,25 @@ export default function AdminLogin({ title, subtitle }: Props) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-4 font-[family-name:var(--font-display)]">
+    <div
+      className="flex min-h-screen items-center justify-center p-4 font-[family-name:var(--font-display)]"
+      style={{ backgroundColor: C.cream }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0B2C6B] text-white shadow-lg">
-            <Shield size={28} />
-          </div>
-          <p className="text-xs font-bold uppercase tracking-widest text-[#5B9AE8]">Sanveda NGO OS</p>
-          <h1 className="mt-2 text-2xl font-bold text-[#0B2C6B]">{title}</h1>
+          <img
+            src={ASSETS.logo}
+            alt={BRAND.shortName}
+            className="mx-auto mb-4 h-16 w-auto object-contain"
+          />
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: C.secondaryLight }}>
+            {BRAND.shortName} Admin
+          </p>
+          <h1 className="mt-2 text-2xl font-bold" style={{ color: C.primary }}>{title}</h1>
           <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         </div>
 
@@ -54,7 +63,8 @@ export default function AdminLogin({ title, subtitle }: Props) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm outline-none focus:border-[#0B2C6B]/30 focus:ring-2 focus:ring-[#0B2C6B]/10"
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm outline-none focus:ring-2"
+                style={{ ['--tw-ring-color' as string]: `${C.primary}20` }}
               />
             </label>
           )}
@@ -66,7 +76,7 @@ export default function AdminLogin({ title, subtitle }: Props) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm outline-none focus:border-[#0B2C6B]/30 focus:ring-2 focus:ring-[#0B2C6B]/10"
+              className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm outline-none focus:ring-2"
             />
           </label>
 
@@ -74,18 +84,16 @@ export default function AdminLogin({ title, subtitle }: Props) {
 
           {!isSupabaseConfigured && (
             <p className="mb-4 text-xs text-slate-500">
-              Demo mode: using local admin password. Configure Supabase for production auth.
+              Local dev mode: configure Supabase for production admin auth.
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-xl bg-[#0B2C6B] py-3 text-sm font-semibold text-white transition hover:bg-[#0a2459] disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className={`w-full py-3 ${adminBtnPrimary}`}>
             {submitting ? 'Signing in…' : 'Sign In to Dashboard'}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-xs text-slate-400">{BRAND.tagline}</p>
       </motion.div>
     </div>
   )

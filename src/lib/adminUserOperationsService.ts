@@ -1,7 +1,7 @@
-import { writeDevStorageList, allowLocalStoragePersistence } from './persistMeta'
+import { writeDevStorageList, allowLocalStoragePersistence, isProductionDataMode } from './persistMeta'
 import { withAudit } from './auditMiddleware'
 import { downloadCsv } from './adminExport'
-import { getAdminUsers, updateAdminRole, type AdminRole } from './rbacService'
+import { getAdminUsers, updateAdminRole, type AdminRole, type AdminUser } from './rbacService'
 
 export type RbacTab =
   | 'dashboard'
@@ -280,6 +280,35 @@ function defaultPermissions(role: SanvedaRole): ModulePermission[] {
   return limited
 }
 
+function profileFromAdminUser(u: AdminUser, index: number): AdminUserProfile {
+  const email = u.email ?? 'admin@sanveda.org'
+  const localPart = email.split('@')[0] ?? 'Admin'
+  const nameParts = localPart.replace(/[._]/g, ' ').split(' ')
+  const firstName = nameParts[0] ?? 'Admin'
+  const lastName = nameParts.slice(1).join(' ')
+  const mappedRole = mapLegacyRole(u.role)
+  return {
+    id: u.userId,
+    userId: u.userId,
+    employeeId: `SV-${String(index + 1).padStart(3, '0')}`,
+    firstName,
+    lastName,
+    name: lastName ? `${firstName} ${lastName}` : firstName,
+    email,
+    phone: '',
+    department: 'Administration',
+    designation: ROLE_LABEL[mappedRole] ?? mappedRole,
+    role: mappedRole,
+    roleLabel: ROLE_LABEL[mappedRole] ?? mappedRole,
+    accessLevel: u.role === 'super_admin' ? 'Full' : 'Limited',
+    status: 'active',
+    lastLogin: u.createdAt,
+    createdAt: u.createdAt,
+    twoFactorEnabled: false,
+    security: defaultSecurity(false),
+  }
+}
+
 function buildDemoUsers(): AdminUserProfile[] {
   const now = new Date()
   return [
@@ -399,21 +428,10 @@ export async function getRbacDashboardData(): Promise<RbacDashboardData> {
     try {
       const legacy = await getAdminUsers()
       users = legacy.length
-        ? legacy.map((u, i) => {
-            const demo = buildDemoUsers()[i] ?? buildDemoUsers()[0]
-            const mappedRole = mapLegacyRole(u.role)
-            return {
-              ...demo,
-              userId: u.userId,
-              email: u.email ?? demo.email,
-              role: mappedRole,
-              roleLabel: ROLE_LABEL[mappedRole] ?? mappedRole,
-              createdAt: u.createdAt,
-            }
-          })
-        : buildDemoUsers()
+        ? legacy.map((u, i) => profileFromAdminUser(u, i))
+        : (isProductionDataMode() ? [] : buildDemoUsers())
     } catch {
-      users = buildDemoUsers()
+      users = isProductionDataMode() ? [] : buildDemoUsers()
     }
   }
 
@@ -444,32 +462,38 @@ export async function getRbacDashboardData(): Promise<RbacDashboardData> {
       { id: '2', workflow: 'Volunteer', steps: ['Volunteer Application', 'Volunteer Manager', 'Admin'] },
       { id: '3', workflow: 'Expense', steps: ['Expense Submitted', 'Finance Manager', 'Director'] },
     ],
-    activityLogs: [
-      { id: '1', user: 'Advait', action: 'Created campaign', module: 'Campaigns', time: '10:32 AM', day: 'Today' },
-      { id: '2', user: 'Rahul', action: 'Approved volunteer', module: 'Volunteers', time: '09:45 AM', day: 'Today' },
-      { id: '3', user: 'Finance Admin', action: 'Generated tax receipt', module: 'Finance', time: '08:15 AM', day: 'Today' },
-    ],
-    auditLogs: [
-      {
-        id: '1', user: 'Advait Singh', action: 'Edited Campaign', module: 'Campaigns',
-        oldValue: 'Goal: ₹10,00,000', newValue: 'Goal: ₹15,00,000',
-        ip: '122.xxx.xxx.xxx', browser: 'Chrome 124 / macOS', timestamp: '04 Jul 2026, 10:32 AM',
-      },
-      {
-        id: '2', user: 'Rahul Sharma', action: 'Approved Volunteer', module: 'Volunteers',
-        oldValue: 'Status: Pending', newValue: 'Status: Active',
-        ip: '103.xxx.xxx.xxx', browser: 'Safari 17 / iOS', timestamp: '04 Jul 2026, 09:45 AM',
-      },
-      {
-        id: '3', user: 'Finance Admin', action: 'Generated Tax Receipt', module: 'Finance',
-        oldValue: '—', newValue: 'Receipt #TR-2026-0042',
-        ip: '49.xxx.xxx.xxx', browser: 'Chrome 124 / Windows', timestamp: '04 Jul 2026, 08:15 AM',
-      },
-    ],
-    pendingInvites: [
-      { id: '1', email: 'content@sanveda.org', role: 'Content Manager', department: 'Communications', sentAt: '2 days ago' },
-      { id: '2', email: 'auditor@sanveda.org', role: 'Auditor', department: 'Finance', sentAt: '5 days ago' },
-    ],
+    activityLogs: isProductionDataMode()
+      ? []
+      : [
+          { id: '1', user: 'Advait', action: 'Created campaign', module: 'Campaigns', time: '10:32 AM', day: 'Today' },
+          { id: '2', user: 'Rahul', action: 'Approved volunteer', module: 'Volunteers', time: '09:45 AM', day: 'Today' },
+          { id: '3', user: 'Finance Admin', action: 'Generated tax receipt', module: 'Finance', time: '08:15 AM', day: 'Today' },
+        ],
+    auditLogs: isProductionDataMode()
+      ? []
+      : [
+          {
+            id: '1', user: 'Advait Singh', action: 'Edited Campaign', module: 'Campaigns',
+            oldValue: 'Goal: ₹10,00,000', newValue: 'Goal: ₹15,00,000',
+            ip: '122.xxx.xxx.xxx', browser: 'Chrome 124 / macOS', timestamp: '04 Jul 2026, 10:32 AM',
+          },
+          {
+            id: '2', user: 'Rahul Sharma', action: 'Approved Volunteer', module: 'Volunteers',
+            oldValue: 'Status: Pending', newValue: 'Status: Active',
+            ip: '103.xxx.xxx.xxx', browser: 'Safari 17 / iOS', timestamp: '04 Jul 2026, 09:45 AM',
+          },
+          {
+            id: '3', user: 'Finance Admin', action: 'Generated Tax Receipt', module: 'Finance',
+            oldValue: '—', newValue: 'Receipt #TR-2026-0042',
+            ip: '49.xxx.xxx.xxx', browser: 'Chrome 124 / Windows', timestamp: '04 Jul 2026, 08:15 AM',
+          },
+        ],
+    pendingInvites: isProductionDataMode()
+      ? []
+      : [
+          { id: '1', email: 'content@sanveda.org', role: 'Content Manager', department: 'Communications', sentAt: '2 days ago' },
+          { id: '2', email: 'auditor@sanveda.org', role: 'Auditor', department: 'Finance', sentAt: '5 days ago' },
+        ],
     orgChart: {
       id: 'founder',
       label: 'Founder',
@@ -486,7 +510,7 @@ export async function getRbacDashboardData(): Promise<RbacDashboardData> {
     kpis: {
       totalAdmins: users.length,
       activeUsers: activeCount,
-      pendingInvites: Math.max(pendingCount, 2),
+      pendingInvites: pendingCount,
       departments: departments.length,
     },
     activityByDepartment: [
@@ -561,7 +585,7 @@ export function exportUsersCsv(users: AdminUserProfile[]) {
 
 export async function saveAdminUser(input: Partial<AdminUserProfile> & { email: string; firstName: string; lastName: string }): Promise<AdminUserProfile> {
   return withAudit(input.id ? 'UPDATE' : 'CREATE', 'admin_users', input.id, async () => {
-    const all = readMeta() ?? buildDemoUsers()
+    const all = readMeta() ?? (isProductionDataMode() ? [] : buildDemoUsers())
     const role = input.role ?? 'viewer'
     const record: AdminUserProfile = {
       id: input.id ?? crypto.randomUUID(),
@@ -603,7 +627,7 @@ export async function saveAdminUser(input: Partial<AdminUserProfile> & { email: 
 
 export async function deleteAdminUser(id: string): Promise<void> {
   return withAudit('DELETE', 'admin_users', id, async () => {
-    const all = readMeta() ?? buildDemoUsers()
+    const all = readMeta() ?? (isProductionDataMode() ? [] : buildDemoUsers())
     writeMeta(all.filter((u) => u.id !== id))
   })
 }

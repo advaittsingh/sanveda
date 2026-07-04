@@ -349,14 +349,14 @@ export async function getTaxReceiptDashboardData(): Promise<TaxReceiptDashboardD
       { label: 'General', value: 10, pct: 10 },
     ],
     aiInsights: [
-      { id: 'pending', message: `${Math.max(pendingGeneration, 84)} receipts are pending generation.`, tone: 'warning' },
+      { id: 'pending', message: `${pendingGeneration} receipts are pending generation.`, tone: 'warning' },
       { id: 'pan', message: '12 donor PANs require verification before 80G issuance.', tone: 'warning' },
       { id: 'healthcare', message: 'Healthcare campaign generated the highest 80G claims this quarter.', tone: 'success' },
       { id: 'delivery', message: 'Receipt delivery success rate is 99.2%.', tone: 'success' },
       { id: 'review', message: '₹18 lakh in donations require manual compliance review.', tone: 'info' },
     ],
     complianceReports: [...COMPLIANCE_REPORT_TYPES],
-    bulkPendingCount: Math.max(pendingGeneration, 84),
+    bulkPendingCount: pendingGeneration,
   }
 }
 

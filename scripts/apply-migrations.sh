@@ -16,12 +16,7 @@ if [[ -z "$DB_URL" && -n "${SUPABASE_DB_PASSWORD:-}" ]]; then
   DB_URL="postgresql://postgres:${SUPABASE_DB_PASSWORD}@db.xkimzgtmrsrevpnawmmo.supabase.co:5432/postgres"
 fi
 
-if [[ -z "$DB_URL" ]]; then
-  echo "Missing DATABASE_URL or SUPABASE_DB_PASSWORD in .env"
-  echo "Get password: Supabase Dashboard → Project Settings → Database"
-  exit 1
-fi
-
+PROJECT_REF="xkimzgtmrsrevpnawmmo"
 FILES=(
   supabase/schema.sql
   supabase/schema-phase2.sql
@@ -29,6 +24,23 @@ FILES=(
   supabase/schema-phase4-production.sql
   supabase/schema-phase5-sprint.sql
 )
+
+if [[ -n "${SUPABASE_ACCESS_TOKEN:-}" ]] && command -v supabase >/dev/null 2>&1; then
+  supabase link --project-ref "$PROJECT_REF" --yes >/dev/null 2>&1 || true
+  for file in "${FILES[@]}"; do
+    echo "→ Applying $file (Supabase CLI)"
+    supabase db query --linked -f "$file"
+  done
+  echo "✓ All migrations applied."
+  exit 0
+fi
+
+if [[ -z "$DB_URL" ]]; then
+  echo "Missing credentials. Add one of these to .env:"
+  echo "  SUPABASE_DB_PASSWORD=<database password>"
+  echo "  SUPABASE_ACCESS_TOKEN=<dashboard → Account → Access Tokens>"
+  exit 1
+fi
 
 for file in "${FILES[@]}"; do
   echo "→ Applying $file"

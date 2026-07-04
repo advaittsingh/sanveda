@@ -4,6 +4,8 @@ import { ChevronLeft, X } from 'lucide-react'
 import { ADMIN_NAV } from '../../../constants/adminNav'
 import { useAdminLayout } from '../../../context/AdminLayoutContext'
 import { useRbac } from '../../../context/RbacContext'
+import { ASSETS } from '../../../constants/assets'
+import { BRAND, C } from '../../../constants/brand'
 
 interface Props {
   collapsed: boolean
@@ -22,10 +24,18 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: Props) {
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
         {!collapsed && (
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#5B9AE8]">Sanveda</p>
-            <p className="text-sm font-bold text-white">NGO OS</p>
+          <div className="flex items-center gap-2.5">
+            <img src={ASSETS.logo} alt={BRAND.shortName} className="h-9 w-auto object-contain brightness-0 invert" />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: C.secondaryLight }}>
+                {BRAND.shortName}
+              </p>
+              <p className="text-sm font-bold text-white">Admin</p>
+            </div>
           </div>
+        )}
+        {collapsed && (
+          <img src={ASSETS.logo} alt={BRAND.shortName} className="mx-auto h-8 w-auto object-contain brightness-0 invert" />
         )}
         <button
           type="button"
@@ -80,7 +90,7 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: Props) {
 
       {!collapsed && (
         <div className="border-t border-white/10 p-4">
-          <p className="text-xs text-white/50">Sanveda Global Humanitarian Foundation</p>
+          <p className="text-xs text-white/50">{BRAND.name}</p>
         </div>
       )}
     </div>
@@ -90,7 +100,8 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: Props) {
     <>
       {/* Desktop sidebar */}
       <aside
-        className={`hidden shrink-0 bg-[#0B2C6B] transition-all duration-300 lg:block ${collapsed ? 'w-[72px]' : 'w-64'}`}
+        className={`hidden shrink-0 transition-all duration-300 lg:block ${collapsed ? 'w-[72px]' : 'w-64'}`}
+        style={{ backgroundColor: C.primary }}
       >
         {sidebarContent}
       </aside>
@@ -113,7 +124,8 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: Props) {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-              className="fixed inset-y-0 left-0 z-50 w-64 bg-[#0B2C6B] shadow-2xl lg:hidden"
+              className="fixed inset-y-0 left-0 z-50 w-64 shadow-2xl lg:hidden"
+              style={{ backgroundColor: C.primary }}
             >
               {sidebarContent}
             </motion.aside>

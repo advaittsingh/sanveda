@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { AdminLayoutProvider } from '../../../context/AdminLayoutContext'
+import { C } from '../../../constants/brand'
 import AdminSidebar from './AdminSidebar'
 import AdminHeader from './AdminHeader'
 import NotificationDrawer from './NotificationDrawer'
@@ -14,7 +15,7 @@ export default function AdminLayout({ children }: Props) {
 
   return (
     <AdminLayoutProvider>
-      <div className="flex h-screen overflow-hidden bg-[#F8FAFC] font-[family-name:var(--font-display)]">
+      <div className="flex h-screen overflow-hidden font-[family-name:var(--font-display)]" style={{ backgroundColor: C.cream }}>
         <AdminSidebar collapsed={collapsed} onToggleCollapse={() => setCollapsed((v) => !v)} />
 
         <div className="flex min-w-0 flex-1 flex-col">
