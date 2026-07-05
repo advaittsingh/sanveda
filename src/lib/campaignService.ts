@@ -11,13 +11,17 @@ export interface CampaignRecord extends Campaign {
   status: CampaignStatus
   featureUrgent?: number
   featureRecent?: number
+  featured?: number
   meta?: CampaignAdminMeta
 }
 
 const ADMIN_CAMPAIGNS_KEY = 'sanveda_admin_campaigns'
 
 function dbRowToCampaign(row: Record<string, unknown>): Campaign {
-  return {
+  const adminMeta = row.admin_meta as CampaignAdminMeta | null | undefined
+  const featuredFlag = Number(row.featured ?? 0) || (adminMeta?.featured ? 1 : 0)
+
+  const base: Campaign = {
     id: Number(row.id),
     title: String(row.title),
     banner_image: row.banner_image ? String(row.banner_image) : undefined,
@@ -35,18 +39,26 @@ function dbRowToCampaign(row: Record<string, unknown>): Campaign {
       ? (row.campaign_descriptions as Campaign['CampaignDescriptions'])
       : [],
   }
+
+  return Object.assign(base, {
+    featuredCampaign: featuredFlag,
+    FeatureUrgentCampaign: Number(row.feature_urgent ?? 0),
+    featureRecentCampaign: Number(row.feature_recent ?? 0),
+  })
 }
 
 function dbRowToCampaignRecord(row: Record<string, unknown>): CampaignRecord {
   const campaign = dbRowToCampaign(row)
   const meta = row.admin_meta as CampaignAdminMeta | undefined
+  const featured = Number(row.featured ?? 0) || (meta?.featured ? 1 : 0)
   return {
     ...campaign,
     slug: String(row.slug),
     status: row.status as CampaignStatus,
     featureUrgent: Number(row.feature_urgent ?? 0),
     featureRecent: Number(row.feature_recent ?? 0),
-    meta: meta ?? undefined,
+    featured,
+    meta: meta ? { ...meta, featured: Boolean(featured) } : featured ? { featured: true } : undefined,
   }
 }
 
@@ -63,6 +75,7 @@ function staticToRecord(c: Campaign, index = 0): CampaignRecord {
     status: index === 0 ? 'published' : index === 1 ? 'review' : 'published',
     featureUrgent: ext.FeatureUrgentCampaign ?? 0,
     featureRecent: ext.featureRecentCampaign ?? 0,
+    featured: (ext as Campaign & { featuredCampaign?: number }).featuredCampaign ?? (index === 0 ? 1 : 0),
     meta: {
       beneficiary: {
         name: index === 0 ? 'Ramesh Kumar' : index === 1 ? 'Priya Sharma' : 'Community Beneficiary',
@@ -148,6 +161,14 @@ export function filterCampaigns(
     })
   }
 
+  if (params?.featuredCampaign !== undefined) {
+    const flag = Number(params.featuredCampaign)
+    list = list.filter((c) => {
+      const ext = c as Campaign & { featuredCampaign?: number }
+      return (ext.featuredCampaign ?? 0) === flag
+    })
+  }
+
   if (params?.featureRecentCampaign !== undefined) {
     const flag = Number(params.featureRecentCampaign)
     list = list.filter((c) => {
@@ -204,9 +225,13 @@ export async function saveCampaign(input: Partial<CampaignRecord> & { title: str
       hide_raised: input.hide_raised ?? 0,
       feature_urgent: input.featureUrgent ?? 0,
       feature_recent: input.featureRecent ?? 0,
+      featured: input.featured ?? (input.meta?.featured ? 1 : 0),
       campaign_descriptions: input.CampaignDescriptions ?? [],
       status: input.status ?? 'draft',
-      admin_meta: input.meta ?? null,
+      admin_meta: {
+        ...(input.meta ?? {}),
+        featured: Boolean(input.featured ?? input.meta?.featured),
+      },
       updated_at: now,
     }
 
@@ -239,6 +264,7 @@ export async function saveCampaign(input: Partial<CampaignRecord> & { title: str
     status: input.status ?? 'draft',
     featureUrgent: input.featureUrgent ?? 0,
     featureRecent: input.featureRecent ?? 0,
+    featured: input.featured ?? (input.meta?.featured ? 1 : 0),
     CampaignDescriptions: input.CampaignDescriptions ?? [],
     redirects: [{ primary_url: input.slug, primary_name: input.title }],
     meta: input.meta,

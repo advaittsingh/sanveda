@@ -270,7 +270,7 @@ export function StepPublishing({ form, setForm, meta, setMeta }: StepProps) {
       <div>
         <span className={adminLabelClass}>Campaign Flags</span>
         <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <Toggle label="Featured" checked={meta.featured ?? false} onChange={(v) => setMeta({ featured: v })} />
+          <Toggle label="Featured" checked={Boolean(meta.featured ?? form.featured)} onChange={(v) => { setMeta({ featured: v }); setForm({ ...form, featured: v ? 1 : 0 }) }} />
           <Toggle label="Trending" checked={meta.trending ?? false} onChange={(v) => setMeta({ trending: v })} />
           <Toggle label="Urgent" checked={meta.urgent ?? false} onChange={(v) => { setMeta({ urgent: v }); setForm({ ...form, featureUrgent: v ? 1 : 0 }) }} />
           <Toggle label="Recommended" checked={meta.recommended ?? false} onChange={(v) => setMeta({ recommended: v })} />

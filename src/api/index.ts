@@ -67,7 +67,7 @@ export async function fetchCampaignBySlug(slug: string): Promise<Campaign | null
 }
 
 export async function fetchFeaturedCampaigns(): Promise<Campaign[]> {
-  return fetchCampaigns({ FeatureUrgentCampaign: 1, limit: 8 })
+  return fetchCampaigns({ featuredCampaign: 1, limit: 8 })
 }
 
 export async function fetchRecentCampaigns(): Promise<Campaign[]> {

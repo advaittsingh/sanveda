@@ -3,6 +3,7 @@ import type { Campaign } from '../types'
 export interface SanvedaCampaign extends Campaign {
   FeatureUrgentCampaign?: number
   featureRecentCampaign?: number
+  featuredCampaign?: number
 }
 
 function storyHtml(tagline: string, paragraphs: string[], focusItems: string[]): string {
@@ -32,6 +33,7 @@ export const SANVEDA_CAMPAIGNS: SanvedaCampaign[] = [
     description: 'Every Dream Matters. Every Family Deserves Support.',
     FeatureUrgentCampaign: 1,
     featureRecentCampaign: 1,
+    featuredCampaign: 1,
     redirects: [
       {
         primary_name: "NEET Students' Families Humanitarian Relief Fund",
@@ -74,6 +76,7 @@ export const SANVEDA_CAMPAIGNS: SanvedaCampaign[] = [
     description: 'Talent Should Never Stop Because of Money.',
     FeatureUrgentCampaign: 1,
     featureRecentCampaign: 1,
+    featuredCampaign: 1,
     redirects: [
       {
         primary_name: "Support India's Unsponsored Athletes",
@@ -115,6 +118,7 @@ export const SANVEDA_CAMPAIGNS: SanvedaCampaign[] = [
     description: 'Turning Courage into Smiles.',
     FeatureUrgentCampaign: 1,
     featureRecentCampaign: 1,
+    featuredCampaign: 1,
     redirects: [
       {
         primary_name: 'Sanveda Wish of Hope',
@@ -152,6 +156,9 @@ export function filterSanvedaCampaigns(
 
   if (params?.FeatureUrgentCampaign !== undefined) {
     list = list.filter((c) => c.FeatureUrgentCampaign === Number(params.FeatureUrgentCampaign))
+  }
+  if (params?.featuredCampaign !== undefined) {
+    list = list.filter((c) => (c.featuredCampaign ?? 0) === Number(params.featuredCampaign))
   }
   if (params?.featureRecentCampaign !== undefined) {
     list = list.filter((c) => c.featureRecentCampaign === Number(params.featureRecentCampaign))

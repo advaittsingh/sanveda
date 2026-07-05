@@ -43,6 +43,7 @@ const EMPTY: Partial<CampaignRecord> = {
   category: '["General"]',
   featureUrgent: 0,
   featureRecent: 0,
+  featured: 0,
   meta: {
     beneficiary: { name: '', location: '', category: 'General', verified: false },
     story: { ctaMessage: 'Every Dream Matters. Every Family Deserves Support.' },
