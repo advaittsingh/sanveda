@@ -122,7 +122,7 @@ async function loadFromSupabase(): Promise<Campaign[] | null> {
   const { data, error } = await requireSupabase()
     .from('campaigns')
     .select('*')
-    .eq('status', 'active')
+    .in('status', ['active', 'published', 'approved'])
     .order('id')
 
   if (error || !data?.length) return null
