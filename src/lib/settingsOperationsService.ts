@@ -43,6 +43,7 @@ export interface BrandingSettings {
   emailHeader: string
   letterhead: string
   certificateTemplate: string
+  authorizedSignature?: string
   primaryColor: string
   secondaryColor: string
   theme: 'light' | 'dark' | 'system'

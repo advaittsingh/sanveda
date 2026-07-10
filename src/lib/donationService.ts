@@ -393,55 +393,14 @@ export async function openRazorpayCheckout(
   rzp.open()
 }
 
-export function generateReceiptHtml(donation: Donation): string {
-  const date = new Date(donation.createdAt).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>80G Receipt — ${donation.receiptNumber}</title>
-  <style>
-    body { font-family: Georgia, serif; max-width: 720px; margin: 40px auto; padding: 32px; color: #1B1B1B; }
-    h1 { color: #041B4D; font-size: 22px; margin-bottom: 4px; }
-    .meta { color: #4A4A49; font-size: 14px; margin-bottom: 24px; }
-    table { width: 100%; border-collapse: collapse; margin: 24px 0; }
-    td { padding: 10px 0; border-bottom: 1px solid #DDDDDD; }
-    td:first-child { font-weight: 600; width: 40%; }
-    .footer { margin-top: 32px; font-size: 12px; color: #4A4A49; line-height: 1.6; }
-  </style>
-</head>
-<body>
-  <h1>${BRAND.name}</h1>
-  <p class="meta">Donation Receipt under Section 80G of the Income Tax Act, 1961</p>
-  <table>
-    <tr><td>Receipt No.</td><td>${donation.receiptNumber ?? '—'}</td></tr>
-    <tr><td>Date</td><td>${date}</td></tr>
-    <tr><td>Donor</td><td>${donation.isAnonymous ? 'Anonymous Donor' : (donation.donorName ?? '—')}</td></tr>
-    <tr><td>Email</td><td>${donation.isAnonymous ? '—' : (donation.donorEmail ?? '—')}</td></tr>
-    <tr><td>Campaign</td><td>${donation.campaignTitle}</td></tr>
-    <tr><td>Amount</td><td>₹${donation.amount.toLocaleString('en-IN')}</td></tr>
-    <tr><td>Payment ID</td><td>${donation.razorpayPaymentId ?? '—'}</td></tr>
-  </table>
-  <p class="footer">
-    This is a computer-generated receipt. ${BRAND.name} is registered under applicable laws.
-    For queries contact ${BRAND.email}.
-  </p>
-</body>
-</html>`
+/** @deprecated Import from `receipt80G/receipt80GService` for new code. */
+export async function generateReceiptHtml(donation: Donation): Promise<string> {
+  const { generateReceiptHtml: build } = await import('./receipt80G/receipt80GService')
+  return build(donation)
 }
 
-export function downloadReceipt(donation: Donation): void {
-  const html = generateReceiptHtml(donation)
-  const blob = new Blob([html], { type: 'text/html' })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = `${donation.receiptNumber ?? donation.id}-receipt.html`
-  anchor.click()
-  URL.revokeObjectURL(url)
+/** Downloads a production 80G PDF receipt (dynamic import avoids circular deps). */
+export async function downloadReceipt(donation: Donation): Promise<void> {
+  const { downloadReceiptForDonation } = await import('./receipt80G/receipt80GService')
+  return downloadReceiptForDonation(donation)
 }

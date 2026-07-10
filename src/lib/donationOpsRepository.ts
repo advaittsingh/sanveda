@@ -17,6 +17,7 @@ export interface DonationOpsMetaRow {
   requestedInfoAt?: string
   receiptSentAt?: string
   receiptDownloadedAt?: string
+  receiptReissuedAt?: string
   refundStatus?: string
   refundReason?: string
   pendingDocuments?: string[]
@@ -57,6 +58,7 @@ function rowToMeta(row: Record<string, unknown>): DonationOpsMetaRow {
     requestedInfoAt: row.requested_info_at ? String(row.requested_info_at) : undefined,
     receiptSentAt: row.receipt_sent_at ? String(row.receipt_sent_at) : undefined,
     receiptDownloadedAt: row.receipt_downloaded_at ? String(row.receipt_downloaded_at) : undefined,
+    receiptReissuedAt: row.receipt_reissued_at ? String(row.receipt_reissued_at) : undefined,
     refundStatus: row.refund_status ? String(row.refund_status) : undefined,
     refundReason: row.refund_reason ? String(row.refund_reason) : undefined,
     pendingDocuments: Array.isArray(row.pending_documents)
@@ -77,6 +79,7 @@ function metaToLocalRecord(meta: DonationOpsMetaRow): Record<string, unknown> {
     requestedInfoAt: meta.requestedInfoAt,
     receiptSentAt: meta.receiptSentAt,
     receiptDownloadedAt: meta.receiptDownloadedAt,
+    receiptReissuedAt: meta.receiptReissuedAt,
     refundStatus: meta.refundStatus,
     refundReason: meta.refundReason,
     pendingDocuments: meta.pendingDocuments,
@@ -132,6 +135,7 @@ export async function upsertOpsMeta(donationId: string, patch: Partial<DonationO
     requested_info_at: patch.requestedInfoAt ?? null,
     receipt_sent_at: patch.receiptSentAt ?? null,
     receipt_downloaded_at: patch.receiptDownloadedAt ?? null,
+    receipt_reissued_at: patch.receiptReissuedAt ?? null,
     refund_status: patch.refundStatus ?? null,
     refund_reason: patch.refundReason ?? null,
     pending_documents: patch.pendingDocuments ?? null,
@@ -230,12 +234,13 @@ export async function updateRefundStatus(
 export async function recordReceiptEvent(
   donationId: string,
   receiptNumber: string,
-  event: 'generated' | 'emailed' | 'downloaded',
+  event: 'generated' | 'emailed' | 'downloaded' | 'reissued',
 ): Promise<void> {
   const now = new Date().toISOString()
   const metaPatch: Partial<DonationOpsMetaRow> =
     event === 'emailed' ? { receiptSentAt: now } :
-    event === 'downloaded' ? { receiptDownloadedAt: now } : {}
+    event === 'downloaded' ? { receiptDownloadedAt: now } :
+    event === 'reissued' ? { receiptReissuedAt: now } : {}
 
   if (Object.keys(metaPatch).length) await upsertOpsMeta(donationId, metaPatch)
 

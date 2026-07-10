@@ -108,6 +108,10 @@ export function SettingsBrandingPanel({ branding }: { branding: BrandingSettings
         <label className="block"><span className={adminLabelClass}>Theme</span>
           <select className={adminInputClass} defaultValue={branding.theme}><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select>
         </label>
+        <label className="block sm:col-span-2">
+          <span className={adminLabelClass}>Authorized Signature (URL)</span>
+          <input className={adminInputClass} defaultValue={branding.authorizedSignature ?? ''} placeholder="https://…/signature.png" />
+        </label>
         <Toggle label="Dark Mode" checked={branding.darkMode} />
       </div>
       <div className="mt-4">

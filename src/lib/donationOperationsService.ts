@@ -61,7 +61,7 @@ export interface DonationOpsRecord extends Donation {
   category: string
   transactionId: string
   isVerified: boolean
-  receiptState: 'pending' | 'generated' | 'sent' | 'downloaded'
+  receiptState: 'pending' | 'generated' | 'sent' | 'downloaded' | 'reissued'
   refundStatus: RefundStatus
   refundReason?: string
 }
@@ -118,6 +118,7 @@ function mapRecord(
   const donorLabel = donation.isAnonymous ? 'Anonymous' : donation.donorName ?? donation.donorEmail ?? 'Donor'
 
   const receiptState =
+    meta?.receiptReissuedAt ? 'reissued' :
     meta?.receiptDownloadedAt ? 'downloaded' :
     meta?.receiptSentAt ? 'sent' :
     donation.receiptNumber ? 'generated' : 'pending'
@@ -354,19 +355,35 @@ export async function markReceiptSent(id: string) {
     await upsertOpsMeta(id, { receiptSentAt: new Date().toISOString() })
 
     if (updated.donorEmail && !updated.isAnonymous) {
-      await sendTransactionalEmail(
-        updated.donorEmail,
-        `Your Sanveda Donation Receipt — ${updated.receiptNumber}`,
-        donationReceiptEmailHtml({
-          donorName: updated.donorName ?? 'Donor',
-          amount: updated.amount,
-          campaignTitle: updated.campaignTitle,
-          receiptNumber: updated.receiptNumber,
-        }),
-        'donation_receipt',
-      )
+      const { getReceipt80GForDonationId, emailReceipt80G } = await import('./receipt80G/receipt80GService')
+      const receipt = await getReceipt80GForDonationId(id)
+      if (receipt) {
+        await emailReceipt80G(receipt)
+      } else {
+        await sendTransactionalEmail(
+          updated.donorEmail,
+          `Your Sanveda Donation Receipt — ${updated.receiptNumber}`,
+          donationReceiptEmailHtml({
+            donorName: updated.donorName ?? 'Donor',
+            amount: updated.amount,
+            campaignTitle: updated.campaignTitle,
+            receiptNumber: updated.receiptNumber,
+          }),
+          'donation_receipt',
+        )
+      }
       await recordReceiptEvent(id, updated.receiptNumber, 'emailed')
     }
+  })
+}
+
+export async function markReceiptReissued(id: string) {
+  return withAudit('REISSUE_RECEIPT', 'donations', id, async () => {
+    const { regenerateReceipt80G } = await import('./receipt80G/receipt80GService')
+    const receipt = await regenerateReceipt80G(id)
+    if (!receipt) return
+    await upsertOpsMeta(id, { receiptReissuedAt: new Date().toISOString() })
+    await recordReceiptEvent(id, receipt.receiptNumber, 'reissued')
   })
 }
 

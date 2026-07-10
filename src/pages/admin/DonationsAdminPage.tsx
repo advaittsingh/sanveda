@@ -30,8 +30,6 @@ import {
   bulkVerifyDonations,
   exportDonationsCsv,
   getDonationDashboardData,
-  markReceiptDownloaded,
-  markReceiptSent,
   rejectDonation,
   rejectRefund,
   requestDonationInfo,
@@ -41,7 +39,7 @@ import {
   type DonationOpsRecord,
   type DonationRange,
 } from '../../lib/donationOperationsService'
-import { downloadReceipt, getDonationById } from '../../lib/donationService'
+import { getDonationById } from '../../lib/donationService'
 import { formatIndianCompact } from '../../lib/formatIndian'
 
 function KpiSkeleton() {
@@ -94,9 +92,13 @@ export default function DonationsAdminPage() {
   }
 
   const handleDownloadReceipt = async (id: string) => {
-    await markReceiptDownloaded(id)
     const donation = await getDonationById(id)
-    if (donation) downloadReceipt(donation)
+    if (donation) {
+      const { downloadReceiptForDonation } = await import('../../lib/receipt80G/receipt80GService')
+      const { markReceiptDownloaded } = await import('../../lib/donationOperationsService')
+      await downloadReceiptForDonation(donation)
+      await markReceiptDownloaded(id)
+    }
     await refresh()
   }
 
@@ -435,13 +437,12 @@ export default function DonationsAdminPage() {
       <DonationDetailDrawer
         donation={activeDonation}
         onClose={() => setActiveDonation(null)}
-        onSendReceipt={async (id) => act(() => markReceiptSent(id))}
-        onDownloadReceipt={handleDownloadReceipt}
         onRefund={async (id, reason) => act(() => requestRefund(id, reason))}
         onSaveNotes={async (id, notes) => act(() => updateDonationNotes(id, notes))}
         onApproveRefund={async (refundId, donationId) => act(() => approveRefund(refundId, donationId))}
         onRejectRefund={async (refundId, donationId) => act(() => rejectRefund(refundId, donationId))}
         pendingRefundId={pendingRefundId}
+        onReceiptAction={refresh}
       />
     </AdminShell>
   )

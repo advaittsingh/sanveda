@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
+import Receipt80GActions from '../components/receipt80G/Receipt80GActions'
+import Receipt80GModal from '../components/receipt80G/Receipt80GModal'
 import { C } from '../constants/brand'
-import { downloadReceipt, getDonationById, type Donation } from '../lib/donationService'
+import { getDonationById, type Donation } from '../lib/donationService'
+import { getReceipt80GForDonationId } from '../lib/receipt80G/receipt80GService'
+import type { Receipt80GData } from '../lib/receipt80G/types'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 
 export default function DonationSuccessPage() {
   const mobile = useMediaQuery('(max-width: 600px)')
   const [params] = useSearchParams()
   const [donation, setDonation] = useState<Donation | null>(null)
+  const [receiptData, setReceiptData] = useState<Receipt80GData | null>(null)
+  const [showReceipt, setShowReceipt] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -18,7 +24,13 @@ export default function DonationSuccessPage() {
       return
     }
     getDonationById(id)
-      .then((d) => setDonation(d ?? null))
+      .then(async (d) => {
+        setDonation(d ?? null)
+        if (d?.status === 'completed') {
+          const receipt = await getReceipt80GForDonationId(d.id)
+          setReceiptData(receipt)
+        }
+      })
       .finally(() => setLoading(false))
   }, [params])
 
@@ -31,7 +43,7 @@ export default function DonationSuccessPage() {
         ]}
       />
 
-      <div style={{ width: '94.44%', maxWidth: 560, margin: '0 auto', padding: mobile ? '32px 16px' : '48px 0', textAlign: 'center' }}>
+      <div style={{ width: '94.44%', maxWidth: 640, margin: '0 auto', padding: mobile ? '32px 16px' : '48px 0', textAlign: 'center' }}>
         {loading ? (
           <p style={{ color: C.textMuted }}>Loading…</p>
         ) : donation ? (
@@ -51,17 +63,23 @@ export default function DonationSuccessPage() {
               </p>
             )}
 
+            {donation.status === 'completed' && receiptData ? (
+              <div style={{ marginBottom: 24, textAlign: 'left' }}>
+                <Receipt80GActions data={receiptData} compact />
+              </div>
+            ) : null}
+
             <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 12, justifyContent: 'center' }}>
-              {donation.status === 'completed' && (
+              {receiptData ? (
                 <button
                   type="button"
                   className="btn-secondary"
-                  onClick={() => downloadReceipt(donation)}
+                  onClick={() => setShowReceipt(true)}
                   style={{ padding: '12px 24px', borderRadius: 10, fontWeight: 700, cursor: 'pointer' }}
                 >
-                  Download 80G Receipt
+                  View 80G Receipt
                 </button>
-              )}
+              ) : null}
               <Link
                 to="/dashboard"
                 className="btn-primary"
@@ -75,6 +93,10 @@ export default function DonationSuccessPage() {
           <p style={{ color: C.textMuted }}>Donation not found.</p>
         )}
       </div>
+
+      {showReceipt && receiptData ? (
+        <Receipt80GModal data={receiptData} onClose={() => setShowReceipt(false)} />
+      ) : null}
     </div>
   )
 }
