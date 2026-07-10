@@ -2039,6 +2039,54 @@ svg {
   cursor: default;
 }
 
+.documents-lightbox-pdf {
+  width: min(920px, 92vw);
+  height: min(88vh, 1100px);
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: default;
+}
+
+.document-card-image-wrap[data-pdf='true'] {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+}
+
+.document-card-pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.document-card-pdf-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #041b4d;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.document-card-pdf-title {
+  margin: 0;
+  max-width: 220px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .documents-toast {
   position: fixed;
   left: 50%;

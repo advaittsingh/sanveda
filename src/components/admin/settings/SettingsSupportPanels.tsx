@@ -10,6 +10,8 @@ import type {
   IntegrationStatus,
   OrganizationSettings,
   PaymentGateway,
+  PublicComplianceDocument,
+  PublicDocumentsSettings,
   SettingsDashboardData,
   TaxComplianceSettings,
 } from '../../../lib/settingsOperationsService'
@@ -225,6 +227,81 @@ export function SettingsTaxPanel({ tax, onChange, onSave }: TaxProps) {
         <div className="rounded-xl bg-[#F8FAFC] p-4"><p className="text-xs text-slate-500">Example Receipt</p><p className="font-semibold text-[#0B2C6B]">{receiptExample}</p></div>
       </div>
       <button type="button" className={`${adminBtnPrimary} mt-4`} onClick={onSave}>Save Tax Settings</button>
+    </AdminCard>
+  )
+}
+
+interface PublicDocsProps {
+  publicDocuments: PublicDocumentsSettings
+  onChange: (value: PublicDocumentsSettings) => void
+  onSave: () => void
+}
+
+export function SettingsPublicDocumentsPanel({ publicDocuments, onChange, onSave }: PublicDocsProps) {
+  const updateDoc = (id: string, patch: Partial<PublicComplianceDocument>) => {
+    onChange({
+      documents: publicDocuments.documents.map((doc) => (
+        doc.id === id ? { ...doc, ...patch } : doc
+      )),
+    })
+  }
+
+  return (
+    <AdminCard>
+      <h3 className="mb-2 text-base font-semibold text-[#0B2C6B]">Public Compliance Documents</h3>
+      <p className="mb-4 text-sm text-slate-500">
+        These PDFs appear on the public <Link to="/documents" className="font-medium text-[#0B2C6B] underline">Documents</Link> page.
+        Upload files to <code className="rounded bg-slate-100 px-1">public/documents/</code> or use a hosted URL.
+      </p>
+      <div className="space-y-4">
+        {publicDocuments.documents
+          .slice()
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((doc) => (
+            <div key={doc.id} className="rounded-xl border border-[#E5E7EB] p-4">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h4 className="font-semibold text-[#0B2C6B]">{doc.label || 'Untitled document'}</h4>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 text-sm text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={doc.enabled}
+                      onChange={(e) => updateDoc(doc.id, { enabled: e.target.checked })}
+                    />
+                    Published
+                  </label>
+                  {doc.fileUrl ? (
+                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className={adminBtnSecondary}>
+                      Preview
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block sm:col-span-2">
+                  <span className={adminLabelClass}>Display Label</span>
+                  <input
+                    className={adminInputClass}
+                    value={doc.label}
+                    onChange={(e) => updateDoc(doc.id, { label: e.target.value })}
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className={adminLabelClass}>File URL</span>
+                  <input
+                    className={adminInputClass}
+                    value={doc.fileUrl}
+                    onChange={(e) => updateDoc(doc.id, { fileUrl: e.target.value })}
+                    placeholder="/documents/your-file.pdf"
+                  />
+                </label>
+              </div>
+            </div>
+          ))}
+      </div>
+      <button type="button" className={`${adminBtnPrimary} mt-4`} onClick={onSave}>
+        Save Public Documents
+      </button>
     </AdminCard>
   )
 }

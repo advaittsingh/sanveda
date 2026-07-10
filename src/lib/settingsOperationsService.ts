@@ -2,6 +2,7 @@ import { writePersistedMeta, allowLocalStoragePersistence, isProductionDataMode 
 import { withAudit } from './auditMiddleware'
 import { isSupabaseConfigured } from './supabase'
 import { BRAND, C } from '../constants/brand'
+import { DEFAULT_PUBLIC_COMPLIANCE_DOCUMENTS } from '../constants/publicDocuments'
 
 export type SettingsTab =
   | 'dashboard'
@@ -82,6 +83,18 @@ export interface TaxComplianceSettings {
   financialYear: string
 }
 
+export interface PublicComplianceDocument {
+  id: string
+  label: string
+  fileUrl: string
+  enabled: boolean
+  sortOrder: number
+}
+
+export interface PublicDocumentsSettings {
+  documents: PublicComplianceDocument[]
+}
+
 export interface CertificateTemplate {
   id: string
   name: string
@@ -102,6 +115,7 @@ export interface SettingsDashboardData {
   donations: DonationSettings
   paymentGateways: PaymentGateway[]
   tax: TaxComplianceSettings
+  publicDocuments: PublicDocumentsSettings
   certificates: CertificateTemplate[]
   communications: { email: string[]; sms: string[]; whatsapp: string[] }
   notifications: { event: string; email: boolean; sms: boolean; whatsapp: boolean; push: boolean; inApp: boolean }[]
@@ -245,6 +259,9 @@ function defaultData(): SettingsDashboardData {
       receiptPrefix: 'SGHF',
       receiptSequence: 1,
       financialYear: '2026-27',
+    },
+    publicDocuments: {
+      documents: DEFAULT_PUBLIC_COMPLIANCE_DOCUMENTS,
     },
     certificates: [
       { id: '1', name: 'Volunteer Certificate', type: 'volunteer', template: '{{name}}\n{{date}}\n{{program}}\n{{certificate_id}}' },
@@ -390,6 +407,11 @@ export async function getSettingsDashboardData(): Promise<SettingsDashboardData>
     branding: { ...defaults.branding, ...stored.branding },
     donations: { ...defaults.donations, ...stored.donations },
     tax: { ...defaults.tax, ...stored.tax },
+    publicDocuments: {
+      documents: stored.publicDocuments?.documents?.length
+        ? stored.publicDocuments.documents
+        : defaults.publicDocuments.documents,
+    },
     security: { ...defaults.security, ...stored.security },
     ai: { ...defaults.ai, ...stored.ai },
     automation: { ...defaults.automation, ...stored.automation },
@@ -422,6 +444,13 @@ export function saveTaxSettings(tax: TaxComplianceSettings): void {
   void withAudit('UPDATE', 'settings', 'tax', async () => {
     const stored = readStored() ?? {}
     writePersistedMeta(STORAGE_KEY, { ...stored, tax })
+  })
+}
+
+export function savePublicDocumentsSettings(publicDocuments: PublicDocumentsSettings): void {
+  void withAudit('UPDATE', 'settings', 'public_documents', async () => {
+    const stored = readStored() ?? {}
+    writePersistedMeta(STORAGE_KEY, { ...stored, publicDocuments })
   })
 }
 

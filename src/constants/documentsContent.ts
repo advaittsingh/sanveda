@@ -7,7 +7,7 @@ export const DOCUMENTS_PAGE = {
   label: 'Transparency',
   breadcrumb: 'Documents',
   title: 'Verified Documents',
-  description: `Access ${BRAND.shortName}'s registration, 80G, 12A, and CSR certificates — ensuring full transparency and accountability in everything we do.`,
+  description: `Access ${BRAND.shortName}'s registration, 80G, and 12A certificates — ensuring full transparency and accountability in everything we do.`,
 }
 
 export interface DocumentItem {
@@ -27,6 +27,10 @@ export function sanitizeDocumentFilename(label: string): string {
 export function getDocumentExtension(url: string): string {
   const match = url.split('?')[0].match(/\.([a-zA-Z0-9]+)$/)
   return match ? `.${match[1].toLowerCase()}` : '.png'
+}
+
+export function isPdfDocument(url: string): boolean {
+  return getDocumentExtension(url) === '.pdf'
 }
 
 export async function downloadDocument(imageUrl: string, label: string, mobile?: boolean): Promise<void> {

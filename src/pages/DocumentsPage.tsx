@@ -2,48 +2,27 @@ import { useEffect, useState } from 'react'
 import AboutBreadcrumb from '../components/about/AboutBreadcrumb'
 import DocumentCard from '../components/documents/DocumentCard'
 import SubPageBanner from '../components/ui/SubPageBanner'
-import { fetchCMS, getCMSSectionById } from '../api'
 import {
-  DOCUMENTS_CMS_ID,
   DOCUMENTS_PAGE,
   downloadDocument,
+  isPdfDocument,
   type DocumentItem,
 } from '../constants/documentsContent'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { getPublicDocuments } from '../lib/publicDocumentsService'
 
 export default function DocumentsPage() {
   const mobile = useMediaQuery('(max-width: 767.95px)')
   const heroMobile = useMediaQuery('(max-width: 600px)')
   const [loading, setLoading] = useState(true)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [preview, setPreview] = useState<DocumentItem | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [pageTitle, setPageTitle] = useState(DOCUMENTS_PAGE.title)
-  const [pageDescription, setPageDescription] = useState(DOCUMENTS_PAGE.description)
   const [documents, setDocuments] = useState<DocumentItem[]>([])
 
   useEffect(() => {
-    fetchCMS()
-      .then((cms) => {
-        const section = getCMSSectionById(cms, DOCUMENTS_CMS_ID) ?? cms.find((s) => s.section === 'Documents Section')
-        if (!section) return
-
-        const title = (section.title ?? '').trim()
-        const description = (section.description ?? '').trim()
-        if (title) setPageTitle(title)
-        if (description) setPageDescription(description)
-
-        const items = (section.relatedCMS ?? [])
-          .filter((item) => item && (item.status === 1 || item.status === true))
-          .map((item) => ({
-            id: item.id,
-            label: (item.title ?? '').trim(),
-            image: (item.image ?? '').trim(),
-          }))
-          .filter((item) => item.image)
-
-        setDocuments(items)
-      })
-      .catch(() => {})
+    getPublicDocuments()
+      .then(setDocuments)
+      .catch(() => setDocuments([]))
       .finally(() => setLoading(false))
   }, [])
 
@@ -72,7 +51,7 @@ export default function DocumentsPage() {
       />
 
       <div className="page-banner-wrap" data-mobile={heroMobile}>
-        <SubPageBanner title={pageTitle} subtitle={pageDescription} />
+        <SubPageBanner title={DOCUMENTS_PAGE.title} subtitle={DOCUMENTS_PAGE.description} />
       </div>
 
       <div className="documents-shell">
@@ -80,7 +59,7 @@ export default function DocumentsPage() {
           <div className="documents-panel-header">
             <p className="documents-eyebrow">{DOCUMENTS_PAGE.label}</p>
             <h2 className="documents-panel-title" data-mobile={mobile}>
-              {pageTitle}
+              {DOCUMENTS_PAGE.title}
             </h2>
           </div>
 
@@ -99,7 +78,7 @@ export default function DocumentsPage() {
                     label={doc.label}
                     image={doc.image}
                     mobile={mobile}
-                    onPreview={() => setPreview(doc.image)}
+                    onPreview={() => setPreview(doc)}
                     onDownload={() => handleDownload(doc.image, doc.label)}
                   />
                 ))
@@ -116,12 +95,21 @@ export default function DocumentsPage() {
           onClick={() => setPreview(null)}
           aria-label="Close document preview"
         >
-          <img
-            src={preview}
-            alt="Document preview"
-            className="documents-lightbox-image"
-            onClick={(event) => event.stopPropagation()}
-          />
+          {isPdfDocument(preview.image) ? (
+            <iframe
+              title={preview.label}
+              src={preview.image}
+              className="documents-lightbox-pdf"
+              onClick={(event) => event.stopPropagation()}
+            />
+          ) : (
+            <img
+              src={preview.image}
+              alt={preview.label}
+              className="documents-lightbox-image"
+              onClick={(event) => event.stopPropagation()}
+            />
+          )}
         </button>
       )}
 

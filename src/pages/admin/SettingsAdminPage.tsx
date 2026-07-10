@@ -18,6 +18,7 @@ import {
   SettingsIntegrationsPanel,
   SettingsNotificationsPanel,
   SettingsOrganizationPanel,
+  SettingsPublicDocumentsPanel,
   SettingsSecurityPanel,
   SettingsSystemPanel,
   SettingsTaxPanel,
@@ -30,9 +31,11 @@ import {
   parseSettingsTab,
   saveDonationSettings,
   saveOrganizationSettings,
+  savePublicDocumentsSettings,
   saveTaxSettings,
   type DonationSettings,
   type OrganizationSettings,
+  type PublicDocumentsSettings,
   type SettingsDashboardData,
   type SettingsTab,
   type TaxComplianceSettings,
@@ -47,6 +50,7 @@ export default function SettingsAdminPage() {
   const [org, setOrg] = useState<OrganizationSettings | null>(null)
   const [donations, setDonations] = useState<DonationSettings | null>(null)
   const [tax, setTax] = useState<TaxComplianceSettings | null>(null)
+  const [publicDocuments, setPublicDocuments] = useState<PublicDocumentsSettings | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
@@ -57,6 +61,7 @@ export default function SettingsAdminPage() {
       setOrg(data.organization)
       setDonations(data.donations)
       setTax(data.tax)
+      setPublicDocuments(data.publicDocuments)
     } finally {
       setLoading(false)
     }
@@ -132,11 +137,23 @@ export default function SettingsAdminPage() {
             />
           ) : null}
           {tab === 'tax' ? (
-            <SettingsTaxPanel
-              tax={tax}
-              onChange={setTax}
-              onSave={() => { saveTaxSettings(tax); notify('Tax & compliance settings saved.') }}
-            />
+            <>
+              <SettingsTaxPanel
+                tax={tax}
+                onChange={setTax}
+                onSave={() => { saveTaxSettings(tax); notify('Tax & compliance settings saved.') }}
+              />
+              {publicDocuments ? (
+                <SettingsPublicDocumentsPanel
+                  publicDocuments={publicDocuments}
+                  onChange={setPublicDocuments}
+                  onSave={() => {
+                    savePublicDocumentsSettings(publicDocuments)
+                    notify('Public compliance documents saved.')
+                  }}
+                />
+              ) : null}
+            </>
           ) : null}
           {tab === 'certificates' ? <SettingsCertificatesPanel certificates={dashboard.certificates} /> : null}
           {tab === 'communications' ? <SettingsCommunicationsPanel comms={dashboard.communications} /> : null}
