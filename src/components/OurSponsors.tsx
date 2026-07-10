@@ -36,14 +36,22 @@ function SectionDivider({ title, mobile }: { title: string; mobile?: boolean }) 
 }
 
 function mapCmsToSponsors(items: CMSItem[]): Sponsor[] {
+  const linkByName = new Map(
+    SPONSORS.map((s) => [s.name.toLowerCase(), s.link]),
+  )
+
   return items
     .filter((s) => s.status === 1 || s.status === true)
-    .map((s) => ({
-      id: s.id,
-      name: s.title || s.sub_title || 'Sponsor',
-      logo: s.image || undefined,
-      link: s.link || undefined,
-    }))
+    .map((s) => {
+      const name = s.title || s.sub_title || 'Sponsor'
+      return {
+        id: s.id,
+        name,
+        logo: s.image || undefined,
+        link: s.link || linkByName.get(name.toLowerCase()),
+        darkBg: SPONSORS.find((sp) => sp.name.toLowerCase() === name.toLowerCase())?.darkBg,
+      }
+    })
 }
 
 export default function OurSponsors() {
