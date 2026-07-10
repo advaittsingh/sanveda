@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, requireSupabase } from './supabase'
-import { allowLocalStoragePersistence, isProductionDataMode } from './persistMeta'
+import { allowLocalStoragePersistence } from './persistMeta'
+import { getDefaultComplianceDocuments, mergeWithDefaultComplianceDocuments } from './complianceDocumentsSeed'
 
 export type DocumentCategory =
   | 'legal'
@@ -71,21 +72,43 @@ export interface DocumentRecord {
 
 const STORAGE_KEY = 'sanveda_documents'
 
-const DEMO_DOCUMENTS: DocumentRecord[] = [
-  {
-    id: '1', documentId: 'DOC-2026-001', title: '80G Certificate',
-    category: 'certificate', folder: 'compliance', description: 'Income Tax 80G registration certificate',
-    owner: 'Finance Team', version: 'v2.1', issueDate: '2024-04-01', expiryDate: '2028-03-31',
-    visibility: 'public', status: 'published', tags: ['80g', 'compliance', 'tax'],
-    fileUrl: '/assets/focus-areas/healthcare.jpg', fileSizeMb: 1.2,
-    downloads: 2450, views: 8200, shares: 120, isCompliance: true,
-    versions: [
-      { version: 'v1.0', author: 'Admin', date: '2022-04-01', changeLog: 'Initial upload', approvalStatus: 'published' },
-      { version: 'v2.1', author: 'Finance', date: '2024-04-01', changeLog: 'Corrected registration number', approvalStatus: 'published' },
-    ],
-    createdAt: '2022-04-01T00:00:00Z', updatedAt: '2024-04-01T00:00:00Z',
-  },
-]
+let seedPromise: Promise<void> | null = null
+
+async function ensureComplianceDocumentsSeeded(): Promise<void> {
+  if (!isSupabaseConfigured) return
+  if (seedPromise) return seedPromise
+
+  seedPromise = (async () => {
+    const supabase = requireSupabase()
+    const defaults = getDefaultComplianceDocuments()
+
+    const { data, error } = await supabase.from('documents').select('document_id')
+    if (error) {
+      if (error.code === '42P01') return
+      throw new Error(error.message)
+    }
+
+    const existing = new Set((data ?? []).map((row) => String(row.document_id)))
+
+    for (const doc of defaults) {
+      if (existing.has(doc.documentId)) continue
+      const row = documentToRow(doc)
+      const { error: insertError } = await supabase.from('documents').insert({
+        ...row,
+        document_id: doc.documentId,
+      })
+      if (insertError && insertError.code !== '23505') {
+        console.warn('[documents] Seed insert failed:', insertError.message)
+      }
+    }
+  })()
+
+  return seedPromise
+}
+
+function withDefaultComplianceDocuments(documents: DocumentRecord[]): DocumentRecord[] {
+  return mergeWithDefaultComplianceDocuments(documents)
+}
 
 function rowToDocument(row: Record<string, unknown>): DocumentRecord {
   return {
@@ -148,12 +171,13 @@ function documentToRow(doc: Partial<DocumentRecord>) {
 }
 
 function readLocal(): DocumentRecord[] {
-  if (!allowLocalStoragePersistence()) return []
+  if (!allowLocalStoragePersistence()) return getDefaultComplianceDocuments()
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : (isProductionDataMode() ? [] : DEMO_DOCUMENTS)
+    const stored = raw ? JSON.parse(raw) as DocumentRecord[] : []
+    return withDefaultComplianceDocuments(stored)
   } catch {
-    return isProductionDataMode() ? [] : DEMO_DOCUMENTS
+    return getDefaultComplianceDocuments()
   }
 }
 
@@ -164,15 +188,17 @@ function writeLocal(docs: DocumentRecord[]) {
 
 export async function getAllDocuments(): Promise<DocumentRecord[]> {
   if (isSupabaseConfigured) {
+    await ensureComplianceDocumentsSeeded().catch(() => {})
     const { data, error } = await requireSupabase()
       .from('documents')
       .select('*')
       .order('created_at', { ascending: false })
-    if (error) throw new Error(error.message)
-    if ((data ?? []).length === 0 && !isProductionDataMode()) {
-      return DEMO_DOCUMENTS
+    if (error) {
+      if (error.code === '42P01') return getDefaultComplianceDocuments()
+      throw new Error(error.message)
     }
-    return (data ?? []).map(rowToDocument)
+    const documents = (data ?? []).map(rowToDocument)
+    return documents.length ? documents : getDefaultComplianceDocuments()
   }
   return readLocal()
 }
