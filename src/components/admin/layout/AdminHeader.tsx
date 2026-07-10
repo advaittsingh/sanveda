@@ -25,7 +25,7 @@ export default function AdminHeader() {
   }, [])
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-[#E5E7EB] bg-white/90 px-4 backdrop-blur-md lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 min-w-0 items-center gap-3 overflow-hidden border-b border-[#E5E7EB] bg-white/90 px-4 backdrop-blur-md lg:px-6 xl:px-8">
       <button
         type="button"
         onClick={toggleSidebar}

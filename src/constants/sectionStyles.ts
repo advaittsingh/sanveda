@@ -3,8 +3,8 @@ import { C } from './brand'
 
 function baseSectionStyle(mobile: boolean, overrides?: CSSProperties): CSSProperties {
   return {
-    width: mobile ? '100%' : '94.44%',
-    maxWidth: 1440,
+    width: mobile ? '100%' : 'min(94.44%, calc(100% - 48px))',
+    maxWidth: mobile ? undefined : 1600,
     margin: `${mobile ? 20 : 40}px auto 40px`,
     padding: mobile ? '26px 0 20px' : '60px 0 40px',
     position: 'relative',
@@ -31,8 +31,8 @@ export const HERO_BANNER_ASPECT = '1024 / 672'
 
 export function heroSectionStyle(mobile: boolean, overrides?: CSSProperties): CSSProperties {
   return {
-    width: mobile ? '100%' : '94.44%',
-    maxWidth: 1440,
+    width: mobile ? '100%' : 'min(94.44%, calc(100% - 48px))',
+    maxWidth: mobile ? undefined : 1680,
     margin: `0 auto ${mobile ? 20 : 40}px`,
     padding: 0,
     position: 'relative',

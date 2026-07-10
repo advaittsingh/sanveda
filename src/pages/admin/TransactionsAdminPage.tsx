@@ -196,7 +196,7 @@ export default function TransactionsAdminPage() {
       subtitle="Monitor payment processing, bank settlement and reconciliation."
       actions={headerActions}
     >
-      <div className="space-y-5">
+      <div className="space-y-5 admin-page">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           <StatCard label="Total Transactions" value={dashboard.kpis.totalTransactions} sub="in current filter window" icon={WalletCards} />
           <StatCard label="Successful" value={dashboard.kpis.successful} sub="captured and authorized" icon={BadgeCheck} accent="green" />
@@ -336,8 +336,8 @@ export default function TransactionsAdminPage() {
           </ExpandablePanel>
         </div>
 
-        <div className="grid items-start gap-5 xl:grid-cols-[1.65fr_1fr]">
-          <AdminCard>
+        <div className="admin-ledger-layout">
+          <AdminCard className="min-w-0">
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-sm font-semibold text-[#0B2C6B]">Transaction Ledger</h3>
@@ -357,12 +357,11 @@ export default function TransactionsAdminPage() {
               </div>
             ) : null}
 
-            <div className="overflow-hidden rounded-2xl border border-[#E5E7EB]">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[980px] text-left text-sm">
+            <div className="admin-data-table-wrap rounded-2xl border border-[#E5E7EB]">
+                <table className="admin-data-table text-left text-sm">
                   <thead>
                     <tr className="border-b border-[#E5E7EB] bg-[#F8FAFC]">
-                      <th className="px-3 py-2.5">
+                      <th className="w-10 px-3 py-2.5">
                         <input
                           type="checkbox"
                           checked={allFilteredSelected}
@@ -372,19 +371,19 @@ export default function TransactionsAdminPage() {
                           }}
                         />
                       </th>
-                      <th className="px-3 py-2.5 font-semibold text-slate-500">ID</th>
+                      <th className="hidden px-3 py-2.5 font-semibold text-slate-500 xl:table-cell">ID</th>
                       <th className="px-3 py-2.5 font-semibold text-slate-500">Donor</th>
-                      <th className="px-3 py-2.5 font-semibold text-slate-500">Campaign</th>
+                      <th className="hidden px-3 py-2.5 font-semibold text-slate-500 lg:table-cell">Campaign</th>
                       <th className="px-3 py-2.5 font-semibold text-slate-500">Amount</th>
-                      <th className="px-3 py-2.5 font-semibold text-slate-500">Method</th>
-                      <th className="px-3 py-2.5 font-semibold text-slate-500">Gateway</th>
+                      <th className="hidden px-3 py-2.5 font-semibold text-slate-500 xl:table-cell">Method</th>
+                      <th className="hidden px-3 py-2.5 font-semibold text-slate-500 lg:table-cell">Gateway</th>
                       <th className="px-3 py-2.5 font-semibold text-slate-500">Status</th>
                       <th className="px-3 py-2.5 font-semibold text-slate-500">Date</th>
-                      <th className="px-3 py-2.5 font-semibold text-slate-500" />
+                      <th className="w-12 px-3 py-2.5 font-semibold text-slate-500" />
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTransactions.map((record) => (
+                    {filteredTransactions.length ? filteredTransactions.map((record) => (
                       <tr
                         key={record.id}
                         className={`border-b border-[#E5E7EB] ${activeTransactionId === record.id ? 'bg-[#0B2C6B]/3' : 'bg-white'}`}
@@ -392,12 +391,12 @@ export default function TransactionsAdminPage() {
                         <td className="px-3 py-2">
                           <input type="checkbox" checked={selectedIds.has(record.id)} onChange={() => toggleSelection(record.id)} />
                         </td>
-                        <td className="px-3 py-2 font-medium text-[#0B2C6B]">{record.id}</td>
+                        <td className="hidden px-3 py-2 font-medium text-[#0B2C6B] xl:table-cell">{record.id}</td>
                         <td className="px-3 py-2 font-medium text-[#0B2C6B]">{record.donorName}</td>
-                        <td className="max-w-[160px] truncate px-3 py-2 text-slate-600">{record.campaign}</td>
+                        <td className="hidden max-w-[160px] truncate px-3 py-2 text-slate-600 lg:table-cell">{record.campaign}</td>
                         <td className="px-3 py-2 font-semibold text-emerald-700">{formatIndianCompact(record.amount)}</td>
-                        <td className="px-3 py-2 text-slate-600">{record.method}</td>
-                        <td className="px-3 py-2 text-slate-600">{record.gateway}</td>
+                        <td className="hidden px-3 py-2 text-slate-600 xl:table-cell">{record.method}</td>
+                        <td className="hidden px-3 py-2 text-slate-600 lg:table-cell">{record.gateway}</td>
                         <td className="px-3 py-2"><StatusBadge status={record.status} /></td>
                         <td className="px-3 py-2 text-slate-600">{formatDate(record.date)}</td>
                         <td className="relative px-3 py-2">
@@ -437,14 +436,25 @@ export default function TransactionsAdminPage() {
                           ) : null}
                         </td>
                       </tr>
-                    ))}
+                    )) : (
+                      <tr>
+                        <td colSpan={10}>
+                          <div className="admin-empty-state">
+                            <Receipt size={28} className="text-slate-300" />
+                            <strong>No transactions in this period</strong>
+                            <p className="max-w-md text-sm">
+                              Donations and payment records will appear here once donors contribute through campaigns or the donate page.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
-              </div>
             </div>
           </AdminCard>
 
-          <aside className="sticky top-6 max-h-[calc(100vh-3rem)] space-y-4 overflow-y-auto">
+          <aside className="admin-sidebar-stack space-y-4">
             <SidebarSection title="Failed Payments" subtitle="Incident queue">
               <div className="space-y-2">
                 {dashboard.failedTransactions.length ? dashboard.failedTransactions.map((record) => (

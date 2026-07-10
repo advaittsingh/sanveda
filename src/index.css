@@ -16,6 +16,7 @@
   --color-brand: #0E4FA8;
   --color-brand-hover: #041B4D;
   --color-heading: #041B4D;
+  --content-max: 1600px;
 }
 
 * {
@@ -55,11 +56,18 @@ svg {
 }
 
 .site-shell {
-  width: 94.44%;
-  max-width: 1440px;
+  width: min(94.44%, calc(100% - 48px));
+  max-width: var(--content-max);
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
+}
+
+@media (min-width: 1600px) {
+  .site-shell {
+    width: min(92%, calc(100% - 64px));
+    max-width: 1680px;
+  }
 }
 
 @media (max-width: 600px) {

@@ -12,8 +12,10 @@ interface Props {
 export default function AdminShell({ title, subtitle, children, actions }: Props) {
   return (
     <AdminLayout>
-      <PageHeader title={title} subtitle={subtitle} actions={actions} />
-      {children}
+      <div className="admin-page mx-auto w-full max-w-[1920px]">
+        <PageHeader title={title} subtitle={subtitle} actions={actions} />
+        {children}
+      </div>
     </AdminLayout>
   )
 }

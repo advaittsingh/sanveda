@@ -24,8 +24,8 @@ interface Props {
 
 export default function TransactionAnalytics({ volumeTrend, paymentMethodDistribution, settlementOverview, onViewSettlements }: Props) {
   return (
-    <div className="grid gap-5 xl:grid-cols-3">
-      <ChartCard title="Transactions Over Time" subtitle="Payment volume trend" className="min-h-0">
+    <div className="admin-chart-grid">
+      <ChartCard title="Transactions Over Time" subtitle="Payment volume trend" className="min-h-0 min-w-0">
         <ResponsiveContainer width="100%" height={200}>
           <AreaChart data={volumeTrend}>
             <defs>
@@ -43,7 +43,7 @@ export default function TransactionAnalytics({ volumeTrend, paymentMethodDistrib
         </ResponsiveContainer>
       </ChartCard>
 
-      <ChartCard title="Payment Method Distribution" subtitle="Collection mix by method">
+      <ChartCard title="Payment Method Distribution" subtitle="Collection mix by method" className="min-w-0">
         <ResponsiveContainer width="100%" height={200}>
           <PieChart>
             <Pie
@@ -64,7 +64,7 @@ export default function TransactionAnalytics({ volumeTrend, paymentMethodDistrib
         </ResponsiveContainer>
       </ChartCard>
 
-      <ChartCard title="Settlement Status" subtitle="Gateway collection vs settlement">
+      <ChartCard title="Settlement Status" subtitle="Gateway collection vs settlement" className="min-w-0">
         <div className="space-y-3">
           {settlementOverview.map((item) => {
             const pct = item.collected > 0 ? Math.round((item.settled / item.collected) * 100) : 0
