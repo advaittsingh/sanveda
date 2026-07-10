@@ -4,6 +4,7 @@ import DocumentCard from '../components/documents/DocumentCard'
 import SubPageBanner from '../components/ui/SubPageBanner'
 import {
   DOCUMENTS_PAGE,
+  buildPdfViewerUrl,
   downloadDocument,
   isPdfDocument,
   type DocumentItem,
@@ -98,7 +99,7 @@ export default function DocumentsPage() {
           {isPdfDocument(preview.image) ? (
             <iframe
               title={preview.label}
-              src={preview.image}
+              src={buildPdfViewerUrl(preview.image, { toolbar: true })}
               className="documents-lightbox-pdf"
               onClick={(event) => event.stopPropagation()}
             />

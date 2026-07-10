@@ -33,6 +33,18 @@ export function isPdfDocument(url: string): boolean {
   return getDocumentExtension(url) === '.pdf'
 }
 
+export function buildPdfViewerUrl(url: string, options?: { toolbar?: boolean }): string {
+  const base = url.split('#')[0]
+  const params = [
+    'page=1',
+    'view=FitH',
+    options?.toolbar === false ? 'toolbar=0' : null,
+    'navpanes=0',
+    'scrollbar=1',
+  ].filter(Boolean).join('&')
+  return `${base}#${params}`
+}
+
 export async function downloadDocument(imageUrl: string, label: string, mobile?: boolean): Promise<void> {
   const filename = `${sanitizeDocumentFilename(label)}${getDocumentExtension(imageUrl)}`
 

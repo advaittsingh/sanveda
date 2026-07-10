@@ -1,4 +1,5 @@
 import { DOCUMENT_ICONS, isPdfDocument } from '../../constants/documentsContent'
+import DocumentPdfCanvasPreview from './DocumentPdfCanvasPreview'
 
 interface Props {
   label: string
@@ -20,10 +21,7 @@ export default function DocumentCard({ label, image, mobile, onPreview, onDownlo
       <div className="document-card-preview">
         <div className="document-card-image-wrap" data-pdf={pdf || undefined}>
           {pdf ? (
-            <div className="document-card-pdf">
-              <span className="document-card-pdf-label">PDF</span>
-              <p className="document-card-pdf-title">{label}</p>
-            </div>
+            <DocumentPdfCanvasPreview src={image} alt={label} />
           ) : (
             <img src={image} alt={label} loading="lazy" />
           )}
