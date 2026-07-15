@@ -50,7 +50,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         amount: amountPaise,
         currency,
-        receipt: `donation_${String(donationId).slice(0, 32)}`,
+        // Razorpay receipt max length is 40 characters.
+        receipt: `d_${String(donationId).replace(/-/g, '').slice(0, 37)}`,
         notes: { donation_id: donationId },
       }),
     })
