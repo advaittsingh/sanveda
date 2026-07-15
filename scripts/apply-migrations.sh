@@ -28,6 +28,7 @@ FILES=(
   supabase/schema-phase8-campaign-admin-meta.sql
   supabase/schema-phase9-campaign-featured.sql
   supabase/schema-phase10-seed-compliance-documents.sql
+  supabase/schema-phase11-donation-insert-rls.sql
 )
 
 if [[ -n "${SUPABASE_ACCESS_TOKEN:-}" ]] && command -v supabase >/dev/null 2>&1; then

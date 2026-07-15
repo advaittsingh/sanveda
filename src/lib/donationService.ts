@@ -88,26 +88,24 @@ export async function createDonation(input: CreateDonationInput): Promise<Donati
   const now = new Date().toISOString()
 
   if (isSupabaseConfigured) {
-    const { data, error } = await requireSupabase()
-      .from('donations')
-      .insert({
-        user_id: input.userId ?? null,
-        campaign_id: input.campaignId ?? null,
-        campaign_slug: input.campaignSlug ?? null,
-        campaign_title: input.campaignTitle,
-        amount: input.amount,
-        currency: input.currency ?? 'INR',
-        is_anonymous: input.isAnonymous ?? false,
-        donor_name: input.donorName ?? null,
-        donor_email: input.donorEmail ?? null,
-        donor_phone: input.donorPhone ?? null,
-        status: 'pending',
-      })
-      .select()
-      .single()
+    // Use SECURITY DEFINER RPC so guest checkout works under RLS
+    // (anon INSERT ... RETURNING fails without a matching SELECT policy).
+    const { data, error } = await requireSupabase().rpc('create_pending_donation', {
+      p_campaign_title: input.campaignTitle,
+      p_amount: input.amount,
+      p_currency: input.currency ?? 'INR',
+      p_campaign_id: input.campaignId ?? null,
+      p_campaign_slug: input.campaignSlug ?? null,
+      p_is_anonymous: input.isAnonymous ?? false,
+      p_donor_name: input.donorName ?? null,
+      p_donor_email: input.donorEmail ?? null,
+      p_donor_phone: input.donorPhone ?? null,
+      p_user_id: input.userId ?? null,
+    })
 
     if (error) throw new Error(error.message)
-    return rowToDonation(data)
+    if (!data) throw new Error('Could not create donation')
+    return rowToDonation(data as Record<string, unknown>)
   }
 
   const donation: Donation = {
