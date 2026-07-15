@@ -303,7 +303,13 @@ export function isRazorpayConfigured(): boolean {
 
 declare global {
   interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => { open: () => void }
+    Razorpay?: new (options: Record<string, unknown>) => {
+      open: () => void
+      on: (
+        event: string,
+        handler: (response: { error?: { description?: string; reason?: string } }) => void,
+      ) => void
+    }
   }
 }
 
@@ -331,23 +337,37 @@ export async function openRazorpayCheckout(
     return
   }
 
-  await loadRazorpayScript()
+  if (!isServerPaymentAvailable()) {
+    onFailure(
+      'Secure checkout requires Supabase edge functions. Deploy create-razorpay-order and verify-razorpay-payment, then set Razorpay secrets.',
+    )
+    return
+  }
 
-  let orderId: string | undefined
+  if (!Number.isFinite(donation.amount) || donation.amount < 1) {
+    onFailure('Minimum donation amount is ₹1')
+    return
+  }
 
-  if (isServerPaymentAvailable()) {
-    try {
-      const order = await createRazorpayOrder(donation.id, donation.amount, donation.currency)
-      orderId = order?.orderId
-    } catch (err) {
-      onFailure(err instanceof Error ? err.message : 'Could not create payment order')
-      return
-    }
+  try {
+    await loadRazorpayScript()
+  } catch {
+    onFailure('Could not load Razorpay checkout. Check your network and try again.')
+    return
+  }
+
+  let orderId: string
+  try {
+    const order = await createRazorpayOrder(donation.id, donation.amount, donation.currency)
+    orderId = order.orderId
+  } catch (err) {
+    onFailure(err instanceof Error ? err.message : 'Could not create payment order')
+    return
   }
 
   const options: Record<string, unknown> = {
     key: RAZORPAY_KEY_ID,
-    amount: Math.round(donation.amount * 100),
+    order_id: orderId,
     currency: donation.currency,
     name: BRAND.shortName,
     description: donation.campaignTitle,
@@ -362,34 +382,32 @@ export async function openRazorpayCheckout(
       razorpay_order_id: string
       razorpay_signature: string
     }) => {
-      if (isServerPaymentAvailable() && response.razorpay_order_id && response.razorpay_signature) {
-        try {
-          await verifyRazorpayPayment({
-            donationId: donation.id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          })
-          onSuccess(response.razorpay_payment_id)
-          return
-        } catch (err) {
-          onFailure(err instanceof Error ? err.message : 'Payment verification failed')
-          return
-        }
+      if (!response.razorpay_order_id || !response.razorpay_payment_id || !response.razorpay_signature) {
+        onFailure('Payment response incomplete. Please contact support if amount was charged.')
+        return
       }
-      onSuccess(response.razorpay_payment_id)
+      try {
+        await verifyRazorpayPayment({
+          donationId: donation.id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+        })
+        onSuccess(response.razorpay_payment_id)
+      } catch (err) {
+        onFailure(err instanceof Error ? err.message : 'Payment verification failed')
+      }
     },
     modal: {
       ondismiss: () => onFailure('Payment cancelled'),
     },
   }
 
-  if (orderId) {
-    options.order_id = orderId
-    delete options.amount
-  }
-
   const rzp = new window.Razorpay!(options)
+  rzp.on('payment.failed', (response) => {
+    const message = response.error?.description || response.error?.reason || 'Payment failed'
+    onFailure(message)
+  })
   rzp.open()
 }
 

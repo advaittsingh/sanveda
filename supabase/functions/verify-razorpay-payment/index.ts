@@ -20,6 +20,15 @@ async function hmacSha256(key: string, message: string): Promise<string> {
     .join('')
 }
 
+function signaturesMatch(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  let mismatch = 0
+  for (let i = 0; i < a.length; i += 1) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return mismatch === 0
+}
+
 async function sendDonationEmail(
   supabase: ReturnType<typeof createClient>,
   donation: Record<string, unknown>,
@@ -69,6 +78,10 @@ Deno.serve(async (req) => {
     return optionsResponse()
   }
 
+  if (req.method !== 'POST') {
+    return jsonResponse({ error: 'Method not allowed' }, 405)
+  }
+
   try {
     const { donationId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json()
 
@@ -80,9 +93,14 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Razorpay secret not configured' }, 500)
     }
 
-    const expected = await hmacSha256(RAZORPAY_KEY_SECRET, `${razorpay_order_id}|${razorpay_payment_id}`)
-    if (expected !== razorpay_signature) {
-      return jsonResponse({ error: 'Invalid payment signature' }, 400)
+    const expected = await hmacSha256(
+      RAZORPAY_KEY_SECRET,
+      `${razorpay_order_id}|${razorpay_payment_id}`,
+    )
+
+    if (!signaturesMatch(expected, String(razorpay_signature))) {
+      // Do NOT mark donation as paid
+      return jsonResponse({ error: 'Invalid payment signature', success: false }, 400)
     }
 
     const supabase = createClient(

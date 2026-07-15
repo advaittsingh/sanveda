@@ -9,15 +9,35 @@ Deno.serve(async (req) => {
     return optionsResponse()
   }
 
-  try {
-    const { donationId, amount, currency = 'INR' } = await req.json()
+  if (req.method !== 'POST') {
+    return jsonResponse({ error: 'Method not allowed' }, 405)
+  }
 
-    if (!donationId || !amount) {
+  try {
+    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+      return jsonResponse({ error: 'Razorpay is not configured on the server' }, 500)
+    }
+
+    const body = await req.json()
+    const donationId = body.donationId as string | undefined
+    const currency = (body.currency as string | undefined) ?? 'INR'
+
+    // Accept rupees (amount) or paise (amountPaise). Frontend sends rupees.
+    let amountPaise: number
+    if (body.amountPaise != null) {
+      amountPaise = Math.round(Number(body.amountPaise))
+    } else if (body.amount != null) {
+      amountPaise = Math.round(Number(body.amount) * 100)
+    } else {
       return jsonResponse({ error: 'donationId and amount are required' }, 400)
     }
 
-    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
-      return jsonResponse({ error: 'Razorpay is not configured on the server' }, 500)
+    if (!donationId) {
+      return jsonResponse({ error: 'donationId is required' }, 400)
+    }
+
+    if (!Number.isFinite(amountPaise) || amountPaise < 100) {
+      return jsonResponse({ error: 'Minimum amount is 100 paise (₹1)' }, 400)
     }
 
     const auth = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`)
@@ -28,16 +48,19 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: Math.round(Number(amount) * 100),
+        amount: amountPaise,
         currency,
-        receipt: `donation_${donationId}`,
+        receipt: `donation_${String(donationId).slice(0, 32)}`,
         notes: { donation_id: donationId },
       }),
     })
 
     const order = await orderRes.json()
     if (!orderRes.ok) {
-      return jsonResponse({ error: order.error?.description ?? 'Failed to create order' }, 400)
+      const status = orderRes.status === 401 ? 401 : 500
+      return jsonResponse({
+        error: order.error?.description ?? order.error?.reason ?? 'Failed to create order',
+      }, status)
     }
 
     const supabase = createClient(
@@ -50,7 +73,13 @@ Deno.serve(async (req) => {
       .update({ razorpay_order_id: order.id, updated_at: new Date().toISOString() })
       .eq('id', donationId)
 
-    return jsonResponse({ orderId: order.id, amount: order.amount, currency: order.currency })
+    // Include both camelCase (frontend) and snake_case (Razorpay / docs).
+    return jsonResponse({
+      orderId: order.id,
+      order_id: order.id,
+      amount: order.amount,
+      currency: order.currency,
+    })
   } catch (err) {
     return jsonResponse({ error: err instanceof Error ? err.message : 'Unknown error' }, 500)
   }
