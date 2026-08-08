@@ -1,0 +1,7 @@
+{
+  "name": "sanveda-backend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vercel serverless API + database migrations for Sanveda (served at /api via root symlink)"
+}

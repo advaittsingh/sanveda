@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="70" viewBox="0 0 180 70" fill="none">
+  <rect width="180" height="70" rx="8" fill="#F5F7FA"/>
+  <circle cx="32" cy="35" r="16" fill="#041B4D"/>
+  <path d="M32 24l4 10h10l-8 6 3 10-9-6-9 6 3-10-8-6h10z" fill="#D4A437"/>
+  <text x="58" y="32" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#041B4D">BrightPath</text>
+  <text x="58" y="48" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#041B4D">EDUCATION TRUST</text>
+</svg>

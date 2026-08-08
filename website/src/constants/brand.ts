@@ -1,0 +1,37 @@
+export const BRAND = {
+  name: 'Sanveda Global Humanitarian Foundation',
+  shortName: 'Sanveda',
+  tagline:
+    "India's Humanitarian Assistance for Ayurvedic healing, Sports & Health Force by Hamdan pathan.",
+  email: 'Sanvedacharityfoundation@gmail.com',
+  phone: '+91 8657860021',
+  address: '201 Aalap Chs. Ltd., Sheetal Nagar, Mtnl Road, Mira Road, Thane, Thane-401107, Maharashtra',
+  logo: '/assets/sanveda-logo.png',
+  /**
+   * Public social profile URLs. Only include platforms with a confirmed Sanveda URL.
+   * Footer icons render only for keys present here — never invent placeholders.
+   * Example once confirmed: `{ facebook: 'https://www.facebook.com/...', ... }`
+   */
+  social: {} as Readonly<{ facebook?: string; linkedin?: string; instagram?: string }>,
+  colors: {
+    primary: '#041B4D',
+    secondary: '#0E4FA8',
+    secondaryLight: '#5B9AE8',
+    accent: '#0E4FA8',
+    cream: '#F5F7FA',
+    grayBg: '#F5F7FA',
+    text: '#1B1B1B',
+    textMuted: '#4A4A49',
+    white: '#FFFFFF',
+    border: '#DDDDDD',
+  },
+  gradient: 'linear-gradient(135deg, #041B4D 0%, #0E4FA8 100%)',
+} as const
+
+export const C = BRAND.colors
+
+export function toWhatsAppNumber(phone: string = BRAND.phone): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 10) return `91${digits}`
+  return digits
+}

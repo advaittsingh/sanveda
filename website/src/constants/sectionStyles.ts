@@ -1,0 +1,42 @@
+import type { CSSProperties } from 'react'
+import { C } from './brand'
+
+function baseSectionStyle(mobile: boolean, overrides?: CSSProperties): CSSProperties {
+  return {
+    width: mobile ? '100%' : 'min(94.44%, calc(100% - 48px))',
+    maxWidth: mobile ? undefined : 1600,
+    margin: `${mobile ? 20 : 40}px auto 40px`,
+    padding: mobile ? '26px 0 20px' : '60px 0 40px',
+    position: 'relative',
+    overflow: 'hidden',
+    boxSizing: 'border-box',
+    ...overrides,
+  }
+}
+
+export function sectionShellStyle(mobile: boolean, overrides?: CSSProperties): CSSProperties {
+  return baseSectionStyle(mobile, overrides)
+}
+
+export function creamSectionStyle(mobile: boolean, overrides?: CSSProperties): CSSProperties {
+  return baseSectionStyle(mobile, {
+    borderRadius: mobile ? 16 : 36,
+    backgroundColor: C.grayBg,
+    border: `1px solid ${C.border}`,
+    ...overrides,
+  })
+}
+
+export const HERO_BANNER_ASPECT = '1024 / 672'
+
+export function heroSectionStyle(mobile: boolean, overrides?: CSSProperties): CSSProperties {
+  return {
+    width: mobile ? '100%' : 'min(94.44%, calc(100% - 48px))',
+    maxWidth: mobile ? undefined : 1680,
+    margin: `0 auto ${mobile ? 20 : 40}px`,
+    padding: 0,
+    position: 'relative',
+    boxSizing: 'border-box',
+    ...overrides,
+  }
+}
